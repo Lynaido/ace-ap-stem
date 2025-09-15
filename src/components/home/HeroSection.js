@@ -23,7 +23,7 @@ const HeroSection = () => {
           </div>
         </div>
         <div className="hero-mockup">
-          <p>UI Mockup Placeholder</p>
+          <img src="https://images.pexels.com/photos/33237526/pexels-photo-33237526.jpeg" alt="App Mockup" className="mockup-image" />
         </div>
       </div>
     </section>
