@@ -1,12 +1,19 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { FaBrain } from 'react-icons/fa';
 import './Header.css';
 
 const Header = () => {
   return (
     <header className="app-header">
       <div className="header-container">
-        <Link to="/" className="logo">AAS</Link>
+        <Link to="/" className="logo">
+          <div className="logo-container">
+            <div className="logo-icon">
+              <FaBrain />
+            </div>
+          </div>
+        </Link>
         <nav className="nav-links">
           <NavLink to="/" className="nav-link">Home</NavLink>
           <NavLink to="/solve-problems" className="nav-link">Solutions</NavLink>

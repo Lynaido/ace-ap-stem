@@ -7,9 +7,9 @@ const HeroSection = () => {
     <section className="hero-section">
       <div className="hero-container">
         <div className="hero-content">
-          <h1 className="hero-title">Ace your AP STEM courses.</h1>
+          <h1 className="hero-title"><strong>Ace your AP STEM Courses with ease.</strong></h1>
           <p className="hero-tagline">
-            Upload a problem and get step-by-step hints, comprehensive concept explanations, or complete solutions. Connect with an AI tutor for personalized help whenever you need it. Master physics, calculus, chemistry, and biology with confidence.
+            Find, analyze, and organize academic papers with ease. Streamline your research, boost productivity, and gain insights faster with ScholarAI.
           </p>
           <div className="hero-buttons">
             <Link to="/sign-in" className="btn btn-primary">Sign Up Now</Link>

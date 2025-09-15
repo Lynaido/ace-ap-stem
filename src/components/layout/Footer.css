@@ -40,7 +40,7 @@
 
 .footer-links a:hover {
   color: var(--color-orange);
-  text-decoration: none;
+  text-decoration: none !important;
 }
 
 .footer-bottom {

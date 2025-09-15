@@ -29,13 +29,14 @@
   padding: 2.5rem 2rem;
   text-align: left;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  text-decoration: none;
+  text-decoration: none !important;
   color: inherit;
 }
 
 .feature-card:hover {
   transform: translateY(-8px);
   box-shadow: var(--shadow-md);
+  text-decoration: none !important;
 }
 
 .card-icon {
