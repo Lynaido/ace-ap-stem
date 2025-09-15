@@ -8,16 +8,13 @@ const Header = () => {
       <div className="header-container">
         <Link to="/" className="logo">AAS</Link>
         <nav className="nav-links">
-          <NavLink to="/solve-problems" className="nav-link">Solve Problems</NavLink>
-          <NavLink to="/concept-notes" className="nav-link">Concept Notes</NavLink>
-          <NavLink to="/tutor" className="nav-link">Tutor</NavLink>
-          <NavLink to="/notes-hub" className="nav-link">Notes Hub</NavLink>
-          <NavLink to="/study-mode" className="nav-link">Study Mode</NavLink>
-          <NavLink to="/about-us" className="nav-link">About Us</NavLink>
+          <NavLink to="/" className="nav-link">Home</NavLink>
+          <NavLink to="/solve-problems" className="nav-link">Solutions</NavLink>
+          <NavLink to="/about-us" className="nav-link">Affiliates</NavLink>
+          <NavLink to="/blog" className="nav-link">Blog</NavLink>
         </nav>
         <div className="header-actions">
-          <Link to="/sign-in" className="btn btn-secondary">Sign In</Link>
-          <Link to="/solve-problems" className="btn btn-primary">Get Started</Link>
+          <Link to="/sign-in" className="btn btn-primary">Sign In</Link>
         </div>
       </div>
     </header>

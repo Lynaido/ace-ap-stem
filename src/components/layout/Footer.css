@@ -39,7 +39,7 @@
 }
 
 .footer-links a:hover {
-  color: var(--color-teal);
+  color: var(--color-orange);
   text-decoration: none;
 }
 

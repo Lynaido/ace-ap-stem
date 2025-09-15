@@ -7,13 +7,12 @@ const HeroSection = () => {
     <section className="hero-section">
       <div className="hero-container">
         <div className="hero-content">
-          <h1>Ace your AP STEM courses.</h1>
-          <p>
-            Upload a problem…hints, concepts, or a full solution—plus an on-demand tutor.
+          <h1 className="hero-title">Ace your AP STEM courses.</h1>
+          <p className="hero-tagline">
+            Upload a problem and get step-by-step hints, comprehensive concept explanations, or complete solutions. Connect with an AI tutor for personalized help whenever you need it. Master physics, calculus, chemistry, and biology with confidence.
           </p>
           <div className="hero-buttons">
-            <Link to="/solve-problems" className="btn btn-primary">Try Solving a Problem</Link>
-            <a href="#how-it-works" className="btn btn-secondary">See How It Works</a>
+            <Link to="/sign-in" className="btn btn-primary">Sign Up Now</Link>
           </div>
           <div className="subject-badges">
             <span className="badge">AP Physics</span>
