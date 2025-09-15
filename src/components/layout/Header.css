@@ -1,0 +1,47 @@
+/* src/components/layout/Header.css */
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: var(--color-off-white);
+  box-shadow: var(--shadow-sm);
+  padding: 1rem 2rem;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logo {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-deep-navy);
+}
+
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.nav-link {
+  font-weight: 600;
+  color: var(--color-ink);
+  padding-bottom: 0.25rem;
+  border-bottom: 2px solid transparent;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--color-teal);
+  border-bottom-color: var(--color-teal);
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}

@@ -1,0 +1,26 @@
+/* src/components/home/CtaBanner.css */
+
+.cta-banner-section {
+  background-color: var(--color-deep-navy);
+  padding: 5rem 2rem;
+  margin-top: 4rem;
+}
+
+.cta-banner-container {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  color: var(--color-off-white);
+}
+
+.cta-banner-container h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--color-off-white);
+}
+
+.cta-banner-container p {
+  font-size: 1.125rem;
+  margin-bottom: 2rem;
+  color: var(--color-cool-gray);
+}

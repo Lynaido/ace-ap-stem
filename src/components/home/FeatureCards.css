@@ -1,0 +1,54 @@
+/* src/components/home/FeatureCards.css */
+
+.feature-cards-section {
+  padding: 6rem 2rem;
+  background-color: #f8f9fa; /* A slightly different off-white for contrast */
+}
+
+.feature-cards-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.feature-cards-container h2 {
+  font-size: 2.5rem;
+  margin-bottom: 4rem;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.feature-card {
+  background-color: #fff;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 2.5rem 2rem;
+  text-align: left;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  text-decoration: none;
+  color: inherit;
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-md);
+}
+
+.card-icon {
+  font-size: 2.5rem;
+  color: var(--color-teal);
+  margin-bottom: 1.5rem;
+}
+
+.feature-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.feature-card p {
+  line-height: 1.6;
+}

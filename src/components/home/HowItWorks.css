@@ -1,0 +1,58 @@
+/* src/components/home/HowItWorks.css */
+
+.how-it-works-section {
+  padding: 6rem 2rem;
+  background-color: var(--color-off-white);
+}
+
+.how-it-works-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.how-it-works-container h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.how-it-works-container > p {
+  font-size: 1.125rem;
+  color: var(--color-ink);
+  max-width: 600px;
+  margin: 0 auto 4rem auto;
+}
+
+.steps-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+.step {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+}
+
+.step-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-teal);
+  margin-bottom: 1rem;
+}
+
+.step h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.cta-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}

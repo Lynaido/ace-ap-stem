@@ -1,0 +1,52 @@
+/* src/components/layout/Footer.css */
+
+.app-footer {
+  background-color: var(--color-ink);
+  color: var(--color-off-white);
+  padding: 3rem 2rem;
+  margin-top: 4rem;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.footer-column {
+  flex: 1;
+  min-width: 200px;
+}
+
+.footer-column h4 {
+  font-family: var(--font-heading);
+  color: var(--color-off-white);
+  margin-bottom: 1rem;
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.footer-links a {
+  color: var(--color-cool-gray);
+  font-weight: 500;
+}
+
+.footer-links a:hover {
+  color: var(--color-teal);
+  text-decoration: none;
+}
+
+.footer-bottom {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-deep-navy);
+  text-align: center;
+  color: var(--color-cool-gray);
+}
