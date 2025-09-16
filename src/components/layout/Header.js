@@ -12,16 +12,19 @@ const Header = () => {
             <div className="logo-icon">
               <FaBrain />
             </div>
+            <span className="logo-text">ACE AP STEM</span>
           </div>
         </Link>
         <nav className="nav-links">
           <NavLink to="/" className="nav-link">Home</NavLink>
-          <NavLink to="/solve-problems" className="nav-link">Solutions</NavLink>
-          <NavLink to="/about-us" className="nav-link">Affiliates</NavLink>
-          <NavLink to="/blog" className="nav-link">Blog</NavLink>
+          <NavLink to="/solve-problems" className="nav-link">Problem Upload</NavLink>
+          <NavLink to="/concept-notes" className="nav-link">Concept Notes</NavLink>
+          <NavLink to="/notes-hub" className="nav-link">Notes Hub</NavLink>
+          <NavLink to="/study-mode" className="nav-link">Study Mode</NavLink>
         </nav>
         <div className="header-actions">
-          <Link to="/sign-in" className="btn btn-primary">Sign In</Link>
+          <Link to="/sign-in" className="btn btn-outline">Sign In</Link>
+          <Link to="/solve-problems" className="btn btn-primary">Get Started</Link>
         </div>
       </div>
     </header>

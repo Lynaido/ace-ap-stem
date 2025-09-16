@@ -58,6 +58,14 @@
   color: white;
 }
 
+.logo-text {
+  margin-left: 0.75rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #1a1a1a;
+  letter-spacing: -0.025em;
+}
+
 .nav-links {
   display: flex;
   gap: 2rem;
@@ -104,4 +112,50 @@
   background-color: #374151;
   transform: none;
   box-shadow: none;
+}
+
+.header-actions .btn-outline {
+  background-color: transparent;
+  color: #4b5563;
+  padding: 0.7rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: 1px solid #d1d5db;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.header-actions .btn-outline:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+  color: #1a1a1a;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 1rem;
+  }
+  
+  .nav-links {
+    display: none; /* Hide nav on mobile for now - could add hamburger menu later */
+  }
+  
+  .logo-text {
+    font-size: 1rem;
+    margin-left: 0.5rem;
+  }
+  
+  .header-actions {
+    gap: 0.5rem;
+  }
+  
+  .header-actions .btn-outline,
+  .header-actions .btn-primary {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
 }

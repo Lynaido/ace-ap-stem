@@ -1,0 +1,114 @@
+?? AAS (Ace AP STEM)
+AAS - Ace AP STEM is a student-focused web platform designed to help high school learners excel in Advanced Placement STEM courses such as math, science, and computer science.
+
+
+
+Dashboard (Landing Page)
+
+? This is the first page students see when they visit the platform. It provides an introduction to the website and highlights its main features.
+
+https://scholarai.io/
+
+? Similar to this where the landing page shows how to use the available features.
+
+
+
+1. Solving Problems
+
+? Students can upload or type a problem.
+? They select the relevant AP Subject, including: (each will be specialized for the subject that the student needed help):
+
+? AP Physics 1 & 2 (algebra-based)
+? AP Physics C: Mechanics
+? AP Physics C: Electricity & Magnetism
+
+? AP Chemistry
+
+? AP Biology
+
+? AP Computer Science A
+? AP Computer Science Principle
+
+? AP Pre-calculus
+? AP Calculus BC
+? AP Calculus AB
+? AP Statistics
+
+? Three action buttons:
+
+? Solve Problem - Instantly view the complete solution.
+
+? Step-by-Step Hints - Unlock hints one at a time with a "Next Hint" button, until the final answer is revealed.
+
+? Concept Notes - Get the key concepts and background knowledge needed to approach the problem.
+
+
+
+2. Concept Notes
+
+? The Concept Notes feature is designed to help students strengthen their understanding of the underlying theories and principles needed to solve AP STEM problems.
+? Instead of displaying the full solution, this section provides concise key concepts relevant to the problem. This way, students can build the knowledge foundation necessary to tackle the problem on their own.
+? If no problem has been uploaded or typed yet, the page will display a CTA button prompting the student to get started by adding a problem (Going back to the "Solving Problems" section)
+
+
+
+3. Chatbot Tutor
+
+The Chatbot Tutor is an always-available side panel that students can access while using features like Upload Problem, Concept Notes, or Study Mode.
+
+It acts as a personalized learning companion by:
+
+? Answering follow-up questions - whether related to an "uploaded problem" or any other topic in math, science, or computer science.
+
+
+This interactive tutor ensures students never feel stuck and can receive on-demand guidance whenever they need it.
+
+
+4. Notes Hub
+
+? A personal library where students can:
+
+? Save problems and chatbot answers
+
+? Organize content into folders
+
+? Revisit material for review
+
+? Students can pick problems from Notes Hub for further practice.
+
+
+
+5. Study Mode
+
+? Accessible from the Notes Hub, Study Mode generates new variations of a selected problem.
+
+? Variations can include different numbers or scenarios for extra practice.
+
+? Students can save these practice problems back into Notes Hub.
+
+? If no problem is selected from Notes Hub, a CTA button prompts the student to choose one first.
+
+
+*Click the brain icon will take the student to the Study Mode (Generate similar question)
+
+
+6. About Us
+
+? Shares the founder's story and the inspiration behind Ace AP STEM.
+
+
+
+
+Prototyping of the Website/Idea
+*The prototyping I made was just to visualize the idea so it's easier to understand
+
+#1 Version
+https://lovable.dev/projects/ab0b89d2-1005-4a77-b953-71a9b7552e28
+
+
+
+? The "Generated Concept Notes" in this first prototyping is more similar to what I wanted and also the "AI Tutor Chat", it have the "Save chat" button (that's what I wanted too (the "Study mode" button is not necessary)
+
+#2 Version
+https://lovable.dev/projects/1a915781-64d8-40c1-a9ad-0b7792948f1c
+This version is probably clearer and easier to understand!
