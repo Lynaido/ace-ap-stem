@@ -72,6 +72,13 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 0;
+  pointer-events: none;
+  width: fit-content;
+}
+
+.nav-links .nav-link {
+  pointer-events: auto;
 }
 
 .nav-link {
@@ -91,6 +98,8 @@
   gap: 1rem;
   align-items: center;
   flex-shrink: 0;
+  position: relative;
+  z-index: 3;
 }
 
 .header-actions .btn-secondary {
@@ -98,40 +107,49 @@
 }
 
 .header-actions .btn-primary {
-  background-color: #1a1a1a;
-  color: white;
+  background-color: #1a1a1a !important;
+  color: white !important;
   padding: 0.7rem 1.25rem;
   border-radius: 0.5rem;
   font-weight: 600;
   font-size: 0.9rem;
-  border: none;
-  transition: all 0.2s ease;
-}
-
-.header-actions .btn-primary:hover {
-  background-color: #374151;
-  transform: none;
-  box-shadow: none;
-}
-
-.header-actions .btn-outline {
-  background-color: transparent;
-  color: #4b5563;
-  padding: 0.7rem 1.25rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  font-size: 0.9rem;
-  border: 1px solid #d1d5db;
+  border: none !important;
   transition: all 0.2s ease;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  line-height: 1;
+  min-height: 2.5rem;
+  cursor: pointer;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
 }
 
+
+
+.header-actions .btn-outline span,
+.header-actions .btn-primary span {
+  pointer-events: auto;
+}
+
+.header-actions .btn-primary:hover {
+  background-color: #374151 !important;
+  transform: none;
+  box-shadow: none;
+}
+
+
+
+
+
 .header-actions .btn-outline:hover {
-  background-color: #f9fafb;
-  border-color: #9ca3af;
-  color: #1a1a1a;
+  background-color: #f9fafb !important;
+  border-color: #9ca3af !important;
+  color: #1a1a1a !important;
+  transform: none;
 }
 
 /* Mobile responsive styles */

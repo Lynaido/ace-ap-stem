@@ -23,8 +23,8 @@ const Header = () => {
           <NavLink to="/study-mode" className="nav-link">Study Mode</NavLink>
         </nav>
         <div className="header-actions">
-          <Link to="/sign-in" className="btn btn-outline">Sign In</Link>
-          <Link to="/solve-problems" className="btn btn-primary">Get Started</Link>
+          <Link to="/sign-in" className="btn btn-outline"><span>Sign In</span></Link>
+          <Link to="/solve-problems" className="btn btn-primary"><span>Get Started</span></Link>
         </div>
       </div>
     </header>

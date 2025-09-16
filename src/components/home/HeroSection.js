@@ -7,12 +7,12 @@ const HeroSection = () => {
     <section className="hero-section">
       <div className="hero-container">
         <div className="hero-content">
-          <h1 className="hero-title"><strong>Ace your AP STEM Courses with ease.</strong></h1>
+          <h1 className="hero-title"><strong>Ace Your AP STEM Courses With Ease.</strong></h1>
           <p className="hero-tagline">
             Find, analyze, and organize academic papers with ease. Streamline your research, boost productivity, and gain insights faster with ScholarAI.
           </p>
           <div className="hero-buttons">
-            <Link to="/sign-in" className="btn btn-primary">Sign Up Now</Link>
+            <Link to="/sign-up" className="btn btn-primary">Sign Up Now</Link>
           </div>
           <div className="subject-badges">
             <span className="badge">AP Physics</span>

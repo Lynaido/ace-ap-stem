@@ -1,6 +1,7 @@
 import React from 'react';
 import './styles/main.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AppProvider } from './context/AppContext';
 
 import LandingPage from './pages/LandingPage';
 import SolveProblemsPage from './pages/SolveProblemsPage';
@@ -10,34 +11,40 @@ import NotesHubPage from './pages/NotesHubPage';
 import StudyModePage from './pages/StudyModePage';
 import AboutUsPage from './pages/AboutUsPage';
 import SignInPage from './pages/SignInPage';
+import SignUpPage from './pages/SignUpPage';
 import ContactPage from './pages/ContactPage';
 import FAQPage from './pages/FAQPage';
 import PrivacyPage from './pages/PrivacyPage';
+import PrimitivesTestPage from './pages/PrimitivesTestPage';
 
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 
 function App() {
   return (
-    <Router>
-      <Header />
-      <main>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/solve-problems" element={<SolveProblemsPage />} />
-          <Route path="/concept-notes" element={<ConceptNotesPage />} />
-          <Route path="/tutor" element={<TutorPage />} />
-          <Route path="/notes-hub" element={<NotesHubPage />} />
-          <Route path="/study-mode" element={<StudyModePage />} />
-          <Route path="/about-us" element={<AboutUsPage />} />
-          <Route path="/sign-in" element={<SignInPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/faq" element={<FAQPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-        </Routes>
-      </main>
-      <Footer />
-    </Router>
+    <AppProvider>
+      <Router>
+        <Header />
+        <main>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/solve-problems" element={<SolveProblemsPage />} />
+            <Route path="/concept-notes" element={<ConceptNotesPage />} />
+            <Route path="/tutor" element={<TutorPage />} />
+            <Route path="/notes-hub" element={<NotesHubPage />} />
+            <Route path="/study-mode" element={<StudyModePage />} />
+            <Route path="/about-us" element={<AboutUsPage />} />
+            <Route path="/sign-in" element={<SignInPage />} />
+            <Route path="/sign-up" element={<SignUpPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/faq" element={<FAQPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/primitives-test" element={<PrimitivesTestPage />} />
+          </Routes>
+        </main>
+        <Footer />
+      </Router>
+    </AppProvider>
   );
 }
 
