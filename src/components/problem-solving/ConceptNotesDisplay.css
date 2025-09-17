@@ -1,0 +1,309 @@
+/* ConceptNotesDisplay.css */
+
+.concept-notes-display {
+  margin-bottom: 2rem;
+}
+
+.concept-notes-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.concept-notes-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.concept-notes-header p {
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.concept-tabs-container {
+  margin-bottom: 1.5rem;
+}
+
+.concept-notes-content {
+  margin-bottom: 1.5rem;
+  min-height: 300px;
+}
+
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.concept-note {
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--border-radius-md);
+  background-color: var(--color-bg-primary);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.concept-note:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.concept-note.concept {
+  border-left: 4px solid var(--color-info);
+}
+
+.concept-note.formula {
+  border-left: 4px solid var(--color-orange);
+}
+
+.concept-note.example {
+  border-left: 4px solid var(--color-success);
+}
+
+.concept-note.tip {
+  border-left: 4px solid var(--color-warning);
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  cursor: pointer;
+}
+
+.note-title-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.note-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.note-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+  flex: 1;
+}
+
+.difficulty-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.difficulty-badge.beginner {
+  background-color: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.difficulty-badge.intermediate {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning);
+}
+
+.difficulty-badge.advanced {
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+}
+
+.expand-button {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: var(--border-radius-sm);
+  transition: all var(--duration-fast) var(--ease-out);
+  transform: rotate(0deg);
+}
+
+.expand-button:hover {
+  background-color: var(--color-bg-alt);
+  color: var(--color-text-primary);
+}
+
+.expand-button.expanded {
+  transform: rotate(180deg);
+}
+
+.note-content {
+  padding: 0 1.25rem 1.25rem 1.25rem;
+}
+
+.note-description {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  margin-bottom: 1rem;
+}
+
+.formula-section {
+  margin-bottom: 1rem;
+}
+
+.formula-section strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+}
+
+.formula-display {
+  padding: 0.75rem;
+  background-color: var(--color-bg-alt);
+  border-radius: var(--border-radius-sm);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-light);
+  text-align: center;
+}
+
+.note-details {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border-light);
+  animation: fadeInDown 0.3s ease-out;
+}
+
+.details-section,
+.derivation-section,
+.applications-section {
+  margin-bottom: 1rem;
+}
+
+.details-section strong,
+.derivation-section strong,
+.applications-section strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+}
+
+.details-section p,
+.derivation-section p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.applications-section ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.applications-section li {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.related-topics {
+  margin-top: 1rem;
+}
+
+.related-topics strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+}
+
+.topic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.topic-tag {
+  padding: 0.25rem 0.5rem;
+  background-color: var(--color-bg-alt);
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-border-light);
+}
+
+.no-notes-message {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--color-text-secondary);
+}
+
+.no-notes-message p {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.concept-notes-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border-light);
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .note-header {
+    padding: 1rem;
+  }
+  
+  .note-content {
+    padding: 0 1rem 1rem 1rem;
+  }
+  
+  .note-title-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .concept-notes-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .topic-tags {
+    justify-content: center;
+  }
+  
+  .concept-notes-actions {
+    flex-direction: column;
+  }
+  
+  .note-title {
+    font-size: 1rem;
+  }
+}

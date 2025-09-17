@@ -1,0 +1,153 @@
+/* ProblemInputModule.css */
+
+.problem-input-module {
+  margin-bottom: 2rem;
+}
+
+.problem-input-header {
+  margin-bottom: 1.5rem;
+}
+
+.problem-input-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.problem-input-header p {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.problem-input-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.subject-selector {
+  width: 100%;
+}
+
+.problem-text-input {
+  width: 100%;
+  padding: 0.875rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  resize: vertical;
+  min-height: 120px;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.problem-text-input:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: var(--focus-ring);
+}
+
+.problem-text-input:disabled {
+  background-color: var(--color-bg-alt);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.problem-text-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.problem-input-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.clear-button,
+.submit-button {
+  min-width: 120px;
+}
+
+.current-problem-status {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.processing {
+  background-color: var(--color-warning);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.status-dot.completed {
+  background-color: var(--color-success);
+}
+
+.status-dot.error {
+  background-color: var(--color-error);
+}
+
+.status-text {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .problem-input-actions {
+    flex-direction: column;
+  }
+  
+  .clear-button,
+  .submit-button {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .problem-text-input {
+    min-height: 100px;
+  }
+}

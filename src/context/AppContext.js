@@ -7,10 +7,12 @@ const initialState = {
   isAuthenticated: false,
   
   // Active problem state
+  currentProblem: null,
   activeProblem: null,
   activeSolution: null,
   activeHints: [],
   activeConceptNotes: null,
+  displayMode: null, // 'solution', 'hints', 'concepts'
   
   // Chat state
   chatHistory: [],
@@ -43,11 +45,16 @@ const ActionTypes = {
   
   // Problem actions
   SET_ACTIVE_PROBLEM: 'SET_ACTIVE_PROBLEM',
+  SUBMIT_PROBLEM: 'SUBMIT_PROBLEM',
+  GENERATE_SOLUTION: 'GENERATE_SOLUTION',
+  GENERATE_HINTS: 'GENERATE_HINTS',
+  GENERATE_CONCEPT_NOTES: 'GENERATE_CONCEPT_NOTES',
   SET_SOLUTION: 'SET_SOLUTION',
   ADD_HINT: 'ADD_HINT',
   RESET_HINTS: 'RESET_HINTS',
   SET_CONCEPT_NOTES: 'SET_CONCEPT_NOTES',
   CLEAR_ACTIVE_PROBLEM: 'CLEAR_ACTIVE_PROBLEM',
+  CLEAR_CURRENT_PROBLEM: 'CLEAR_CURRENT_PROBLEM',
   
   // Chat actions
   ADD_CHAT_MESSAGE: 'ADD_CHAT_MESSAGE',
@@ -127,13 +134,58 @@ function appReducer(state, action) {
         activeConceptNotes: action.payload
       };
       
+    case ActionTypes.SUBMIT_PROBLEM:
+      return {
+        ...state,
+        currentProblem: action.payload,
+        activeProblem: action.payload,
+        activeSolution: null,
+        activeHints: [],
+        activeConceptNotes: null,
+        displayMode: null,
+        error: null
+      };
+      
+    case ActionTypes.GENERATE_SOLUTION:
+      return {
+        ...state,
+        activeSolution: action.payload.solution,
+        displayMode: 'solution'
+      };
+      
+    case ActionTypes.GENERATE_HINTS:
+      return {
+        ...state,
+        activeHints: action.payload,
+        displayMode: 'hints'
+      };
+      
+    case ActionTypes.GENERATE_CONCEPT_NOTES:
+      return {
+        ...state,
+        activeConceptNotes: action.payload,
+        displayMode: 'concepts'
+      };
+      
+    case ActionTypes.CLEAR_CURRENT_PROBLEM:
+      return {
+        ...state,
+        currentProblem: null,
+        activeProblem: null,
+        activeSolution: null,
+        activeHints: [],
+        activeConceptNotes: null,
+        displayMode: null
+      };
+      
     case ActionTypes.CLEAR_ACTIVE_PROBLEM:
       return {
         ...state,
         activeProblem: null,
         activeSolution: null,
         activeHints: [],
-        activeConceptNotes: null
+        activeConceptNotes: null,
+        displayMode: null
       };
       
     case ActionTypes.ADD_CHAT_MESSAGE:
@@ -260,11 +312,14 @@ export const AppProvider = ({ children }) => {
     
     // Problem actions
     setActiveProblem: (problem) => dispatch({ type: ActionTypes.SET_ACTIVE_PROBLEM, payload: problem }),
+    submitProblem: (problem) => dispatch({ type: ActionTypes.SUBMIT_PROBLEM, payload: problem }),
+    generateSolution: (solutionData) => dispatch({ type: ActionTypes.GENERATE_SOLUTION, payload: solutionData }),
     setSolution: (solution) => dispatch({ type: ActionTypes.SET_SOLUTION, payload: solution }),
     addHint: (hint) => dispatch({ type: ActionTypes.ADD_HINT, payload: hint }),
     resetHints: () => dispatch({ type: ActionTypes.RESET_HINTS }),
     setConceptNotes: (notes) => dispatch({ type: ActionTypes.SET_CONCEPT_NOTES, payload: notes }),
     clearActiveProblem: () => dispatch({ type: ActionTypes.CLEAR_ACTIVE_PROBLEM }),
+    clearCurrentProblem: () => dispatch({ type: ActionTypes.CLEAR_CURRENT_PROBLEM }),
     
     // Chat actions
     addChatMessage: (message) => dispatch({ type: ActionTypes.ADD_CHAT_MESSAGE, payload: message }),

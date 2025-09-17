@@ -1,0 +1,15 @@
+Uncaught runtime errors:
+×
+ERROR
+Cannot read properties of undefined (reading 'currentProblem')
+TypeError: Cannot read properties of undefined (reading 'currentProblem')
+    at ProblemInputModule (http://localhost:3001/static/js/bundle.js:69550:26)
+    at Object.react_stack_bottom_frame (http://localhost:3001/static/js/bundle.js:20703:18)
+    at renderWithHooks (http://localhost:3001/static/js/bundle.js:10913:20)
+    at updateFunctionComponent (http://localhost:3001/static/js/bundle.js:12606:17)
+    at beginWork (http://localhost:3001/static/js/bundle.js:13192:16)
+    at runWithFiberInDEV (http://localhost:3001/static/js/bundle.js:8684:68)
+    at performUnitOfWork (http://localhost:3001/static/js/bundle.js:15265:93)
+    at workLoopSync (http://localhost:3001/static/js/bundle.js:15158:38)
+    at renderRootSync (http://localhost:3001/static/js/bundle.js:15142:7)
+    at performWorkOnRoot (http://localhost:3001/static/js/bundle.js:14906:42)

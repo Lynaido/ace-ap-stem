@@ -5,7 +5,7 @@ Owner: Frontend Team
 Last Updated: 2025-09-16
 
 ## 1. Goals
-Deliver a modular, accessible, and easily extensible React frontend for Ace AP STEM (AAS) to support: User Authentication, Problem Solving, Step-by-Step Hints, Concept Notes, AI Tutor Chat, Notes Hub, and Study Mode. Focus now is purely UI/UX + frontend state management with clean seams for future backend/API integration.
+Deliver a modular, accessible, and easily extensible React frontend for Ace AP STEM (AAS) to support: User Authentication, Problem Solving, Step-by-Step Hints, AI Tutor Chat, Notes Hub, and Study Mode. Focus now is purely UI/UX + frontend state management with clean seams for future backend/API integration.
 
 ## 2. Tech Stack
 - React (CRA scaffold currently) – consider migration to Vite later for faster builds.
@@ -53,11 +53,7 @@ Deliver a modular, accessible, and easily extensible React frontend for Ace AP S
 
 ### 7.2 SolveProblemsPage
 - **Summary:** The core feature page where users input problems to be solved.
-- **Design and UI:** Uses a `TwoColumnLayout`. The left column contains the main content, and the right contains the docked `ChatPanel`. The problem input area is a `<Card>` at the top. Below it, a second `<Card>` will appear to display the results (`SolutionDisplay`, `HintsDisplay`, or `ConceptNotesDisplay`). This creates a clear visual hierarchy of action and result.
-
-### 7.3 ConceptNotesPage
-- **Summary:** Displays concept notes related to a problem.
-- **Design and UI:** If no problem is active, the page will be a single column containing a centered `<EmptyState>` component, guiding the user to the `SolveProblemsPage`. If a problem is active, the layout will mirror `SolveProblemsPage`, showing the generated notes in a `<Card>` on the left and the `ChatPanel` on the right.
+- **Design and UI:** Uses a `TwoColumnLayout`. The left column contains the main content, and the right contains the docked `ChatPanel`. The problem input area is a `<Card>` at the top. Below it, a second `<Card>` will appear to display the results (`SolutionDisplay` or `HintsDisplay`). This creates a clear visual hierarchy of action and result.
 
 ### 7.4 TutorPage
 - **Summary:** A dedicated, focused view for interacting with the AI Tutor.
@@ -95,17 +91,17 @@ Deliver a modular, accessible, and easily extensible React frontend for Ace AP S
 (Content Unchanged)
 
 ## 21. Implementation Task List
-- [ ] **Phase 1: Core Setup & Primitives**
-  - [ ] Create folder structure for new components and pages.
-  - [ ] Implement `AppContext` with initial state and mock actions.
-  - [ ] Implement shared primitive components: `Button`, `Card`, `Select`, `Spinner`, `EmptyState`, `Tabs`, `Input`.
-- [ ] **Phase 2: Authentication UI**
-  - [ ] Build the `SignInPage` with email/password inputs.
-  - [ ] Build the `SignUpPage` with name/email/password inputs.
-  - [ ] Ensure forms use primitive components.
+- [x] **Phase 1: Core Setup & Primitives**
+  - [x] Create folder structure for new components and pages.
+  - [x] Implement `AppContext` with initial state and mock actions.
+  - [x] Implement shared primitive components: `Button`, `Card`, `Select`, `Spinner`, `EmptyState`, `Tabs`, `Input`.
+- [x] **Phase 2: Authentication UI**
+  - [x] Build the `SignInPage` with email/password inputs.
+  - [x] Build the `SignUpPage` with name/email/password inputs.
+  - [x] Ensure forms use primitive components.
 - [ ] **Phase 3: Problem Solving Core Feature**
   - [ ] Build the `ProblemInputModule` component.
-  - [ ] Build the `SolutionDisplay`, `HintsDisplay`, and `ConceptNotesDisplay` components.
+  - [ ] Build the `SolutionDisplay` and `HintsDisplay` components.
   - [ ] Assemble the `SolveProblemsPage`.
 - [ ] **Phase 4: AI Tutor & Chat**
   - [ ] Build the `ChatPanel` component and integrate it.
