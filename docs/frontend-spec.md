@@ -103,9 +103,9 @@ Deliver a modular, accessible, and easily extensible React frontend for Ace AP S
   - [x] Build the `ProblemInputModule` component.
   - [x] Build the `SolutionDisplay` and `HintsDisplay` components.
   - [x] Assemble the `SolveProblemsPage`.
-- [ ] **Phase 4: AI Tutor & Chat**
-  - [ ] Build the `ChatPanel` component and integrate it.
-  - [ ] Build the dedicated `TutorPage`.
+- [x] **Phase 4: AI Tutor & Chat**
+  - [x] Build the `ChatPanel` component and integrate it.
+  - [x] Build the dedicated `TutorPage`.
 - [ ] **Phase 5: Notes Hub & Persistence**
   - [ ] Build the `FolderSidebar` and `SavedItemCard` components.
   - [ ] Assemble the `NotesHubPage`.

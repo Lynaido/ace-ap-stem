@@ -1,13 +1,11 @@
-import React, { useContext, useState } from 'react';
-import AppContext from '../context/AppContext';
+import React, { useState } from 'react';
 import Button from '../components/primitives/Button';
-import Select from '../components/primitives/Select';
 import SolutionDisplay from '../components/problem-solving/SolutionDisplay';
 import HintsDisplay from '../components/problem-solving/HintsDisplay';
+import ChatPanel from '../components/chat/ChatPanel';
 import './SolveProblemsPage.css';
 
 const SolveProblemsPage = () => {
-  const { dispatch } = useContext(AppContext);
   const [problemText, setProblemText] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -44,10 +42,33 @@ const SolveProblemsPage = () => {
     { isAnswer: true, text: 'The final answer is 42.', explanation: 'This is the solution to the problem.' },
   ];
 
+  const chatInitialMessages = [
+    {
+      id: 1,
+      text: 'Welcome to the AI Tutor! Upload or type your problem, and I will help you solve it.',
+      sender: 'ai',
+      timestamp: new Date(),
+    },
+  ];
+
+  const iconProps = {
+    width: 20,
+    height: 20,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    focusable: 'false',
+    'aria-hidden': true,
+  };
+
   const handleImageUpload = () => {
     setInputMode('upload');
     setProblemText('');
     setIsUploading(true);
+
     // Simulate upload
     setTimeout(() => {
       setIsUploading(false);
@@ -61,7 +82,7 @@ const SolveProblemsPage = () => {
 
   const handleSolveProblem = () => {
     if (!problemText.trim() && !selectedSubject) return;
-    
+
     // Mock problem solving
     setSolution(mockSolution);
     setHints(mockHints);
@@ -73,117 +94,153 @@ const SolveProblemsPage = () => {
     console.log('Generate learning guide');
   };
 
-
-
   return (
-    <div className="solve-problems-page">
-      <div className="container">
-        {!showSolution ? (
-          <div className="upload-card">
-            <h1>Upload Your Problem</h1>
+    <div className={`solve-problems-page ${showSolution ? 'solution-mode' : 'upload-mode'}`}>
+      <div className="solve-problems-layout">
+        <div className="main-content">
+          {!showSolution ? (
+            <div className="upload-card">
+              <div className="card-heading">
+                <h1>Upload Your Problem</h1>
+                <p className="card-subtitle">
+                  Share a question or upload a snapshot and we will walk through the solution with you step by step.
+                </p>
+              </div>
 
-            <div className="upload-tabs">
-              <button
-                className={`tab-button ${inputMode === 'upload' ? 'active' : ''}`}
-                onClick={handleImageUpload}
-                disabled={isUploading}
-              >
-                <span className="tab-icon">📤</span>
-                {isUploading ? 'Uploading...' : 'Upload Image'}
-              </button>
-              <button
-                className={`tab-button ${inputMode === 'text' ? 'active' : ''}`}
-                onClick={handleTypeProblem}
-              >
-                <span className="tab-icon">✏️</span>
-                Type Problem
-              </button>
-            </div>
+              <div className="upload-tabs" role="tablist" aria-label="Problem input methods">
+                <button
+                  type="button"
+                  className={`tab-button ${inputMode === 'upload' ? 'active' : ''}`}
+                  onClick={handleImageUpload}
+                  disabled={isUploading}
+                  aria-pressed={inputMode === 'upload'}
+                >
+                  <span className="tab-icon">
+                    <svg {...iconProps}>
+                      <path d="M12 16V4" />
+                      <path d="M8 8l4-4 4 4" />
+                      <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+                    </svg>
+                  </span>
+                  {isUploading ? 'Uploading...' : 'Upload Image'}
+                </button>
+                <button
+                  type="button"
+                  className={`tab-button ${inputMode === 'text' ? 'active' : ''}`}
+                  onClick={handleTypeProblem}
+                  aria-pressed={inputMode === 'text'}
+                >
+                  <span className="tab-icon">
+                    <svg {...iconProps}>
+                      <path d="M12 20h9" />
+                      <path d="M19 20v-9a2 2 0 0 0-2-2h-6l-4-4H5a2 2 0 0 0-2 2v11" />
+                      <path d="M9 13h6" />
+                      <path d="M9 17h3" />
+                    </svg>
+                  </span>
+                  Type Problem
+                </button>
+              </div>
 
-            <div className="upload-zone">
-              {inputMode === 'upload' ? (
-                <div className="image-drop-area">
-                  <div className="drop-content">
-                    <div className="document-icon">📄</div>
-                    <p>Click to upload an image or drag and drop</p>
+              <div className="upload-zone" role="region" aria-live="polite">
+                {inputMode === 'upload' ? (
+                  <div className="image-drop-area" tabIndex={0} role="button" aria-label="Upload an image of the problem">
+                    <div className="drop-content">
+                      <div className="document-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" focusable="false" aria-hidden="true">
+                          <path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+                          <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+                          <path d="M9 13h6" />
+                          <path d="M9 17h4" />
+                        </svg>
+                      </div>
+                      <p className="drop-title">Click to upload an image or drag and drop</p>
+                      <p className="drop-hint">PNG, JPG or PDF up to 10MB</p>
+                    </div>
                   </div>
+                ) : (
+                  <textarea
+                    className="text-input"
+                    value={problemText}
+                    onChange={(e) => setProblemText(e.target.value)}
+                    placeholder="Type your problem here..."
+                    rows={8}
+                    autoFocus
+                  />
+                )}
+              </div>
+
+              <div className="form-fields" aria-label="Problem details">
+                <div className="field-group">
+                  <label className="field-label" htmlFor="subject-select">Subject</label>
+                  <select
+                    id="subject-select"
+                    value={selectedSubject}
+                    onChange={(e) => {
+                      console.log('Subject changed:', e.target.value);
+                      setSelectedSubject(e.target.value);
+                    }}
+                    className="styled-select"
+                  >
+                    <option value="">Select subject</option>
+                    {subjects.map((subject) => (
+                      <option key={subject.value} value={subject.value}>
+                        {subject.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              ) : (
-                <textarea
-                  className="text-input"
-                  value={problemText}
-                  onChange={(e) => setProblemText(e.target.value)}
-                  placeholder="Type your problem here..."
-                  rows={8}
-                  autoFocus
-                />
-              )}
-            </div>
-
-            <div className="form-fields">
-              <div className="field-group">
-                <label className="field-label">Subject</label>
-                <select 
-                  value={selectedSubject}
-                  onChange={(e) => {
-                    console.log('Subject changed:', e.target.value);
-                    setSelectedSubject(e.target.value);
-                  }}
-                  className="styled-select"
-                >
-                  <option value="">Select subject</option>
-                  {subjects.map(subject => (
-                    <option key={subject.value} value={subject.value}>
-                      {subject.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="field-group">
+                  <label className="field-label" htmlFor="level-select">Explanation Level</label>
+                  <select
+                    id="level-select"
+                    onChange={(e) => {
+                      console.log('Level changed:', e.target.value);
+                    }}
+                    className="styled-select"
+                  >
+                    <option value="">Select level</option>
+                    <option value="basic">Basic</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                </div>
               </div>
-              <div className="field-group">
-                <label className="field-label">Explanation Level</label>
-                <select 
-                  onChange={(e) => {
-                    console.log('Level changed:', e.target.value);
-                  }}
-                  className="styled-select"
+
+              <div className="action-row">
+                <Button
+                  variant="primary"
+                  size="large"
+                  onClick={handleSolveProblem}
+                  disabled={!problemText.trim() && !selectedSubject}
+                  className="solve-btn"
                 >
-                  <option value="">Select level</option>
-                  <option value="basic">Basic</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                </select>
+                  Solve Problem
+                </Button>
+                <Button
+                  variant="outline"
+                  size="large"
+                  onClick={handleGenerateLearningGuide}
+                  className="guide-btn"
+                >
+                  Generate Learning Guide
+                </Button>
               </div>
             </div>
-
-            <div className="action-row">
-              <Button 
-                variant="primary" 
-                size="large"
-                onClick={handleSolveProblem}
-                disabled={!problemText.trim() && !selectedSubject}
-                className="solve-btn"
-              >
-                Solve Problem
-              </Button>
-              <Button
-                variant="outline"
-                size="large"
-                onClick={handleGenerateLearningGuide}
-                className="guide-btn"
-              >
-                Generate Learning Guide
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <SolutionDisplay solution={solution} problemText={problemText} />
-            <HintsDisplay hints={hints} problemText={problemText} />
-          </>
-        )}
+          ) : (
+            <>
+              <SolutionDisplay solution={solution} problemText={problemText} />
+              <HintsDisplay hints={hints} problemText={problemText} />
+            </>
+          )}
+        </div>
+        <div className="chat-sidebar">
+          <ChatPanel initialMessages={chatInitialMessages} className="chat-panel-elevated" />
+        </div>
       </div>
     </div>
   );
 };
 
 export default SolveProblemsPage;
+

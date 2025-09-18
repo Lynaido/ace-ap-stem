@@ -1,0 +1,7 @@
+/* TutorPage.css */
+
+.tutor-page {
+  height: calc(100vh - 80px); /* Full height minus header */
+  display: flex;
+  flex-direction: column;
+}
