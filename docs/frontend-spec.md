@@ -99,10 +99,10 @@ Deliver a modular, accessible, and easily extensible React frontend for Ace AP S
   - [x] Build the `SignInPage` with email/password inputs.
   - [x] Build the `SignUpPage` with name/email/password inputs.
   - [x] Ensure forms use primitive components.
-- [ ] **Phase 3: Problem Solving Core Feature**
-  - [ ] Build the `ProblemInputModule` component.
-  - [ ] Build the `SolutionDisplay` and `HintsDisplay` components.
-  - [ ] Assemble the `SolveProblemsPage`.
+- [x] **Phase 3: Problem Solving Core Feature**
+  - [x] Build the `ProblemInputModule` component.
+  - [x] Build the `SolutionDisplay` and `HintsDisplay` components.
+  - [x] Assemble the `SolveProblemsPage`.
 - [ ] **Phase 4: AI Tutor & Chat**
   - [ ] Build the `ChatPanel` component and integrate it.
   - [ ] Build the dedicated `TutorPage`.
