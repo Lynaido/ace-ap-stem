@@ -53,9 +53,9 @@ const SolveProblemsPage = () => {
       <div className="container">
         <div className="upload-card">
           <h1>Upload Your Problem</h1>
-          
+
           <div className="upload-tabs">
-            <button 
+            <button
               className={`tab-button ${inputMode === 'upload' ? 'active' : ''}`}
               onClick={handleImageUpload}
               disabled={isUploading}
@@ -63,7 +63,7 @@ const SolveProblemsPage = () => {
               <span className="tab-icon">📤</span>
               {isUploading ? 'Uploading...' : 'Upload Image'}
             </button>
-            <button 
+            <button
               className={`tab-button ${inputMode === 'text' ? 'active' : ''}`}
               onClick={handleTypeProblem}
             >
@@ -101,16 +101,7 @@ const SolveProblemsPage = () => {
                   console.log('Subject changed:', e.target.value);
                   setSelectedSubject(e.target.value);
                 }}
-                style={{
-                  padding: '0.75rem 1rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.5rem',
-                  fontSize: '0.9375rem',
-                  background: '#ffffff',
-                  color: '#1f2937',
-                  width: '100%',
-                  minHeight: '48px'
-                }}
+                className="styled-select"
               >
                 <option value="">Select subject</option>
                 {subjects.map(subject => (
@@ -126,16 +117,7 @@ const SolveProblemsPage = () => {
                 onChange={(e) => {
                   console.log('Level changed:', e.target.value);
                 }}
-                style={{
-                  padding: '0.75rem 1rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.5rem',
-                  fontSize: '0.9375rem',
-                  background: '#ffffff',
-                  color: '#1f2937',
-                  width: '100%',
-                  minHeight: '48px'
-                }}
+                className="styled-select"
               >
                 <option value="">Select level</option>
                 <option value="basic">Basic</option>
@@ -155,8 +137,8 @@ const SolveProblemsPage = () => {
             >
               Solve Problem
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="large"
               onClick={handleGenerateLearningGuide}
               className="guide-btn"

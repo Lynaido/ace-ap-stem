@@ -5,7 +5,6 @@ import { AppProvider } from './context/AppContext';
 
 import LandingPage from './pages/LandingPage';
 import SolveProblemsPage from './pages/SolveProblemsPage';
-import ConceptNotesPage from './pages/ConceptNotesPage';
 import TutorPage from './pages/TutorPage';
 import NotesHubPage from './pages/NotesHubPage';
 import StudyModePage from './pages/StudyModePage';
@@ -29,7 +28,6 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/solve-problems" element={<SolveProblemsPage />} />
-            <Route path="/concept-notes" element={<ConceptNotesPage />} />
             <Route path="/tutor" element={<TutorPage />} />
             <Route path="/notes-hub" element={<NotesHubPage />} />
             <Route path="/study-mode" element={<StudyModePage />} />

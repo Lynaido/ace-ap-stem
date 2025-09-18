@@ -77,6 +77,7 @@
 .tab-button:hover {
   color: #374151;
   background-color: rgba(255, 255, 255, 0.7);
+  transform: translateY(-2px);
 }
 
 .tab-button.active {
@@ -115,7 +116,7 @@
 .image-drop-area:hover {
   border-color: #f97316;
   background-color: #fef8f3;
-  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
 }
 
 .drop-content {
@@ -193,6 +194,26 @@
   font-weight: 600;
   color: #374151;
   margin-bottom: 0.875rem;
+}
+
+/* Custom Dropdown Arrow */
+.styled-select {
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.9375rem;
+    background: #ffffff;
+    color: #1f2937;
+    width: 100%;
+    min-height: 48px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
 }
 
 /* Simplified Select component styling - just basic container constraints */
