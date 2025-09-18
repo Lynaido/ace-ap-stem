@@ -3,7 +3,7 @@
 .solve-problems-page {
   min-height: calc(100vh - 80px); /* Adjust height: 100vh for full height, or fixed like 600px */
   background-color: #f8f9fa;
-  padding: 2rem 1rem; /* Adjust padding: top/bottom left/right */
+  padding: 1rem; /* Adjust padding: top/bottom left/right */
   display: flex;
   align-items: center; /* Change to 'flex-start' to align to top instead of center */
   justify-content: center;
@@ -11,7 +11,7 @@
 
 /* Upload Zone */
 .upload-zone {
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
   width: 100%;
   max-width: 100%;
   overflow: hidden;
@@ -19,14 +19,14 @@
 
 .container {
   width: 100%;
-  max-width: 700px; /* Change this to adjust max width: 600px, 900px, 1000px, etc. */
+  max-width: 650px; /* Change this to adjust max width: 600px, 900px, 1000px, etc. */
   min-width: 320px; /* Minimum width for mobile */
 }
 
 .upload-card {
   background: white;
   border-radius: 16px;
-  padding: 3rem 2.5rem;
+  padding: 2rem;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   border: 1px solid rgba(0, 0, 0, 0.05);
   overflow: hidden;
@@ -36,11 +36,11 @@
 }
 
 .upload-card h1 {
-  font-size: 2.25rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #1f2937;
   text-align: center;
-  margin: 0 0 2.5rem 0;
+  margin: 0 0 1.5rem 0;
   line-height: 1.2;
   letter-spacing: -0.025em;
 }
@@ -51,7 +51,7 @@
   background-color: #f8f9fa;
   border-radius: 12px;
   padding: 6px;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
   gap: 4px;
   border: 1px solid #e5e7eb;
 }
@@ -98,13 +98,13 @@
 
 /* Upload Zone */
 .upload-zone {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .image-drop-area {
   border: 2px dashed #d1d5db;
   border-radius: 12px;
-  padding: 4rem 2rem;
+  padding: 2rem 1rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -114,7 +114,7 @@
 }
 
 .image-drop-area:hover {
-  border-color: #f97316;
+  border: 2px dashed #f97316;
   background-color: #fef8f3;
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
 }
@@ -126,8 +126,8 @@
 }
 
 .document-icon {
-  font-size: 56px;
-  margin-bottom: 1.5rem;
+  font-size: 40px;
+  margin-bottom: 1rem;
   opacity: 0.7;
   filter: grayscale(0.3);
 }
@@ -142,7 +142,7 @@
 .text-input {
   width: 100%;
   max-width: 100%;
-  min-height: 220px;
+  min-height: 150px;
   padding: 1rem 1.25rem;
   border: 1px solid #d1d5db;
   border-radius: 12px;
@@ -171,8 +171,8 @@
 .form-fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2.5rem;
-  margin-bottom: 2.5rem;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
   width: 100%;
   max-width: 100%;
   overflow: hidden;
@@ -214,6 +214,12 @@
     background-repeat: no-repeat;
     background-size: 1.5em 1.5em;
     padding-right: 2.5rem;
+    transition: all 0.2s ease;
+}
+
+.styled-select:hover {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
 }
 
 /* Simplified Select component styling - just basic container constraints */
@@ -228,7 +234,7 @@
   gap: 1.5rem;
   justify-content: center;
   align-items: center;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   width: 100%;
 }
 
@@ -288,7 +294,7 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
   .container {
-    max-width: 700px;
+    max-width: 650px;
   }
   
   .upload-card {
