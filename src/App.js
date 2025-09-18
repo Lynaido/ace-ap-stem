@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './styles/main.css';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 
 import LandingPage from './pages/LandingPage';
@@ -19,10 +19,22 @@ import PrimitivesTestPage from './pages/PrimitivesTestPage';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 
+// Scroll to top component
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 function App() {
   return (
     <AppProvider>
       <Router>
+        <ScrollToTop />
         <Header />
         <main>
           <Routes>

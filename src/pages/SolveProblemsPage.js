@@ -165,7 +165,6 @@ const SolveProblemsPage = () => {
                     onChange={(e) => setProblemText(e.target.value)}
                     placeholder="Type your problem here..."
                     rows={8}
-                    autoFocus
                   />
                 )}
               </div>
@@ -243,4 +242,3 @@ const SolveProblemsPage = () => {
 };
 
 export default SolveProblemsPage;
-

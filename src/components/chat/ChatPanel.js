@@ -10,8 +10,19 @@ const ChatPanel = ({ initialMessages, className = '' }) => {
 
   const panelClassName = ['chat-panel', className].filter(Boolean).join(' ');
 
+  // Prevent initial route navigation from jumping to bottom due to smooth scrolling
+  const initialRenderRef = useRef(true);
+
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const node = messagesEndRef.current;
+    if (!node) return;
+    // First render: use instant scroll (or skip) so page doesn't jump
+    if (initialRenderRef.current) {
+      initialRenderRef.current = false;
+      node.scrollIntoView({ behavior: 'instant', block: 'end' });
+      return;
+    }
+    node.scrollIntoView({ behavior: 'smooth', block: 'end' });
   };
 
   useEffect(() => {
