@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Button from '../components/primitives/Button';
 import SolutionDisplay from '../components/problem-solving/SolutionDisplay';
 import HintsDisplay from '../components/problem-solving/HintsDisplay';
@@ -100,6 +101,12 @@ const SolveProblemsPage = () => {
         <div className="main-content">
           {!showSolution ? (
             <div className="upload-card">
+              <div className="card-top-bar">
+                <Link to="/notes-hub" className="notes-link" aria-label="Go to Notes Hub (List of Notes)">
+                  <span className="notes-link-icon" aria-hidden="true">📒</span>
+                  <span className="notes-link-text">List of Notes</span>
+                </Link>
+              </div>
               <div className="card-heading">
                 <h1>Upload Your Problem</h1>
                 <p className="card-subtitle">
