@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Button from './Button';
 import './EmptyState.css';
 
@@ -32,20 +33,30 @@ const EmptyState = ({
     }
     
     // If action is an object with button properties
-    if (typeof action === 'object') {
-      return (
-        <div className="empty-state-action">
-          <Button
-            variant={action.variant || 'primary'}
-            size={action.size || 'medium'}
-            onClick={action.onClick}
-            disabled={action.disabled}
-            icon={action.icon}
-          >
-            {action.label || 'Take Action'}
-          </Button>
-        </div>
+    if (typeof action === 'object' && action.label) {
+      const button = (
+        <Button
+          variant={action.variant || 'primary'}
+          size={action.size || 'medium'}
+          onClick={action.onClick}
+          disabled={action.disabled}
+          icon={action.icon}
+        >
+          {action.label}
+        </Button>
       );
+
+      if (action.to) {
+        return (
+          <div className="empty-state-action">
+            <Link to={action.to} className="empty-state-link">
+              {button}
+            </Link>
+          </div>
+        );
+      }
+
+      return <div className="empty-state-action">{button}</div>;
     }
     
     return null;

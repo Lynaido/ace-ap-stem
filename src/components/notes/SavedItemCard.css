@@ -100,6 +100,11 @@
   gap: 1rem;
 }
 
+.saved-item-card__actions {
+  display: flex;
+  gap: var(--spacing-small);
+}
+
 .saved-item-card__tags {
   display: flex;
   gap: 0.45rem;
@@ -130,6 +135,17 @@
   color: #c2410c;
 }
 
+.study-action {
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+  text-decoration: none;
+}
+
+.study-action:hover {
+  background: rgba(59, 130, 246, 0.2);
+  color: #1e40af;
+}
+
 @media (max-width: 600px) {
   .saved-item-card {
     padding: 1.25rem;
@@ -147,4 +163,3 @@
 .saved-item-card__time {
   color: #94a3b8;
 }
-

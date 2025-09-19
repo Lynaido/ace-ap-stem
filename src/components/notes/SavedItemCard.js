@@ -1,4 +1,5 @@
 ﻿import React from 'react';
+import { Link } from 'react-router-dom';
 import './SavedItemCard.css';
 
 const SavedItemCard = ({ item, onOpen, onReview, onToggleStar, className = '' }) => {
@@ -60,13 +61,17 @@ const SavedItemCard = ({ item, onOpen, onReview, onToggleStar, className = '' })
             <span key={tag}>{tag}</span>
           ))}
         </div>
-        <button type="button" className="saved-item-card__action" onClick={handleReview}>
-          Review
-        </button>
+        <div className="saved-item-card__actions">
+          <button type="button" className="saved-item-card__action" onClick={handleReview}>
+            Review
+          </button>
+          <Link to={{ pathname: "/study-mode", state: { problem: item } }} className="saved-item-card__action study-action">
+            Study
+          </Link>
+        </div>
       </footer>
     </article>
   );
 };
 
 export default SavedItemCard;
-

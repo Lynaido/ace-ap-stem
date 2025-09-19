@@ -106,11 +106,11 @@ Deliver a modular, accessible, and easily extensible React frontend for Ace AP S
 - [x] **Phase 4: AI Tutor & Chat**
   - [x] Build the `ChatPanel` component and integrate it.
   - [x] Build the dedicated `TutorPage`.
-- [ ] **Phase 5: Notes Hub & Persistence**
-  - [ ] Build the `FolderSidebar` and `SavedItemCard` components.
-  - [ ] Assemble the `NotesHubPage`.
-- [ ] **Phase 6: Study Mode**
-  - [ ] Build the `StudyModeGenerator` component and assemble the `StudyModePage`.
+- [x] **Phase 5: Notes Hub & Persistence**
+  - [x] Build the `FolderSidebar` and `SavedItemCard` components.
+  - [x] Assemble the `NotesHubPage`.
+- [x] **Phase 6: Study Mode**
+  - [x] Build the `StudyModeGenerator` component and assemble the `StudyModePage`.
 - [ ] **Phase 7: Finalization**
   - [ ] Populate static content pages.
   - [ ] Conduct final UI/UX polish and responsive testing.
