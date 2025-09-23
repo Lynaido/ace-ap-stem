@@ -19,7 +19,7 @@ const features = [
   {
     icon: <FaBook />,
     title: 'Concept Notes',
-    description: 'Instantly access clear, concise notes on any related STEM concept.',
+    description: 'Get essential theories and concepts required to solve a problem without revealing the final answer. Build the background knowledge that guides your thinking.',
     link: '/concept-notes'
   },
   {

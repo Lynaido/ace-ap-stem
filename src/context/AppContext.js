@@ -314,6 +314,8 @@ export const AppProvider = ({ children }) => {
     setActiveProblem: (problem) => dispatch({ type: ActionTypes.SET_ACTIVE_PROBLEM, payload: problem }),
     submitProblem: (problem) => dispatch({ type: ActionTypes.SUBMIT_PROBLEM, payload: problem }),
     generateSolution: (solutionData) => dispatch({ type: ActionTypes.GENERATE_SOLUTION, payload: solutionData }),
+    generateHints: (hints) => dispatch({ type: ActionTypes.GENERATE_HINTS, payload: hints }),
+    generateConceptNotes: (notes) => dispatch({ type: ActionTypes.GENERATE_CONCEPT_NOTES, payload: notes }),
     setSolution: (solution) => dispatch({ type: ActionTypes.SET_SOLUTION, payload: solution }),
     addHint: (hint) => dispatch({ type: ActionTypes.ADD_HINT, payload: hint }),
     resetHints: () => dispatch({ type: ActionTypes.RESET_HINTS }),

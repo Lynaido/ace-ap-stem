@@ -9,6 +9,7 @@ import TutorPage from './pages/TutorPage';
 import NotesHubPage from './pages/NotesHubPage';
 import StudyModePage from './pages/StudyModePage';
 import AboutUsPage from './pages/AboutUsPage';
+import ConceptNotesPage from './pages/ConceptNotesPage';
 import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
 import ContactPage from './pages/ContactPage';
@@ -43,6 +44,7 @@ function App() {
             <Route path="/tutor" element={<TutorPage />} />
             <Route path="/notes-hub" element={<NotesHubPage />} />
             <Route path="/study-mode" element={<StudyModePage />} />
+            <Route path="/concept-notes" element={<ConceptNotesPage />} />
             <Route path="/about-us" element={<AboutUsPage />} />
             <Route path="/sign-in" element={<SignInPage />} />
             <Route path="/sign-up" element={<SignUpPage />} />

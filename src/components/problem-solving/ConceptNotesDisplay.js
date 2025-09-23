@@ -29,8 +29,16 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText }) => {
     { id: 'tips', label: 'Study Tips', count: conceptNotes.filter(note => note.type === 'tip').length }
   ];
 
-  const getFilteredNotes = (type) => {
-    return conceptNotes.filter(note => note.type === type);
+  const getFilteredNotes = (tabId) => {
+    const typeMap = {
+      concepts: 'concept',
+      formulas: 'formula',
+      examples: 'example',
+      tips: 'tip'
+    };
+
+    const targetType = typeMap[tabId] || tabId;
+    return conceptNotes.filter(note => note.type === targetType);
   };
 
   const getCurrentNotes = () => {
@@ -131,7 +139,7 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText }) => {
     <Card className="concept-notes-display">
       <div className="concept-notes-header">
         <h2>Concept Notes</h2>
-        <p>Understanding the fundamental concepts behind this problem</p>
+        <p>Get essential theories and concepts required to understand and solve this problem without revealing the final answer. Use them as the background guide for your thinking process.</p>
       </div>
 
       <div className="concept-tabs-container">
