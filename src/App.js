@@ -2,6 +2,9 @@ import React, { useEffect } from 'react';
 import './styles/main.css';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import LandingPage from './pages/LandingPage';
 import SolveProblemsPage from './pages/SolveProblemsPage';
@@ -40,10 +43,10 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/solve-problems" element={<SolveProblemsPage />} />
+            <Route path="/solve-problems" element={<ProtectedRoute><SolveProblemsPage /></ProtectedRoute>} />
             <Route path="/tutor" element={<TutorPage />} />
-            <Route path="/notes-hub" element={<NotesHubPage />} />
-            <Route path="/study-mode" element={<StudyModePage />} />
+            <Route path="/notes-hub" element={<ProtectedRoute><NotesHubPage /></ProtectedRoute>} />
+            <Route path="/study-mode" element={<ProtectedRoute><StudyModePage /></ProtectedRoute>} />
             <Route path="/concept-notes" element={<ConceptNotesPage />} />
             <Route path="/about-us" element={<AboutUsPage />} />
             <Route path="/sign-in" element={<SignInPage />} />
@@ -55,6 +58,18 @@ function App() {
           </Routes>
         </main>
         <Footer />
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
       </Router>
     </AppProvider>
   );

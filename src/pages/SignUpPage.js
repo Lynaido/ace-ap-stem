@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
+import { toast } from 'react-toastify';
 
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
@@ -12,8 +13,24 @@ const SignUpPage = () => {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAppContext();
+  const { register } = useAppContext();
   const navigate = useNavigate();
+
+  // Show toast for registration errors
+  useEffect(() => {
+    if (errors.general) {
+      toast.error(errors.general, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+    }
+  }, [errors.general]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -58,31 +75,36 @@ const SignUpPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
+    // Clear previous errors
+    setErrors({});
+
     const newErrors = validateForm();
-    
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       setIsSubmitting(false);
       return;
     }
-    
-    // Simulate API call
-    setTimeout(() => {
-      // Mock registration and login
-      login({
-        id: '1',
-        name: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email
+
+    try {
+      // Real API call
+      await register({
+        email: formData.email,
+        password: formData.password,
+        name: `${formData.firstName} ${formData.lastName}`
       });
-      
+
       // Clear errors and navigate
       setErrors({});
       setIsSubmitting(false);
-      
+
       // Navigate to dashboard or home
       navigate('/');
-    }, 1500);
+    } catch (error) {
+      setErrors({ general: error.message || 'Registration failed. Please try again.' });
+      setIsSubmitting(false);
+    }
   };
 
   return (

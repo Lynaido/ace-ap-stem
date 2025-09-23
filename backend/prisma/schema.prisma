@@ -1,0 +1,313 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String?
+  name      String?
+  avatar    String?
+  googleId  String?  @unique
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  sessions      Session[]
+  problems      Problem[]
+  notes         Note[]
+  folders       Folder[]
+  studySessions StudySession[]
+  chatThreads   ChatThread[]
+  savedItems    SavedItem[]
+
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  refreshToken String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Problem {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  subject     String
+  difficulty  String
+  imageUrl    String?
+  userId      String
+  status      ProblemStatus @default(RECEIVED)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assets      ProblemAsset[]
+  solutions   Solution[]
+  hints       Hint[]
+  conceptNotes ConceptNote[]
+  savedItems  SavedItem[]
+  studySessions StudySession[]
+
+  @@map("problems")
+}
+
+model ProblemAsset {
+  id             String @id @default(cuid())
+  problemId      String
+  storageLocation String // 'postgres' or 's3'
+  externalKey    String?
+  externalUrl    String?
+  fileName       String
+  fileSize       Int
+  mimeType       String
+  createdAt      DateTime @default(now())
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@map("problem_assets")
+}
+
+model Solution {
+  id         String   @id @default(cuid())
+  problemId  String
+  content    String
+  confidence Float?
+  sources    String[]
+  steps      Json?
+  finalAnswer String?
+  createdAt  DateTime @default(now())
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  savedItems SavedItem[]
+
+  @@map("solutions")
+}
+
+model Hint {
+  id         String   @id @default(cuid())
+  problemId  String
+  content    String
+  createdAt  DateTime @default(now())
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  savedItems SavedItem[]
+
+  @@map("hints")
+}
+
+model ConceptNote {
+  id         String   @id @default(cuid())
+  problemId  String
+  title      String
+  content    String
+  createdAt  DateTime @default(now())
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  savedItems SavedItem[]
+
+  @@map("concept_notes")
+}
+
+model Folder {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes Note[]
+
+  @@map("folders")
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  folderId  String?
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  folder Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notes")
+}
+
+model SavedItem {
+  id         String   @id @default(cuid())
+  type       SavedItemType
+  problemId  String?
+  solutionId String?
+  hintId     String?
+  conceptNoteId String?
+  userId     String
+  starred    Boolean  @default(false)
+  tags       String[]
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem    Problem? @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  solution   Solution? @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  hint       Hint?    @relation(fields: [hintId], references: [id], onDelete: Cascade)
+  conceptNote ConceptNote? @relation(fields: [conceptNoteId], references: [id], onDelete: Cascade)
+  tagLinks   TagLink[]
+
+  @@map("saved_items")
+}
+
+model StudySession {
+  id         String   @id @default(cuid())
+  problemId  String
+  userId     String
+  variants   Json     // Generated problem variants
+  metadata   Json?    // Additional session metadata
+  createdAt  DateTime @default(now())
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("study_sessions")
+}
+
+model ChatThread {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@map("chat_threads")
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  threadId   String
+  role       MessageRole
+  content    String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  thread ChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model AiJob {
+  id        String   @id @default(cuid())
+  type      AiJobType
+  status    AiJobStatus @default(PENDING)
+  input     Json
+  output    Json?
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ai_jobs")
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @unique
+  color String?
+
+  tagLinks TagLink[]
+
+  @@map("tags")
+}
+
+model TagLink {
+  id         String @id @default(cuid())
+  tagId      String
+  savedItemId String
+  createdAt  DateTime @default(now())
+
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  savedItem SavedItem @relation(fields: [savedItemId], references: [id], onDelete: Cascade)
+
+  @@unique([tagId, savedItemId])
+  @@map("tag_links")
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  type      EventType
+  userId    String?
+  data      Json
+  createdAt DateTime @default(now())
+
+  @@map("events")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ProblemStatus {
+  RECEIVED
+  QUEUED
+  SOLVED
+}
+
+enum SavedItemType {
+  PROBLEM
+  SOLUTION
+  HINT
+  CONCEPT_NOTE
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum AiJobType {
+  SOLUTION
+  HINT
+  CONCEPT_NOTE
+  STUDY_VARIANT
+  CHAT_RESPONSE
+}
+
+enum AiJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum EventType {
+  AUTH_LOGIN
+  AUTH_LOGOUT
+  AUTH_REGISTER
+  PROBLEM_CREATED
+  PROBLEM_SOLVED
+  CONTENT_SAVED
+  AI_ESCALATION
+}

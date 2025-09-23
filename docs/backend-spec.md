@@ -73,36 +73,76 @@ Frontend Integration Notes
 
 Implementation Phases
 
-Phase 1 � Foundations
-- Scaffold Express TS project, shared env config, logger (Pino), error middleware, OpenAPI docs.
-- Add health check, version endpoint, CORS, helmet, rate limiting (basic).
-- Ship CRA with mocks still active while endpoints are being verified manually (Postman).
+✅ **Phase 1 – Foundations** (COMPLETED)
+- ✅ Scaffold Express TS project, shared env config, logger (Pino), error middleware, OpenAPI docs.
+- ✅ Add health check, version endpoint, CORS, helmet, rate limiting (basic).
+- ✅ Ship CRA with mocks still active while endpoints are being verified manually (Postman).
 
-Phase 2 � Database & Auth
-- Define Prisma schema, run migrations, seed admin user.
-- Implement auth endpoints with bcrypt hashing, JWT issuance/refresh flow, Google OAuth handshake.
-- Integrate CRA SignIn/SignUp by swapping context mock login with real API calls; persist session across reloads.
+✅ **Phase 2 – Database & Auth** (COMPLETED)
+- ✅ Define Prisma schema, run migrations, seed admin user.
+- ✅ Implement auth endpoints with bcrypt hashing, JWT issuance/refresh flow, Google OAuth handshake.
+- ✅ Integrate CRA SignIn/SignUp by swapping context mock login with real API calls; persist session across reloads.
 
-Phase 3 � Problems & Assets
+**✅ Phase 2 Frontend Integration (COMPLETED):**
+- ✅ Replace mock authentication in AppContext with real API calls to /auth endpoints
+- ✅ Add ProtectedRoute component to wrap sensitive pages (Problem Upload, Notes Hub, Study Mode)
+- ✅ Implement toast notifications for login/register/logout success and error states
+- ✅ Update Header component to show/hide navigation links based on authentication status
+- ✅ Add session persistence using JWT tokens stored in localStorage and httpOnly cookies
+- ✅ Implement proper error handling and user feedback for all authentication flows
+
+Phase 3 – Problems & Assets
 - Implement /subjects, /problems CRUD, /uploads multipart handling (Postgres storage).
 - Replace ProblemInputModule mock actions with real submissions and listing endpoints.
 - Display stored problems after reload to confirm persistence.
 
-Phase 4 � AI Pipeline
+**Phase 3 Frontend Integration:**
+- Update ProblemInputModule to use real /problems API endpoints instead of mock data
+- Implement file upload functionality using multipart/form-data to /uploads endpoint
+- Add image preview and management for uploaded problem assets
+- Update problem listing components to fetch from /problems API
+- Implement proper loading states and error handling for problem operations
+- Add problem persistence verification (problems should survive page reloads)
+
+Phase 4 – AI Pipeline
 - Add BullMQ workers, GPT-5 router, ai_jobs/ai_outputs persistence, job status polling.
 - Wire Solve Problem/Hints/Concept Notes buttons to call APIs and render real AI output.
 - Surface job status, retry logic, and error states in CRA context.
 
-Phase 5 � Notes Hub & Study Mode
+**Phase 4 Frontend Integration:**
+- Replace mock AI generation in context with real API calls to /problems/:id/solutions, /hints, /concept-notes
+- Implement job status polling using /jobs/:id endpoint to show loading states
+- Add retry mechanisms and error handling for failed AI generations
+- Update SolutionDisplay, HintsDisplay, and ConceptNotesDisplay components to render real AI outputs
+- Implement queue status indicators and progress tracking for AI operations
+- Add fallback handling for when AI services are unavailable
+
+Phase 5 – Notes Hub & Study Mode
 - Build folders/notes/tag endpoints, saved item APIs, and study session services.
 - Update NotesHubPage to fetch real data, support starring/tagging.
 - Connect StudyModePage to new endpoints for variant generation and regeneration.
 
-Phase 6 � Tutor Chat
+**Phase 5 Frontend Integration:**
+- Replace mock data in NotesHubPage with real API calls to /folders, /notes, /saved-items endpoints
+- Implement tagging system with /tags API for organizing saved content
+- Add starring/favoriting functionality for problems, solutions, hints, and concept notes
+- Update StudyModePage to use /study-sessions API for generating problem variants
+- Implement pagination and search filters for notes and saved items
+- Add real-time updates when content is saved or modified
+
+Phase 6 – Tutor Chat
 - Implement chat thread/message APIs, SSE streaming, escalation heuristics, moderation filters.
 - Update ChatPanel to send messages via REST and stream AI replies; store history for rehydration.
 
-Phase 7 � Observability & Scalability
+**Phase 6 Frontend Integration:**
+- Replace mock chat functionality with real API calls to /chat/threads and /chat/messages endpoints
+- Implement Server-Sent Events (SSE) using EventSource for real-time AI responses
+- Add chat history persistence and rehydration on page reload
+- Implement message streaming UI with typing indicators and real-time updates
+- Add moderation features and content filtering for user messages
+- Implement chat thread management and conversation history
+
+Phase 7 – Observability & Scalability
 - Add Sentry/instrumentation, structured metrics, pagination/caching, improved rate limits.
 - Prepare storage swap path (migrate existing assets to bucket, flip storage_location flag when ready).
 - Finalize docs, run load tests, add automated smoke scripts matching manual test checklist.
