@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaBolt, FaEye, FaRegLightbulb } from 'react-icons/fa';
 import { useAppContext } from '../../context/AppContext';
 import Button from '../primitives/Button';
@@ -7,135 +7,76 @@ import Card from '../primitives/Card';
 import './ProblemInputModule.css';
 
 const AP_SUBJECTS = [
-  { value: 'ap-physics-1-2', label: 'AP Physics 1 & 2 (algebra-based)' },
-  { value: 'ap-physics-c-mechanics', label: 'AP Physics C: Mechanics' },
-  { value: 'ap-physics-c-em', label: 'AP Physics C: Electricity & Magnetism' },
-  { value: 'ap-chemistry', label: 'AP Chemistry' },
-  { value: 'ap-biology', label: 'AP Biology' },
-  { value: 'ap-compsci-a', label: 'AP Computer Science A' },
-  { value: 'ap-compsci-principles', label: 'AP Computer Science Principles' },
-  { value: 'ap-precalculus', label: 'AP Pre-calculus' },
-  { value: 'ap-calculus-bc', label: 'AP Calculus BC' },
-  { value: 'ap-calculus-ab', label: 'AP Calculus AB' },
-  { value: 'ap-statistics', label: 'AP Statistics' }
+  { value: 'ap_physics_1_2', label: 'AP Physics 1 & 2 (algebra-based)' },
+  { value: 'ap_physics_c_mechanics', label: 'AP Physics C: Mechanics' },
+  { value: 'ap_physics_c_electricity_magnetism', label: 'AP Physics C: Electricity & Magnetism' },
+  { value: 'ap_chemistry', label: 'AP Chemistry' },
+  { value: 'ap_biology', label: 'AP Biology' },
+  { value: 'ap_computer_science_a', label: 'AP Computer Science A' },
+  { value: 'ap_computer_science_principles', label: 'AP Computer Science Principles' },
+  { value: 'ap_precalculus', label: 'AP Pre-calculus' },
+  { value: 'ap_calculus_bc', label: 'AP Calculus BC' },
+  { value: 'ap_calculus_ab', label: 'AP Calculus AB' },
+  { value: 'ap_statistics', label: 'AP Statistics' }
 ];
-
-const createMockSolution = () => ({
-  steps: [
-    {
-      id: 1,
-      title: 'Identify Given Information',
-      content: 'First, let\'s identify what information we have from the problem statement.',
-      explanation: 'This step helps us organize our approach and understand what we\'re working with.'
-    },
-    {
-      id: 2,
-      title: 'Apply Relevant Formula',
-      content: 'Based on the problem type, we\'ll apply the appropriate formula or principle.',
-      explanation: 'This is where we connect the problem to the underlying mathematical or scientific concepts.'
-    },
-    {
-      id: 3,
-      title: 'Calculate the Result',
-      content: 'Now we\'ll substitute our values and perform the calculations.',
-      explanation: 'Step-by-step calculation ensures accuracy and helps identify any errors.'
-    }
-  ],
-  finalAnswer: 'The solution demonstrates the key concepts and provides a clear path to the answer.',
-  confidence: 0.95
-});
-
-const createMockHints = (subjectLabel) => ([
-  {
-    type: 'Problem Scan',
-    text: 'Highlight the quantities and conditions the prompt gives you.',
-    explanation: 'Capturing the knowns and unknowns keeps the work focused on the target of the question.'
-  },
-  {
-    type: 'Strategy Hint',
-    text: `Decide which core concept from ${subjectLabel} can bridge the given information to the goal.`,
-    explanation: 'Choose the governing law or definition first so each algebraic step has a purpose.'
-  },
-  {
-    type: 'Step Hint',
-    text: 'Write the symbolic relationship before substituting numbers.',
-    explanation: 'Working symbolically exposes cancellations and keeps you from committing arithmetic too early.'
-  },
-  {
-    isAnswer: true,
-    text: 'Check that your final expression has the right units and is consistent with the scenario.',
-    explanation: 'Verifying units and directionality confirms the solution aligns with the real-world behaviour described in the problem.'
-  }
-]);
-
-const createMockConceptNotes = (subjectLabel) => ([
-  {
-    id: 'concept-1',
-    type: 'concept',
-    title: 'Essential Theories',
-    description: `Summarize the fundamental ideas from ${subjectLabel} that govern this question.`,
-    details: 'List the core definitions or conservation laws that must hold so you can test each step against them.',
-    relatedTopics: ['Problem decomposition', 'Checking assumptions']
-  },
-  {
-    id: 'concept-2',
-    type: 'formula',
-    title: 'Anchor Relationships',
-    description: 'Record the formulas or patterns you will need before inserting values.',
-    formula: 'Focus on symbolic relationships first, then plug in numbers.',
-    applications: ['Sanity check each term', 'Track units explicitly']
-  },
-  {
-    id: 'concept-3',
-    type: 'example',
-    title: 'Worked Analogy',
-    description: `Compare with a simpler ${subjectLabel} example that shares the same core structure.`,
-    details: 'Map each part of the current prompt to the simpler example to ensure you are applying the principle correctly.'
-  },
-  {
-    id: 'concept-4',
-    type: 'tip',
-    title: 'Learning Tip',
-    description: 'After solving, explain the story of the solution aloud to reinforce the reasoning chain.',
-    applications: ['Summarize the why behind each major step', 'Note any approximations you used']
-  }
-]);
-
-const MOCK_RESPONSE_DELAY = 450;
 
 const ProblemInputModule = () => {
   const {
-    currentProblem,
-    submitProblem,
-    generateSolution,
-    generateHints,
-    generateConceptNotes,
-    setError,
-    clearCurrentProblem
+    createProblem,
+    uploadFile,
+    loading,
+    error,
+    clearError
   } = useAppContext();
+
   const [problemText, setProblemText] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGeneratingHints, setIsGeneratingHints] = useState(false);
-  const [isGeneratingConceptNotes, setIsGeneratingConceptNotes] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [inputMode, setInputMode] = useState('upload');
 
   const trimmedProblem = problemText.trim();
   const subjectLabel = AP_SUBJECTS.find((subject) => subject.value === selectedSubject)?.label || 'this AP subject';
-
   const formIncomplete = !trimmedProblem || !selectedSubject;
-  const isBusy = isSubmitting || isGeneratingHints || isGeneratingConceptNotes;
+  const isBusy = isSubmitting || isUploading || loading;
 
-  const registerProblem = () => {
-    const newProblem = {
-      id: Date.now().toString(),
-      text: trimmedProblem,
-      subject: selectedSubject,
-      timestamp: new Date().toISOString(),
-      status: 'processing'
-    };
+  const handleImageUpload = () => {
+    setInputMode('upload');
+    setProblemText('');
+  };
 
-    submitProblem(newProblem);
-    return newProblem;
+  const handleTypeProblem = () => {
+    setInputMode('text');
+    setProblemText('');
+  };
+
+  const handleFileUpload = async (event) => {
+    const files = Array.from(event.target.files);
+    setIsUploading(true);
+
+    try {
+      for (const file of files) {
+        // Validate file type
+        if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+          throw new Error('Only images and PDF files are allowed');
+        }
+
+        // Validate file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+          throw new Error('File size must be less than 10MB');
+        }
+
+        await uploadFile(file, null, `Upload for problem: ${trimmedProblem.substring(0, 50)}...`);
+      }
+
+      // Clear the file input
+      event.target.value = '';
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert(error.message);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleSubmitProblem = async () => {
@@ -144,61 +85,27 @@ const ProblemInputModule = () => {
     }
 
     setIsSubmitting(true);
-
-    const problem = registerProblem();
+    clearError();
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, MOCK_RESPONSE_DELAY));
+      const problemData = {
+        title: `Problem: ${trimmedProblem.substring(0, 50)}${trimmedProblem.length > 50 ? '...' : ''}`,
+        description: trimmedProblem,
+        subject: selectedSubject,
+        difficulty: 'medium'
+      };
 
-      generateSolution({
-        problemId: problem.id,
-        solution: createMockSolution()
-      });
+      await createProblem(problemData);
+
+      // Clear form after successful submission
+      setProblemText('');
+      setSelectedSubject('');
+
     } catch (error) {
       console.error('Error submitting problem:', error);
-      setError('Failed to submit problem. Please try again.');
+      // Error is already handled in context
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleGenerateHints = async () => {
-    if (formIncomplete) {
-      return;
-    }
-
-    setIsGeneratingHints(true);
-
-    registerProblem();
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, MOCK_RESPONSE_DELAY));
-      generateHints(createMockHints(subjectLabel));
-    } catch (error) {
-      console.error('Error generating hints:', error);
-      setError('Failed to generate hints. Please try again.');
-    } finally {
-      setIsGeneratingHints(false);
-    }
-  };
-
-  const handleGenerateConceptNotes = async () => {
-    if (formIncomplete) {
-      return;
-    }
-
-    setIsGeneratingConceptNotes(true);
-
-    registerProblem();
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, MOCK_RESPONSE_DELAY));
-      generateConceptNotes(createMockConceptNotes(subjectLabel));
-    } catch (error) {
-      console.error('Error generating concept notes:', error);
-      setError('Failed to generate concept notes. Please try again.');
-    } finally {
-      setIsGeneratingConceptNotes(false);
     }
   };
 
@@ -206,114 +113,159 @@ const ProblemInputModule = () => {
     setProblemText('');
     setSelectedSubject('');
     setIsSubmitting(false);
-    setIsGeneratingHints(false);
-    setIsGeneratingConceptNotes(false);
-    clearCurrentProblem();
+    setIsUploading(false);
+    clearError();
   };
-
-  const isSolveDisabled = formIncomplete || isBusy;
-  const isHintsDisabled = formIncomplete || isBusy;
-  const isConceptDisabled = formIncomplete || isBusy;
 
   return (
     <Card className="problem-input-module">
       <div className="problem-input-header">
-        <h2>Solve a Problem</h2>
-        <p>Enter your AP STEM problem below and choose the AP subject area for targeted guidance.</p>
+        <h2>Upload Your Problem</h2>
+        <p className="card-subtitle">
+          Share a question or upload a snapshot and we will walk through the solution with you step by step.
+        </p>
       </div>
 
-      <div className="problem-input-form">
-        <div className="form-group">
-          <label htmlFor="subject-select" className="form-label">
-            AP Subject
-          </label>
-          <Select
-            id="subject-select"
-            options={AP_SUBJECTS}
-            value={selectedSubject}
-            onChange={setSelectedSubject}
-            placeholder="Choose an AP subject..."
-            className="subject-selector"
-            disabled={isBusy}
-          />
-        </div>
+      <div className="upload-tabs" role="tablist" aria-label="Problem input methods">
+        <button
+          type="button"
+          className={`tab-button ${inputMode === 'upload' ? 'active' : ''}`}
+          onClick={handleImageUpload}
+          disabled={isUploading}
+          aria-pressed={inputMode === 'upload'}
+        >
+          <span className="tab-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" focusable="false" aria-hidden="true">
+              <path d="M12 16V4" />
+              <path d="M8 8l4-4 4 4" />
+              <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+            </svg>
+          </span>
+          {isUploading ? 'Uploading...' : 'Upload Image'}
+        </button>
+        <button
+          type="button"
+          className={`tab-button ${inputMode === 'text' ? 'active' : ''}`}
+          onClick={handleTypeProblem}
+          aria-pressed={inputMode === 'text'}
+        >
+          <span className="tab-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" focusable="false" aria-hidden="true">
+              <path d="M12 20h9" />
+              <path d="M19 20v-9a2 2 0 0 0-2-2h-6l-4-4H5a2 2 0 0 0-2 2v11" />
+              <path d="M9 13h6" />
+              <path d="M9 17h3" />
+            </svg>
+          </span>
+          Type Problem
+        </button>
+      </div>
 
-        <div className="form-group">
-          <label htmlFor="problem-text" className="form-label">
-            Problem Statement
-          </label>
+      <div className="upload-zone" role="region" aria-live="polite">
+        {inputMode === 'upload' ? (
+          <div className="image-drop-area" tabIndex={0} role="button" aria-label="Upload an image of the problem">
+            <div className="drop-content">
+              <div className="document-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" focusable="false" aria-hidden="true">
+                  <path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+                  <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+                  <path d="M9 13h6" />
+                  <path d="M9 17h4" />
+                </svg>
+              </div>
+              <p className="drop-title">Click to upload an image or drag and drop</p>
+              <p className="drop-hint">PNG, JPG or PDF up to 10MB</p>
+            </div>
+          </div>
+        ) : (
           <textarea
-            id="problem-text"
-            className="problem-text-input"
+            className="text-input"
             value={problemText}
             onChange={(e) => setProblemText(e.target.value)}
-            placeholder="Paste or type your problem here. Include all given information, diagram descriptions, and what you need to find..."
-            rows={6}
-            disabled={isBusy}
+            placeholder="Type your problem here..."
+            rows={8}
           />
-        </div>
+        )}
+      </div>
 
-        <div className="problem-input-actions">
-          <Button
-            variant="ghost"
-            onClick={handleClearInput}
-            disabled={isBusy || (!problemText && !selectedSubject)}
-            className="clear-button"
+      <div className="form-fields" aria-label="Problem details">
+        <div className="field-group">
+          <label className="field-label" htmlFor="subject-select">AP Subject</label>
+          <select
+            id="subject-select"
+            value={selectedSubject}
+            onChange={(e) => setSelectedSubject(e.target.value)}
+            className="styled-select"
           >
-            Clear
-          </Button>
-          <div className="primary-action-group">
-            <Button
-              variant="ghost"
-              onClick={handleSubmitProblem}
-              disabled={isSolveDisabled}
-              className={`problem-action-button solve-action ${isSubmitting ? 'btn-loading' : ''}`}
-              icon={<FaBolt aria-hidden="true" />}
-            >
-              {isSubmitting ? 'Analyzing Problem' : 'Solve Problem'}
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={handleGenerateHints}
-              disabled={isHintsDisabled}
-              className={`problem-action-button hints-action ${isGeneratingHints ? 'btn-loading' : ''}`}
-              icon={<FaEye aria-hidden="true" />}
-            >
-              {isGeneratingHints ? 'Preparing Hints' : 'Step-by-Step Hints'}
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={handleGenerateConceptNotes}
-              disabled={isConceptDisabled}
-              className={`problem-action-button concept-action ${isGeneratingConceptNotes ? 'btn-loading' : ''}`}
-              icon={<FaRegLightbulb aria-hidden="true" />}
-            >
-              {isGeneratingConceptNotes ? 'Curating Notes' : 'Generate Concept Notes'}
-            </Button>
-          </div>
+            <option value="">Select AP subject</option>
+            {AP_SUBJECTS.map((subject) => (
+              <option key={subject.value} value={subject.value}>
+                {subject.label}
+              </option>
+            ))}
+          </select>
         </div>
-
-        <div className="concept-callout">
-          <div className="concept-callout-icon" aria-hidden="true">
-            <FaRegLightbulb />
-          </div>
-          <div className="concept-callout-content">
-            <h3>What are Concept Notes?</h3>
-            <p>Get essential theories and concepts required to understand and solve a problem, without revealing the final answer. They provide the background knowledge that guides your thinking and learning process.</p>
-          </div>
+        <div className="field-group">
+          <label className="field-label" htmlFor="level-select">Explanation Level</label>
+          <select
+            id="level-select"
+            onChange={(e) => console.log('Level changed:', e.target.value)}
+            className="styled-select"
+          >
+            <option value="">Select level</option>
+            <option value="basic">Basic</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
         </div>
       </div>
 
-      {currentProblem && (
-        <div className="current-problem-status">
-          <div className="status-indicator">
-            <div className={`status-dot ${currentProblem.status}`}></div>
-            <span className="status-text">
-              {currentProblem.status === 'processing'
-                ? 'Analyzing your problem...'
-                : 'Problem processed successfully'}
-            </span>
-          </div>
+      <div className="action-row problem-actions">
+        <Button
+          variant="ghost"
+          size="large"
+          onClick={handleSubmitProblem}
+          disabled={formIncomplete || isBusy}
+          className={`problem-action-button solve-action ${isSubmitting ? 'btn-loading' : ''}`}
+          icon={<FaBolt aria-hidden="true" />}
+        >
+          {isSubmitting ? 'Analyzing Problem' : 'Solve Problem'}
+        </Button>
+        <Button
+          variant="ghost"
+          size="large"
+          onClick={handleClearInput}
+          disabled={isBusy || (!problemText && !selectedSubject)}
+          className="problem-action-button hints-action"
+          icon={<FaEye aria-hidden="true" />}
+        >
+          Step-by-Step Hints
+        </Button>
+        <Button
+          variant="ghost"
+          size="large"
+          onClick={handleClearInput}
+          disabled={formIncomplete || isBusy}
+          className="problem-action-button concept-action"
+          icon={<FaRegLightbulb aria-hidden="true" />}
+        >
+          Generate Concept Notes
+        </Button>
+      </div>
+
+      <div className="concept-callout">
+        <div className="concept-callout-icon" aria-hidden="true">
+          <FaRegLightbulb />
+        </div>
+        <div className="concept-callout-content">
+          <h3>What are Concept Notes?</h3>
+          <p>Get essential theories and concepts required to understand and solve a problem, without revealing the final answer. They provide the background knowledge that guides your thinking and learning process.</p>
+        </div>
+      </div>
+
+      {error && (
+        <div className="error-message">
+          <strong>Error:</strong> {error}
         </div>
       )}
     </Card>

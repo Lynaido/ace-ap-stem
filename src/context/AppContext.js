@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { authAPI } from '../utils/api';
+import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import { authAPI, problemAPI } from '../utils/api';
 import { toast } from 'react-toastify';
 
 // Initial state
@@ -7,6 +7,7 @@ const initialState = {
   // Authentication
   user: null,
   isAuthenticated: false,
+  isAuthLoading: true, // Add loading state for authentication initialization
 
   // Active problem state
   currentProblem: null,
@@ -86,6 +87,7 @@ function appReducer(state, action) {
         ...state,
         user: action.payload,
         isAuthenticated: true,
+        isAuthLoading: false,
         error: null
       };
 
@@ -94,6 +96,7 @@ function appReducer(state, action) {
         ...state,
         user: null,
         isAuthenticated: false,
+        isAuthLoading: false,
         activeProblem: null,
         activeSolution: null,
         activeHints: [],
@@ -322,14 +325,25 @@ export const AppProvider = ({ children }) => {
           localStorage.removeItem('accessToken');
           dispatch({ type: ActionTypes.LOGOUT });
         }
+      } else {
+        // No token found, set loading to false
+        dispatch({ type: ActionTypes.LOGOUT });
       }
     };
 
+    // Add a timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      dispatch({ type: ActionTypes.LOGOUT });
+    }, 3000);
+
     initializeAuth();
+
+    // Clear timeout when component unmounts or effect runs again
+    return () => clearTimeout(timeout);
   }, []);
 
   // Async authentication functions
-  const login = async (credentials) => {
+  const login = useCallback(async (credentials) => {
     try {
       dispatch({ type: ActionTypes.SET_LOADING, payload: true });
       dispatch({ type: ActionTypes.CLEAR_ERROR });
@@ -356,9 +370,9 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
       throw error;
     }
-  };
+  }, []);
 
-  const register = async (userData) => {
+  const register = useCallback(async (userData) => {
     try {
       dispatch({ type: ActionTypes.SET_LOADING, payload: true });
       dispatch({ type: ActionTypes.CLEAR_ERROR });
@@ -385,9 +399,9 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
       throw error;
     }
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await authAPI.logout();
       dispatch({ type: ActionTypes.LOGOUT });
@@ -405,7 +419,195 @@ export const AppProvider = ({ children }) => {
         window.location.href = '/sign-in?logout=success';
       }
     }
-  };
+  }, []);
+
+  // API integration functions
+  const createProblem = useCallback(async (problemData) => {
+    try {
+      dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+      dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+      const response = await problemAPI.create(problemData);
+      dispatch({ type: ActionTypes.SUBMIT_PROBLEM, payload: response.data });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+
+      toast.success('Problem created successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+
+      return response.data;
+    } catch (error) {
+      dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      throw error;
+    }
+  }, []);
+
+  const getProblems = useCallback(async () => {
+    try {
+      dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+      dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+      const response = await problemAPI.getAll();
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+
+      return response.data;
+    } catch (error) {
+      dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      throw error;
+    }
+  }, []);
+
+  const getProblemById = useCallback(async (id) => {
+    try {
+      dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+      dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+      const response = await problemAPI.getById(id);
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+
+      return response.data;
+    } catch (error) {
+      dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      throw error;
+    }
+  }, []);
+
+  const updateProblem = useCallback(async (id, problemData) => {
+    try {
+      dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+      dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+      const response = await problemAPI.update(id, problemData);
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+
+      toast.success('Problem updated successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+
+      return response.data;
+    } catch (error) {
+      dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      throw error;
+    }
+  }, []);
+
+  const deleteProblem = useCallback(async (id) => {
+    try {
+      dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+      dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+      await problemAPI.delete(id);
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+
+      toast.success('Problem deleted successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+    } catch (error) {
+      dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      throw error;
+    }
+  }, []);
+
+  const uploadFile = useCallback(async (file, problemId = null, description = '') => {
+    try {
+      dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+      dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      if (problemId) {
+        formData.append('problemId', problemId);
+      }
+
+      if (description) {
+        formData.append('description', description);
+      }
+
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/uploads`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+        credentials: 'include',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Upload failed');
+      }
+
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+
+      toast.success('File uploaded successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+
+      return data.data;
+    } catch (error) {
+      dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      throw error;
+    }
+  }, []);
+
+  const getSubjects = useCallback(async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/subjects`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch subjects');
+      }
+
+      return data.data;
+    } catch (error) {
+      console.error('Error fetching subjects:', error);
+      throw error;
+    }
+  }, []);
 
   // Action creators
   const actions = {
@@ -426,6 +628,15 @@ export const AppProvider = ({ children }) => {
     setConceptNotes: (notes) => dispatch({ type: ActionTypes.SET_CONCEPT_NOTES, payload: notes }),
     clearActiveProblem: () => dispatch({ type: ActionTypes.CLEAR_ACTIVE_PROBLEM }),
     clearCurrentProblem: () => dispatch({ type: ActionTypes.CLEAR_CURRENT_PROBLEM }),
+
+    // API integration actions
+    createProblem,
+    getProblems,
+    getProblemById,
+    updateProblem,
+    deleteProblem,
+    uploadFile,
+    getSubjects,
 
     // Chat actions
     addChatMessage: (message) => dispatch({ type: ActionTypes.ADD_CHAT_MESSAGE, payload: message }),

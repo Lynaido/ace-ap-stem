@@ -42,13 +42,28 @@ const swaggerDefinition = {
             example: false,
           },
           error: {
-            type: 'object',
-            properties: {
-              message: {
-                type: 'string',
-                example: 'Error message',
-              },
+            type: 'string',
+            example: 'Error message',
+          },
+        },
+      },
+      Subject: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            example: 'ap_physics_1_2',
+          },
+          name: {
+            type: 'string',
+            example: 'AP Physics 1 & 2 (algebra-based)',
+          },
+          categories: {
+            type: 'array',
+            items: {
+              type: 'string',
             },
+            example: ['Kinematics', 'Dynamics', 'Energy'],
           },
         },
       },
@@ -59,16 +74,38 @@ const swaggerDefinition = {
             type: 'string',
             format: 'uuid',
           },
-          text: {
+          title: {
             type: 'string',
+            example: 'Solve for the velocity of the object',
+          },
+          description: {
+            type: 'string',
+            example: 'A 2kg object is dropped from 10m height...',
           },
           subject: {
             type: 'string',
-            enum: ['mathematics', 'physics', 'chemistry', 'biology'],
+            enum: [
+              'ap_physics_1_2', 'ap_physics_c_mechanics', 'ap_physics_c_electricity_magnetism',
+              'ap_chemistry', 'ap_biology', 'ap_computer_science_a', 'ap_computer_science_principles',
+              'ap_precalculus', 'ap_calculus_bc', 'ap_calculus_ab', 'ap_statistics'
+            ],
+          },
+          difficulty: {
+            type: 'string',
+            enum: ['easy', 'medium', 'hard'],
+          },
+          imageUrl: {
+            type: 'string',
+            format: 'uri',
+            nullable: true,
           },
           status: {
             type: 'string',
-            enum: ['received', 'queued', 'solved', 'failed'],
+            enum: ['RECEIVED', 'QUEUED', 'SOLVED'],
+          },
+          userId: {
+            type: 'string',
+            format: 'uuid',
           },
           createdAt: {
             type: 'string',
@@ -77,6 +114,76 @@ const swaggerDefinition = {
           updatedAt: {
             type: 'string',
             format: 'date-time',
+          },
+          assets: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/ProblemAsset',
+            },
+          },
+        },
+      },
+      ProblemAsset: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            format: 'uuid',
+          },
+          problemId: {
+            type: 'string',
+            format: 'uuid',
+          },
+          storageLocation: {
+            type: 'string',
+            enum: ['postgres', 's3'],
+          },
+          externalKey: {
+            type: 'string',
+            nullable: true,
+          },
+          externalUrl: {
+            type: 'string',
+            format: 'uri',
+            nullable: true,
+          },
+          fileName: {
+            type: 'string',
+          },
+          fileSize: {
+            type: 'integer',
+          },
+          mimeType: {
+            type: 'string',
+          },
+          createdAt: {
+            type: 'string',
+            format: 'date-time',
+          },
+        },
+      },
+      UploadResult: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            format: 'uuid',
+          },
+          url: {
+            type: 'string',
+            format: 'uri',
+          },
+          storageLocation: {
+            type: 'string',
+          },
+          fileName: {
+            type: 'string',
+          },
+          fileSize: {
+            type: 'integer',
+          },
+          mimeType: {
+            type: 'string',
           },
         },
       },
@@ -101,6 +208,27 @@ const swaggerDefinition = {
           createdAt: {
             type: 'string',
             format: 'date-time',
+          },
+        },
+      },
+      Pagination: {
+        type: 'object',
+        properties: {
+          page: {
+            type: 'integer',
+            minimum: 1,
+          },
+          limit: {
+            type: 'integer',
+            minimum: 1,
+          },
+          total: {
+            type: 'integer',
+            minimum: 0,
+          },
+          pages: {
+            type: 'integer',
+            minimum: 0,
           },
         },
       },

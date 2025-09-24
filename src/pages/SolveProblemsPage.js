@@ -7,6 +7,7 @@ import SolutionDisplay from '../components/problem-solving/SolutionDisplay';
 import HintsDisplay from '../components/problem-solving/HintsDisplay';
 import ConceptNotesDisplay from '../components/problem-solving/ConceptNotesDisplay';
 import ChatPanel from '../components/chat/ChatPanel';
+import { useAppContext } from '../context/AppContext';
 import './SolveProblemsPage.css';
 
 const LoadingPanel = ({ title, message }) => (
@@ -20,14 +21,14 @@ const LoadingPanel = ({ title, message }) => (
 );
 
 const SolveProblemsPage = () => {
+  const { currentProblem, activeSolution, activeHints, activeConceptNotes, loading, error, createProblem, uploadFile } = useAppContext();
+  const [showSolution, setShowSolution] = useState(false);
   const [problemText, setProblemText] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [isUploading, setIsUploading] = useState(false);
-  const [inputMode, setInputMode] = useState('upload'); // 'upload' or 'text'
-  const [showSolution, setShowSolution] = useState(false);
-  const [solution, setSolution] = useState(null);
-  const [hints, setHints] = useState(null);
-  const [conceptNotes, setConceptNotes] = useState(null);
+  const [uploadedImage, setUploadedImage] = useState(null);
+  const [uploadedAsset, setUploadedAsset] = useState(null);
+  const [inputMode, setInputMode] = useState('upload');
   const [isSolving, setIsSolving] = useState(false);
   const [isGeneratingHints, setIsGeneratingHints] = useState(false);
   const [isGeneratingConceptNotes, setIsGeneratingConceptNotes] = useState(false);
@@ -40,17 +41,17 @@ const SolveProblemsPage = () => {
   }, [showSolution]);
 
   const subjects = [
-    { value: 'ap-physics-1-2', label: 'AP Physics 1 & 2 (algebra-based)' },
-    { value: 'ap-physics-c-mechanics', label: 'AP Physics C: Mechanics' },
-    { value: 'ap-physics-c-em', label: 'AP Physics C: Electricity & Magnetism' },
-    { value: 'ap-chemistry', label: 'AP Chemistry' },
-    { value: 'ap-biology', label: 'AP Biology' },
-    { value: 'ap-compsci-a', label: 'AP Computer Science A' },
-    { value: 'ap-compsci-principles', label: 'AP Computer Science Principles' },
-    { value: 'ap-precalculus', label: 'AP Pre-calculus' },
-    { value: 'ap-calculus-bc', label: 'AP Calculus BC' },
-    { value: 'ap-calculus-ab', label: 'AP Calculus AB' },
-    { value: 'ap-statistics', label: 'AP Statistics' }
+    { value: 'ap_physics_1_2', label: 'AP Physics 1 & 2 (algebra-based)' },
+    { value: 'ap_physics_c_mechanics', label: 'AP Physics C: Mechanics' },
+    { value: 'ap_physics_c_electricity_magnetism', label: 'AP Physics C: Electricity & Magnetism' },
+    { value: 'ap_chemistry', label: 'AP Chemistry' },
+    { value: 'ap_biology', label: 'AP Biology' },
+    { value: 'ap_computer_science_a', label: 'AP Computer Science A' },
+    { value: 'ap_computer_science_principles', label: 'AP Computer Science Principles' },
+    { value: 'ap_precalculus', label: 'AP Pre-calculus' },
+    { value: 'ap_calculus_bc', label: 'AP Calculus BC' },
+    { value: 'ap_calculus_ab', label: 'AP Calculus AB' },
+    { value: 'ap_statistics', label: 'AP Statistics' }
   ];
 
   const RESPONSE_DELAY = 450;
@@ -180,9 +181,6 @@ const SolveProblemsPage = () => {
     setProblemText('');
     setActiveView(null);
     setShowSolution(false);
-    setSolution(null);
-    setHints(null);
-    setConceptNotes(null);
     setIsSolving(false);
     setIsGeneratingHints(false);
     setIsGeneratingConceptNotes(false);
@@ -199,15 +197,47 @@ const SolveProblemsPage = () => {
     setProblemText('');
     setActiveView(null);
     setShowSolution(false);
-    setSolution(null);
-    setHints(null);
-    setConceptNotes(null);
     setIsSolving(false);
     setIsGeneratingHints(false);
     setIsGeneratingConceptNotes(false);
   };
 
-  const handleSolveProblem = () => {
+  const handleFileUpload = async (event) => {
+    const files = Array.from(event.target.files);
+    setIsUploading(true);
+    setUploadedImage(null); // Clear previous image
+
+    try {
+      for (const file of files) {
+        // Validate file type
+        if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+          throw new Error('Only images and PDF files are allowed');
+        }
+
+        // Validate file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+          throw new Error('File size must be less than 10MB');
+        }
+
+        // Create a preview URL
+        const previewUrl = URL.createObjectURL(file);
+        setUploadedImage({ file, previewUrl });
+
+        const asset = await uploadFile(file, null, `Upload for problem: ${trimmedProblem.substring(0, 50)}...`);
+        setUploadedAsset(asset);
+      }
+
+      // Clear the file input
+      event.target.value = '';
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert(error.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSolveProblem = async () => {
     if (formIncomplete) {
       return;
     }
@@ -217,18 +247,30 @@ const SolveProblemsPage = () => {
     setIsGeneratingHints(true);
     setIsGeneratingConceptNotes(true);
     setShowSolution(true);
-    setSolution(null);
-    setHints(null);
-    setConceptNotes(null);
 
-    setTimeout(() => {
-      setSolution(createMockSolution());
-      setHints(createMockHints(subjectLabel));
-      setConceptNotes(createMockConceptNotes(subjectLabel));
+    try {
+      const problemData = {
+        title: `Problem: ${trimmedProblem.substring(0, 50)}${trimmedProblem.length > 50 ? '...' : ''}`,
+        description: trimmedProblem,
+        subject: selectedSubject,
+        difficulty: 'medium',
+        imageUrl: uploadedAsset ? uploadedAsset.url : null
+      };
+
+      await createProblem(problemData);
+
+      // Clear form after successful submission
+      setProblemText('');
+      setSelectedSubject('');
+
+    } catch (error) {
+      console.error('Error submitting problem:', error);
+      // Error is already handled in context
+    } finally {
       setIsSolving(false);
       setIsGeneratingHints(false);
       setIsGeneratingConceptNotes(false);
-    }, RESPONSE_DELAY);
+    }
   };
 
   const handleGenerateHints = () => {
@@ -240,13 +282,8 @@ const SolveProblemsPage = () => {
     setIsGeneratingHints(true);
     setIsGeneratingConceptNotes(true);
     setShowSolution(true);
-    setSolution(null);
-    setConceptNotes(null);
-    setHints(null);
 
     setTimeout(() => {
-      setHints(createMockHints(subjectLabel));
-      setConceptNotes(createMockConceptNotes(subjectLabel));
       setIsGeneratingHints(false);
       setIsGeneratingConceptNotes(false);
     }, RESPONSE_DELAY);
@@ -260,12 +297,8 @@ const SolveProblemsPage = () => {
     setActiveView('concepts');
     setIsGeneratingConceptNotes(true);
     setShowSolution(true);
-    setSolution(null);
-    setHints(null);
-    setConceptNotes(null);
 
     setTimeout(() => {
-      setConceptNotes(createMockConceptNotes(subjectLabel));
       setIsGeneratingConceptNotes(false);
     }, RESPONSE_DELAY);
   };
@@ -273,12 +306,6 @@ const SolveProblemsPage = () => {
   const handleBackToInput = () => {
     setShowSolution(false);
     setActiveView(null);
-    setSolution(null);
-    setHints(null);
-    setConceptNotes(null);
-    setIsSolving(false);
-    setIsGeneratingHints(false);
-    setIsGeneratingConceptNotes(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -338,20 +365,57 @@ const SolveProblemsPage = () => {
 
               <div className="upload-zone" role="region" aria-live="polite">
                 {inputMode === 'upload' ? (
-                  <div className="image-drop-area" tabIndex={0} role="button" aria-label="Upload an image of the problem">
-                    <div className="drop-content">
-                      <div className="document-icon">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" focusable="false" aria-hidden="true">
-                          <path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
-                          <path d="M14 3v4a1 1 0 0 0 1 1h4" />
-                          <path d="M9 13h6" />
-                          <path d="M9 17h4" />
-                        </svg>
-                      </div>
-                      <p className="drop-title">Click to upload an image or drag and drop</p>
-                      <p className="drop-hint">PNG, JPG or PDF up to 10MB</p>
+                  <>
+                    <input
+                      type="file"
+                      id="file-upload"
+                      multiple
+                      accept="image/*,.pdf"
+                      onChange={handleFileUpload}
+                      disabled={isBusy}
+                      style={{ display: 'none' }}
+                    />
+                    <div
+                      className="image-drop-area"
+                      tabIndex={0}
+                      role="button"
+                      aria-label="Upload an image of the problem"
+                      onClick={() => document.getElementById('file-upload').click()}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                          const files = Array.from(e.dataTransfer.files);
+                          // Create a synthetic event object for the file input
+                          const syntheticEvent = {
+                            target: { files: e.dataTransfer.files }
+                          };
+                          handleFileUpload(syntheticEvent);
+                        }
+                      }}
+                    >
+                      {uploadedImage ? (
+                        <img src={uploadedImage.previewUrl} alt="Problem preview" className="image-preview" />
+                      ) : (
+                        <div className="drop-content">
+                          <div className="document-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" focusable="false" aria-hidden="true">
+                              <path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+                              <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+                              <path d="M9 13h6" />
+                              <path d="M9 17h4" />
+                            </svg>
+                          </div>
+                          <p className="drop-title">Click to upload an image or drag and drop</p>
+                          <p className="drop-hint">PNG, JPG or PDF up to 10MB</p>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  </>
                 ) : (
                   <textarea
                     className="text-input"
@@ -369,10 +433,7 @@ const SolveProblemsPage = () => {
                   <select
                     id="subject-select"
                     value={selectedSubject}
-                    onChange={(e) => {
-                      console.log('Subject changed:', e.target.value);
-                      setSelectedSubject(e.target.value);
-                    }}
+                    onChange={(e) => setSelectedSubject(e.target.value)}
                     className="styled-select"
                   >
                     <option value="">Select AP subject</option>
@@ -387,9 +448,7 @@ const SolveProblemsPage = () => {
                   <label className="field-label" htmlFor="level-select">Explanation Level</label>
                   <select
                     id="level-select"
-                    onChange={(e) => {
-                      console.log('Level changed:', e.target.value);
-                    }}
+                    onChange={(e) => console.log('Level changed:', e.target.value)}
                     className="styled-select"
                   >
                     <option value="">Select level</option>
@@ -442,53 +501,54 @@ const SolveProblemsPage = () => {
                   <p>Get essential theories and concepts required to understand and solve a problem, without revealing the final answer. They provide the background knowledge that guides your thinking and learning process.</p>
                 </div>
               </div>
+
+              {error && (
+                <div className="error-message">
+                  <strong>Error:</strong> {error}
+                </div>
+              )}
             </div>
           ) : (
             <>
               <div className="solution-view-header">
                 <div className="solution-view-actions">
                   <Button variant="outline" size="small" onClick={handleBackToInput}>
-                    ← Back to Upload
+                    ← Back to Create Problem
                   </Button>
                 </div>
                 <div className="solution-view-meta">
-                  <span className="view-pill">{activeView === 'solution' ? 'Full Solution' : activeView === 'hints' ? 'Guided Hints' : activeView === 'concepts' ? 'Concept Notes' : 'Results'}</span>
-                  <p>Review the results below or return to upload to try another problem.</p>
+                  <span className="view-pill">Problem Created</span>
+                  <p>Your problem has been saved to the database. AI processing will begin shortly.</p>
                 </div>
               </div>
 
               <div className="solution-content-stack">
-                {isSolving && (
+                {loading && currentProblem && (
                   <LoadingPanel
-                    title="Analyzing problem..."
-                    message="We’re building a step-by-step walkthrough for this AP question."
+                    title="Processing problem..."
+                    message="Your problem is being analyzed by our AI system."
                   />
                 )}
 
-                {solution && (
-                  <SolutionDisplay solution={solution} problemText={problemText} />
+                {currentProblem && (
+                  <Card className="solution-loading-panel">
+                    <div className="solution-loading-spinner" aria-hidden="true" />
+                    <div className="solution-loading-copy">
+                      <p className="loading-title">Problem Created Successfully</p>
+                      <p className="loading-message">
+                        Your problem has been saved to the database. The AI system will process it and provide solutions, hints, and concept notes.
+                      </p>
+                    </div>
+                  </Card>
                 )}
 
-                {isGeneratingHints && (
-                  <LoadingPanel
-                    title="Preparing hints..."
-                    message="Guided prompts are almost ready to lead you through each move."
-                  />
-                )}
-
-                {hints && (
-                  <HintsDisplay hints={hints} problemText={problemText} />
-                )}
-
-                {isGeneratingConceptNotes && (
-                  <LoadingPanel
-                    title="Curating concept notes..."
-                    message="Gathering the key theories and background knowledge you will need."
-                  />
-                )}
-
-                {conceptNotes && (
-                  <ConceptNotesDisplay conceptNotes={conceptNotes} problemText={problemText} />
+                {error && (
+                  <Card className="solution-loading-panel">
+                    <div className="solution-loading-copy">
+                      <p className="loading-title" style={{ color: '#dc2626' }}>Error</p>
+                      <p className="loading-message">{error}</p>
+                    </div>
+                  </Card>
                 )}
               </div>
             </>

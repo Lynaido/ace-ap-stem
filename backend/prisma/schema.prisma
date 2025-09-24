@@ -71,16 +71,17 @@ model Problem {
 
 model ProblemAsset {
   id             String @id @default(cuid())
-  problemId      String
+  problemId      String?
   storageLocation String // 'postgres' or 's3'
   externalKey    String?
   externalUrl    String?
   fileName       String
   fileSize       Int
   mimeType       String
+  fileData       Bytes? // Store actual file data for postgres storage
   createdAt      DateTime @default(now())
 
-  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  problem Problem? @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
   @@map("problem_assets")
 }

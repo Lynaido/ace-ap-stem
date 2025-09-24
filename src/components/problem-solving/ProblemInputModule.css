@@ -4,6 +4,136 @@
   margin-bottom: 2rem;
 }
 
+.character-count {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-align: right;
+  margin-top: 0.25rem;
+}
+
+.file-upload-area {
+  border: 2px dashed var(--color-border-default);
+  border-radius: var(--border-radius-md);
+  padding: 2rem;
+  text-align: center;
+  background-color: var(--color-bg-alt);
+  transition: all var(--duration-fast) var(--ease-out);
+  cursor: pointer;
+}
+
+.file-upload-area:hover {
+  border-color: var(--color-border-focus);
+  background-color: var(--color-bg-hover);
+}
+
+.file-upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+}
+
+.file-upload-label .fa-upload {
+  font-size: 2rem;
+  color: var(--color-text-muted);
+}
+
+.file-upload-label span {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.file-upload-label small {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.uploaded-files {
+  margin-top: 1rem;
+}
+
+.uploaded-files h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.uploaded-file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-md);
+  background-color: var(--color-bg-primary);
+  margin-bottom: 0.5rem;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.file-info .fa-image {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+}
+
+.file-name {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.file-size {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.upload-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: var(--color-bg-info);
+  border: 1px solid var(--color-border-info);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-info);
+  font-size: 0.875rem;
+}
+
+.error-message {
+  padding: 0.75rem;
+  background-color: var(--color-bg-error);
+  border: 1px solid var(--color-border-error);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-error);
+  font-size: 0.875rem;
+  margin: 1rem 0;
+}
+
+.solve-action.btn-loading {
+  background: linear-gradient(90deg, #94a3b8 0%, #64748b 100%) !important;
+  cursor: not-allowed;
+}
+
+.solve-action.btn-loading .btn-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .problem-input-header {
   margin-bottom: 1.5rem;
 }

@@ -91,12 +91,12 @@ Implementation Phases
 - ✅ Add session persistence using JWT tokens stored in localStorage and httpOnly cookies
 - ✅ Implement proper error handling and user feedback for all authentication flows
 
-Phase 3 – Problems & Assets
+✅ **Phase 3 – Problems & Assets** (COMPLETED)
 - Implement /subjects, /problems CRUD, /uploads multipart handling (Postgres storage).
 - Replace ProblemInputModule mock actions with real submissions and listing endpoints.
 - Display stored problems after reload to confirm persistence.
 
-**Phase 3 Frontend Integration:**
+✅**Phase 3 Frontend Integration:**
 - Update ProblemInputModule to use real /problems API endpoints instead of mock data
 - Implement file upload functionality using multipart/form-data to /uploads endpoint
 - Add image preview and management for uploaded problem assets

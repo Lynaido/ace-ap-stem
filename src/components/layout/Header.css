@@ -1,6 +1,7 @@
 /* src/components/layout/Header.css */
 
 .app-header {
+  position: -webkit-sticky;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -107,7 +108,7 @@
 
 .nav-links {
   display: flex;
-  gap: 2rem;
+  gap: 1.25rem;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -124,10 +125,10 @@
   background-color: transparent !important;
   color: #4b5563 !important;
   border: none !important;
-  padding: 0.65rem 1.2rem;
+  padding: 0.5rem 0.875rem;
   border-radius: 0.5rem;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
   display: inline-flex;
@@ -414,13 +415,37 @@
   }
 }
 
+/* Large screens - reduce gap slightly */
+@media (max-width: 1200px) and (min-width: 1025px) {
+  .nav-links {
+    gap: 1rem;
+  }
+}
+
 /* Tablet styles */
 @media (max-width: 1024px) and (min-width: 769px) {
   .nav-links {
-    gap: 1.5rem;
+    gap: 1rem;
   }
-  
+
   .header-actions {
     gap: 0.75rem;
+  }
+
+  .nav-link {
+    padding: 0.45rem 0.75rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Small tablet styles */
+@media (max-width: 900px) and (min-width: 769px) {
+  .nav-links {
+    gap: 0.75rem;
+  }
+
+  .nav-link {
+    padding: 0.4rem 0.65rem;
+    font-size: 0.8rem;
   }
 }

@@ -15,6 +15,9 @@ import {
 import { setupSwagger } from './config/swagger';
 import healthRoutes from './routes/healthRoutes';
 import authRoutes from './routes/authRoutes';
+import subjectsRoutes from './routes/subjectsRoutes';
+import uploadsRoutes from './routes/uploadsRoutes';
+import problemsRoutes from './routes/problemsRoutes';
 
 // Create Express application
 const app = express();
@@ -53,6 +56,11 @@ app.use('/', healthRoutes);
 
 // Auth routes (no rate limiting)
 app.use('/auth', authRoutes);
+
+// API routes (with rate limiting)
+app.use('/api/subjects', subjectsRoutes);
+app.use('/api/uploads', uploadsRoutes);
+app.use('/api/problems', problemsRoutes);
 
 // API documentation
 try {
