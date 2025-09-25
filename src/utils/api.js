@@ -28,23 +28,33 @@ class ApiClient {
 
       // Handle 401 - try to refresh token
       if (response.status === 401) {
-        const refreshResponse = await fetch(`${this.baseURL}/auth/refresh`, {
-          method: 'POST',
-          credentials: 'include',
-        });
+        console.log('Token expired, attempting refresh...');
+        
+        try {
+          const refreshResponse = await fetch(`${this.baseURL}/auth/refresh`, {
+            method: 'POST',
+            credentials: 'include',
+          });
 
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          localStorage.setItem('accessToken', refreshData.accessToken);
+          if (refreshResponse.ok) {
+            const refreshData = await refreshResponse.json();
+            localStorage.setItem('accessToken', refreshData.accessToken);
+            console.log('Token refreshed successfully');
 
-          // Retry original request with new token
-          config.headers.Authorization = `Bearer ${refreshData.accessToken}`;
-          const retryResponse = await fetch(url, config);
-          return this.handleResponse(retryResponse);
-        } else {
-          // Refresh failed, clear token and throw error (don't redirect during initialization)
+            // Retry original request with new token
+            config.headers.Authorization = `Bearer ${refreshData.accessToken}`;
+            const retryResponse = await fetch(url, config);
+            return this.handleResponse(retryResponse);
+          } else {
+            console.log('Token refresh failed');
+            // Refresh failed, clear token and throw error 
+            localStorage.removeItem('accessToken');
+            throw new Error('Authentication failed - please log in again');
+          }
+        } catch (refreshError) {
+          console.log('Token refresh request failed:', refreshError);
           localStorage.removeItem('accessToken');
-          throw new Error('Authentication failed');
+          throw new Error('Authentication failed - please log in again');
         }
       }
 
@@ -170,12 +180,55 @@ export const problemAPI = {
   delete: (id) => apiClient.delete(`/api/problems/${id}`),
 };
 
+export const foldersAPI = {
+  getAll: () => apiClient.get('/api/folders'),
+  getById: (id) => apiClient.get(`/api/folders/${id}`),
+  create: (folderData) => apiClient.post('/api/folders', folderData),
+  update: (id, folderData) => apiClient.put(`/api/folders/${id}`, folderData),
+  delete: (id) => apiClient.delete(`/api/folders/${id}`),
+};
+
 export const notesAPI = {
-  getAll: () => apiClient.get('/api/notes'),
+  getAll: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const endpoint = queryString ? `/api/notes?${queryString}` : '/api/notes';
+    return apiClient.get(endpoint);
+  },
   getById: (id) => apiClient.get(`/api/notes/${id}`),
   create: (noteData) => apiClient.post('/api/notes', noteData),
   update: (id, noteData) => apiClient.put(`/api/notes/${id}`, noteData),
   delete: (id) => apiClient.delete(`/api/notes/${id}`),
+};
+
+export const savedItemsAPI = {
+  getAll: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const endpoint = queryString ? `/api/saved-items?${queryString}` : '/api/saved-items';
+    return apiClient.get(endpoint);
+  },
+  getById: (id) => apiClient.get(`/api/saved-items/${id}`),
+  create: (savedItemData) => apiClient.post('/api/saved-items', savedItemData),
+  update: (id, savedItemData) => apiClient.put(`/api/saved-items/${id}`, savedItemData),
+  delete: (id) => apiClient.delete(`/api/saved-items/${id}`),
+};
+
+export const tagsAPI = {
+  getAll: () => apiClient.get('/api/tags'),
+  create: (tagData) => apiClient.post('/api/tags', tagData),
+  delete: (id) => apiClient.delete(`/api/tags/${id}`),
+};
+
+export const studySessionsAPI = {
+  getAll: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const endpoint = queryString ? `/api/study-sessions?${queryString}` : '/api/study-sessions';
+    return apiClient.get(endpoint);
+  },
+  getById: (id) => apiClient.get(`/api/study-sessions/${id}`),
+  create: (sessionData) => apiClient.post('/api/study-sessions', sessionData),
+  update: (id, sessionData) => apiClient.put(`/api/study-sessions/${id}`, sessionData),
+  delete: (id) => apiClient.delete(`/api/study-sessions/${id}`),
+  generateVariants: (id, variantData) => apiClient.post(`/api/study-sessions/${id}/variants`, variantData),
 };
 
 export default apiClient;

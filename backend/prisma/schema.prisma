@@ -137,6 +137,7 @@ model Folder {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   notes Note[]
+  savedItems SavedItem[]
 
   @@map("folders")
 }
@@ -163,6 +164,7 @@ model SavedItem {
   solutionId String?
   hintId     String?
   conceptNoteId String?
+  folderId   String?
   userId     String
   starred    Boolean  @default(false)
   tags       String[]
@@ -173,6 +175,7 @@ model SavedItem {
   solution   Solution? @relation(fields: [solutionId], references: [id], onDelete: Cascade)
   hint       Hint?    @relation(fields: [hintId], references: [id], onDelete: Cascade)
   conceptNote ConceptNote? @relation(fields: [conceptNoteId], references: [id], onDelete: Cascade)
+  folder     Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
   tagLinks   TagLink[]
 
   @@map("saved_items")

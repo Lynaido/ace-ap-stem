@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaBolt, FaEye, FaRegLightbulb } from 'react-icons/fa';
 import Button from '../components/primitives/Button';
 import Card from '../components/primitives/Card';
@@ -21,6 +21,8 @@ const LoadingPanel = ({ title, message }) => (
 );
 
 const SolveProblemsPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { currentProblem, activeSolution, activeHints, activeConceptNotes, loading, error, createProblem, uploadFile } = useAppContext();
   const [showSolution, setShowSolution] = useState(false);
   const [problemText, setProblemText] = useState('');
@@ -33,6 +35,16 @@ const SolveProblemsPage = () => {
   const [isGeneratingHints, setIsGeneratingHints] = useState(false);
   const [isGeneratingConceptNotes, setIsGeneratingConceptNotes] = useState(false);
   const [activeView, setActiveView] = useState(null);
+  const [isCreateMode, setIsCreateMode] = useState(false);
+
+  // Check if we should start in create mode
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('create') === 'true') {
+      setIsCreateMode(true);
+      setInputMode('text'); // Switch to text input for problem creation
+    }
+  }, [location.search]);
 
   useEffect(() => {
     if (showSolution) {
@@ -250,14 +262,23 @@ const SolveProblemsPage = () => {
 
     try {
       const problemData = {
-        title: `Problem: ${trimmedProblem.substring(0, 50)}${trimmedProblem.length > 50 ? '...' : ''}`,
+        title: `${trimmedProblem.substring(0, 50)}${trimmedProblem.length > 50 ? '...' : ''}`,
         description: trimmedProblem,
         subject: selectedSubject,
         difficulty: 'medium',
         imageUrl: uploadedAsset ? uploadedAsset.url : null
       };
 
-      await createProblem(problemData);
+      const folderId = new URLSearchParams(location.search).get('folderId');
+      const createdProblem = await createProblem(problemData, folderId);
+
+      // If in create mode, redirect to Notes Hub to see the saved problem
+      if (isCreateMode) {
+        // Wait a bit for the toast to show and for the saved item to be created
+        setTimeout(() => {
+          navigate('/notes-hub?refresh=true', { replace: true });
+        }, 2000); // Increased time to ensure saved item creation completes
+      }
 
       // Clear form after successful submission
       setProblemText('');
@@ -316,16 +337,34 @@ const SolveProblemsPage = () => {
           {!showSolution ? (
             <div className="upload-card">
               <div className="card-top-bar">
-                <Link to="/notes-hub" className="notes-link" aria-label="Go to Notes Hub (List of Notes)">
-                  <span className="notes-link-icon" aria-hidden="true">📒</span>
-                  <span className="notes-link-text">List of Notes</span>
-                </Link>
+                {isCreateMode ? (
+                  <div className="create-mode-header">
+                    <h2>Create New Problem</h2>
+                    <p>Create and save a new problem to your library</p>
+                  </div>
+                ) : (
+                  <Link to="/notes-hub" className="notes-link" aria-label="Go to Notes Hub (List of Notes)">
+                    <span className="notes-link-icon" aria-hidden="true">📒</span>
+                    <span className="notes-link-text">List of Notes</span>
+                  </Link>
+                )}
               </div>
               <div className="card-heading">
-                <h1>Upload Your Problem</h1>
-                <p className="card-subtitle">
-                  Share a question or upload a snapshot and we will walk through the solution with you step by step.
-                </p>
+                {isCreateMode ? (
+                  <>
+                    <h1>Create Your Problem</h1>
+                    <p className="card-subtitle">
+                      Create and save a new problem to your personal library. You can return to it later or generate study variants.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h1>Upload Your Problem</h1>
+                    <p className="card-subtitle">
+                      Share a question or upload a snapshot and we will walk through the solution with you step by step.
+                    </p>
+                  </>
+                )}
               </div>
 
               <div className="upload-tabs" role="tablist" aria-label="Problem input methods">

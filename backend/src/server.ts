@@ -18,6 +18,11 @@ import authRoutes from './routes/authRoutes';
 import subjectsRoutes from './routes/subjectsRoutes';
 import uploadsRoutes from './routes/uploadsRoutes';
 import problemsRoutes from './routes/problemsRoutes';
+import foldersRoutes from './routes/foldersRoutes';
+import notesRoutes from './routes/notesRoutes';
+import savedItemsRoutes from './routes/savedItemsRoutes';
+import tagsRoutes from './routes/tagsRoutes';
+import studySessionsRoutes from './routes/studySessionsRoutes';
 
 // Create Express application
 const app = express();
@@ -61,6 +66,11 @@ app.use('/auth', authRoutes);
 app.use('/api/subjects', subjectsRoutes);
 app.use('/api/uploads', uploadsRoutes);
 app.use('/api/problems', problemsRoutes);
+app.use('/api/folders', foldersRoutes);
+app.use('/api/notes', notesRoutes);
+app.use('/api/saved-items', savedItemsRoutes);
+app.use('/api/tags', tagsRoutes);
+app.use('/api/study-sessions', studySessionsRoutes);
 
 // API documentation
 try {

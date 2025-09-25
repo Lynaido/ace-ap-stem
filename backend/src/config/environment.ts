@@ -38,7 +38,7 @@ export const config: EnvironmentConfig = {
   databaseUrl: validateEnvironmentVariable('DATABASE_URL', process.env.DATABASE_URL),
   jwtSecret: validateEnvironmentVariable('JWT_SECRET', process.env.JWT_SECRET),
   jwtRefreshSecret: validateEnvironmentVariable('JWT_REFRESH_SECRET', process.env.JWT_REFRESH_SECRET),
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '15m',
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '60m',
   jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   googleClientId: process.env.GOOGLE_CLIENT_ID || '',
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',

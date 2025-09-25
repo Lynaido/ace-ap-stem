@@ -1,5 +1,13 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
-import { authAPI, problemAPI } from '../utils/api';
+import {
+  authAPI,
+  problemAPI,
+  foldersAPI,
+  notesAPI,
+  savedItemsAPI,
+  tagsAPI,
+  studySessionsAPI
+} from '../utils/api';
 import { toast } from 'react-toastify';
 
 // Initial state
@@ -45,6 +53,7 @@ const ActionTypes = {
   // Auth actions
   LOGIN: 'LOGIN',
   LOGOUT: 'LOGOUT',
+  SET_AUTH_LOADING: 'SET_AUTH_LOADING',
 
   // Problem actions
   SET_ACTIVE_PROBLEM: 'SET_ACTIVE_PROBLEM',
@@ -103,6 +112,12 @@ function appReducer(state, action) {
         activeConceptNotes: null,
         chatHistory: [],
         isChatOpen: false
+      };
+
+    case ActionTypes.SET_AUTH_LOADING:
+      return {
+        ...state,
+        isAuthLoading: action.payload
       };
 
     case ActionTypes.SET_ACTIVE_PROBLEM:
@@ -320,10 +335,34 @@ export const AppProvider = ({ children }) => {
           const userData = await authAPI.getCurrentUser();
           dispatch({ type: ActionTypes.LOGIN, payload: userData.user });
         } catch (error) {
-          // Token is invalid, clear it
-          console.log('Token validation failed, clearing stored token');
-          localStorage.removeItem('accessToken');
-          dispatch({ type: ActionTypes.LOGOUT });
+          console.log('Authentication check error:', error.message);
+          
+          // Check if it's an authentication failure (token invalid/expired)
+          if (error.message.includes('Authentication failed') || 
+              error.message.includes('please log in again') ||
+              error.message.includes('401')) {
+            console.log('Authentication failed, logging out');
+            localStorage.removeItem('accessToken');
+            dispatch({ type: ActionTypes.LOGOUT });
+          } else {
+            // Network error or other issue - assume user is still authenticated
+            console.log('Network error during auth check, keeping user logged in');
+            // For now, just stop loading - user remains in logged-in state with existing token
+            dispatch({ type: ActionTypes.SET_AUTH_LOADING, payload: false });
+            
+            // Set some basic user state if we have a token but can't verify
+            const existingUser = localStorage.getItem('user');
+            if (existingUser) {
+              try {
+                const parsedUser = JSON.parse(existingUser);
+                dispatch({ type: ActionTypes.LOGIN, payload: parsedUser });
+              } catch (parseError) {
+                dispatch({ type: ActionTypes.SET_AUTH_LOADING, payload: false });
+              }
+            } else {
+              dispatch({ type: ActionTypes.SET_AUTH_LOADING, payload: false });
+            }
+          }
         }
       } else {
         // No token found, set loading to false
@@ -331,10 +370,16 @@ export const AppProvider = ({ children }) => {
       }
     };
 
-    // Add a timeout to prevent infinite loading
+    // Add a timeout to prevent infinite loading - only if no token
     const timeout = setTimeout(() => {
-      dispatch({ type: ActionTypes.LOGOUT });
-    }, 3000);
+      const currentToken = localStorage.getItem('accessToken');
+      if (!currentToken) {
+        dispatch({ type: ActionTypes.LOGOUT });
+      } else {
+        // If we have a token, just stop loading without logging out
+        dispatch({ type: ActionTypes.SET_AUTH_LOADING, payload: false });
+      }
+    }, 10000); // Increased from 3 seconds to 10 seconds
 
     initializeAuth();
 
@@ -349,6 +394,10 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.CLEAR_ERROR });
 
       const response = await authAPI.login(credentials);
+      
+      // Store user data in localStorage for offline resilience
+      localStorage.setItem('user', JSON.stringify(response.user));
+      
       dispatch({ type: ActionTypes.LOGIN, payload: response.user });
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
 
@@ -404,6 +453,10 @@ export const AppProvider = ({ children }) => {
   const logout = useCallback(async () => {
     try {
       await authAPI.logout();
+      
+      // Clear stored user data
+      localStorage.removeItem('user');
+      
       dispatch({ type: ActionTypes.LOGOUT });
 
       // Redirect immediately to sign-in page
@@ -412,6 +465,7 @@ export const AppProvider = ({ children }) => {
       }
     } catch (error) {
       // Even if API call fails, clear local state
+      localStorage.removeItem('user');
       dispatch({ type: ActionTypes.LOGOUT });
 
       // Redirect immediately to sign-in page
@@ -422,16 +476,45 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   // API integration functions
-  const createProblem = useCallback(async (problemData) => {
+  const createProblem = useCallback(async (problemData, folderId = null) => {
     try {
       dispatch({ type: ActionTypes.SET_LOADING, payload: true });
       dispatch({ type: ActionTypes.CLEAR_ERROR });
 
       const response = await problemAPI.create(problemData);
+      console.log('Problem created successfully:', response.data);
       dispatch({ type: ActionTypes.SUBMIT_PROBLEM, payload: response.data });
+
+      // Automatically save the problem as a saved item
+      console.log('Attempting to save problem as saved item...');
+      try {
+        const savedItemData = {
+          type: 'PROBLEM',
+          problemId: response.data.id,
+          folderId: folderId || undefined,
+          starred: false,
+          tags: [response.data.subject, response.data.difficulty]
+        };
+
+        console.log('Saving item with data:', savedItemData);
+        const savedItemResponse = await savedItemsAPI.create(savedItemData);
+        console.log('Saved item created successfully:', savedItemResponse);
+        
+        // Small delay to ensure database consistency
+        await new Promise(resolve => setTimeout(resolve, 200));
+      } catch (saveError) {
+        console.error('Error saving problem as saved item:', saveError);
+        console.error('Error details:', saveError.message);
+        // Still show success toast for problem creation even if saving as item fails
+        toast.error(`Problem created but failed to save to library: ${saveError.message}. Please refresh the Notes Hub.`, {
+          position: "top-right",
+          autoClose: 7000,
+        });
+      }
+
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
 
-      toast.success('Problem created successfully!', {
+      toast.success('Problem created and saved to your library!', {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -586,6 +669,201 @@ export const AppProvider = ({ children }) => {
     }
   }, []);
 
+  // Folders API functions
+  const createFolder = useCallback(async (folderData) => {
+    try {
+      dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+      dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+      const response = await foldersAPI.create(folderData);
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+
+      toast.success('Folder created successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+
+      return response.data;
+    } catch (error) {
+      dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      throw error;
+    }
+  }, []);
+
+  const getFolders = useCallback(async () => {
+    try {
+      const response = await foldersAPI.getAll();
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching folders:', error);
+      throw error;
+    }
+  }, []);
+
+  const deleteFolder = useCallback(async (folderId) => {
+    try {
+      await foldersAPI.delete(folderId);
+      // No need to dispatch, folder list is refetched in NotesHubPage
+      toast.success('Folder deleted successfully!');
+    } catch (error) {
+      toast.error(`Failed to delete folder: ${error.message}`);
+      throw error;
+    }
+  }, []);
+
+  // Notes API functions
+  const createNote = useCallback(async (noteData) => {
+    try {
+      dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+      dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+      const response = await notesAPI.create(noteData);
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+
+      toast.success('Note created successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+
+      return response.data;
+    } catch (error) {
+      dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      throw error;
+    }
+  }, []);
+
+  const getNotes = useCallback(async (params = {}) => {
+    try {
+      const response = await notesAPI.getAll(params);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching notes:', error);
+      throw error;
+    }
+  }, []);
+
+  // Saved Items API functions
+  const saveItem = useCallback(async (itemData) => {
+    try {
+      dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+      dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+      const response = await savedItemsAPI.create(itemData);
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+
+      toast.success('Item saved successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+
+      return response.data;
+    } catch (error) {
+      dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      throw error;
+    }
+  }, []);
+
+  const getSavedItems = useCallback(async (params = {}) => {
+    try {
+      const response = await savedItemsAPI.getAll(params);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching saved items:', error);
+      throw error;
+    }
+  }, []);
+
+  const deleteSavedItem = useCallback(async (itemId) => {
+    try {
+      await savedItemsAPI.delete(itemId);
+      dispatch({ type: ActionTypes.DELETE_ITEM, payload: itemId });
+      toast.success('Item deleted successfully!');
+    } catch (error) {
+      toast.error(`Failed to delete item: ${error.message}`);
+      throw error;
+    }
+  }, []);
+
+  // Tags API functions
+  const createTag = useCallback(async (tagData) => {
+    try {
+      const response = await tagsAPI.create(tagData);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating tag:', error);
+      throw error;
+    }
+  }, []);
+
+  const getTags = useCallback(async () => {
+    try {
+      const response = await tagsAPI.getAll();
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+      throw error;
+    }
+  }, []);
+
+  // Study Sessions API functions
+  const createStudySession = useCallback(async (sessionData) => {
+    try {
+      dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+      dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+      const response = await studySessionsAPI.create(sessionData);
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+
+      toast.success('Study session created successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+
+      return response.data;
+    } catch (error) {
+      dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      throw error;
+    }
+  }, []);
+
+  const getStudySessions = useCallback(async (params = {}) => {
+    try {
+      const response = await studySessionsAPI.getAll(params);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching study sessions:', error);
+      throw error;
+    }
+  }, []);
+
   const getSubjects = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/subjects`, {
@@ -638,13 +916,34 @@ export const AppProvider = ({ children }) => {
     uploadFile,
     getSubjects,
 
+    // Folders API actions
+    createFolder,
+    getFolders,
+    deleteFolder,
+
+    // Notes API actions
+    createNote,
+    getNotes,
+
+    // Saved Items API actions
+    saveItem,
+    getSavedItems,
+    deleteSavedItem,
+
+    // Tags API actions
+    createTag,
+    getTags,
+
+    // Study Sessions API actions
+    createStudySession,
+    getStudySessions,
+
     // Chat actions
     addChatMessage: (message) => dispatch({ type: ActionTypes.ADD_CHAT_MESSAGE, payload: message }),
     clearChat: () => dispatch({ type: ActionTypes.CLEAR_CHAT }),
     toggleChat: () => dispatch({ type: ActionTypes.TOGGLE_CHAT }),
 
     // Notes Hub actions
-    saveItem: (item) => dispatch({ type: ActionTypes.SAVE_ITEM, payload: item }),
     deleteItem: (itemId) => dispatch({ type: ActionTypes.DELETE_ITEM, payload: itemId }),
     setActiveFolder: (folderId) => dispatch({ type: ActionTypes.SET_ACTIVE_FOLDER, payload: folderId }),
 

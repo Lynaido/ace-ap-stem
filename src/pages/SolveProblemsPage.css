@@ -123,6 +123,25 @@
   margin-bottom: -0.25rem; /* pulls closer to heading */
 }
 
+/* Create mode header styling */
+.create-mode-header {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.create-mode-header h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #f97316;
+}
+
+.create-mode-header p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
 .notes-link {
   display: inline-flex;
   align-items: center;
