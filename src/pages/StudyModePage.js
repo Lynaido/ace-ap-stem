@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import EmptyState from '../components/primitives/EmptyState';
 import Button from '../components/primitives/Button';
 import StudyModeGenerator from '../components/study-mode/StudyModeGenerator';
@@ -8,30 +8,13 @@ import { studySessionsAPI } from '../utils/api';
 import { toast } from 'react-toastify';
 import './StudyModePage.css';
 
-const baseVariants = [
-  {
-    id: 'variant-1',
-    title: 'Variant 1 - Change the givens',
-    excerpt: 'Rework the scenario with a new launch velocity and altered angle to test recognition.',
-  },
-  {
-    id: 'variant-2',
-    title: 'Variant 2 - Solve for a different unknown',
-    excerpt: 'Keep the initial values, but solve for the time of flight instead of range.',
-  },
-  {
-    id: 'variant-3',
-    title: 'Variant 3 - Add a twist',
-    excerpt: 'Introduce air resistance and compare outcomes with and without drag.',
-  },
-];
-
+// Study mode configurations
 const studyModes = [
   {
     id: 'quick-practice',
     name: 'Quick Practice',
     tagline: 'Warm up with focused reps.',
-    description: 'Five fast-paced variants tuned for a 10-minute drill.',
+    description: 'Fast-paced variants tuned for efficient practice sessions.',
     highlights: ['Time-boxed mini session', 'Confidence-based prompts', 'Great pre-quiz warmup'],
   },
   {
@@ -50,33 +33,6 @@ const studyModes = [
   },
 ];
 
-const savedProblems = [
-  {
-    id: 'item-physics-projectile',
-    title: 'Projectile Motion - Tennis Serve',
-    subject: 'Physics | Kinematics',
-    lastReviewed: 'Reviewed 2 days ago',
-    excerpt: 'Analyze hang time and max height for a tennis serve launched at 28 deg.',
-    tags: ['Kinematics', '2D Motion', 'Vectors'],
-  },
-  {
-    id: 'item-algebra-optimization',
-    title: 'Quadratic Optimization - Garden Plot',
-    subject: 'Algebra II | Quadratics',
-    lastReviewed: 'Reviewed yesterday',
-    excerpt: 'Complete the square to maximize the area of a rectangular garden with limited fencing.',
-    tags: ['Quadratics', 'Optimization'],
-  },
-  {
-    id: 'item-calculus-related',
-    title: 'Related Rates - Ladder Slide',
-    subject: 'Calculus | Differentiation',
-    lastReviewed: 'Saved 4 days ago',
-    excerpt: 'A 13ft ladder slides down a wall; find the rate the base moves when the top is 5ft high.',
-    tags: ['Related Rates', 'Applied Calculus'],
-  },
-];
-
 const steps = [
   {
     id: 1,
@@ -91,12 +47,13 @@ const steps = [
   {
     id: 3,
     label: 'Review session',
-    description: 'Review mock variants and create basic study session.',
+    description: 'Review AI-generated variants and launch practice problems.',
   },
 ];
 
 const StudyModePage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const incomingProblem = location.state?.problem;
   const { getSavedItems, createStudySession, getStudySessions } = useAppContext();
 
@@ -121,10 +78,32 @@ const StudyModePage = () => {
 
   const availableNotes = useMemo(() => {
     if (!normalizedIncomingProblem) {
-      return savedItems.map(item => {
+      // Filter to only include items that have an associated problem
+      return savedItems
+        .filter(item => item.problemId || item.problem?.id)
+        .map(item => {
+          const itemData = item.problem || item.solution || item.hint || item.conceptNote;
+          return {
+            id: item.id,
+            problemId: item.problemId || item.problem?.id, // Add problemId for backend
+            title: itemData?.title || itemData?.content || 'Untitled',
+            subject: item.type.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase()),
+            lastReviewed: new Date(item.createdAt).toLocaleDateString(),
+            excerpt: itemData?.description || itemData?.content?.substring(0, 100) + '...' || 'No description available',
+            tags: item.tags || []
+          };
+        });
+    }
+
+    const alreadyIncluded = savedItems.some((item) => item.id === normalizedIncomingProblem.id);
+    // Filter to only include items that have an associated problem
+    const notesFromItems = savedItems
+      .filter(item => item.problemId || item.problem?.id)
+      .map(item => {
         const itemData = item.problem || item.solution || item.hint || item.conceptNote;
         return {
           id: item.id,
+          problemId: item.problemId || item.problem?.id, // Add problemId for backend
           title: itemData?.title || itemData?.content || 'Untitled',
           subject: item.type.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase()),
           lastReviewed: new Date(item.createdAt).toLocaleDateString(),
@@ -132,28 +111,14 @@ const StudyModePage = () => {
           tags: item.tags || []
         };
       });
-    }
-
-    const alreadyIncluded = savedItems.some((item) => item.id === normalizedIncomingProblem.id);
-    const notesFromItems = savedItems.map(item => {
-      const itemData = item.problem || item.solution || item.hint || item.conceptNote;
-      return {
-        id: item.id,
-        title: itemData?.title || itemData?.content || 'Untitled',
-        subject: item.type.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase()),
-        lastReviewed: new Date(item.createdAt).toLocaleDateString(),
-        excerpt: itemData?.description || itemData?.content?.substring(0, 100) + '...' || 'No description available',
-        tags: item.tags || []
-      };
-    });
 
     return alreadyIncluded ? notesFromItems : [normalizedIncomingProblem, ...notesFromItems];
   }, [normalizedIncomingProblem, savedItems]);
 
-  const [activeStep, setActiveStep] = useState(normalizedIncomingProblem ? 3 : 1);
-  const [selectedMode, setSelectedMode] = useState(normalizedIncomingProblem ? studyModes[0] : null);
+  const [activeStep, setActiveStep] = useState(normalizedIncomingProblem ? 2 : 1);
+  const [selectedMode, setSelectedMode] = useState(null);
   const [selectedProblem, setSelectedProblem] = useState(normalizedIncomingProblem);
-  const [variants, setVariants] = useState(normalizedIncomingProblem ? baseVariants : []);
+  const [variants, setVariants] = useState([]);
 
   useEffect(() => {
     const fetchSavedItems = async () => {
@@ -187,9 +152,20 @@ const StudyModePage = () => {
       setLoading(true);
       toast.info('Creating study session and generating AI variants...');
 
+      // Determine the correct problem ID to use
+      // If selectedProblem has a problemId (from saved items), use that
+      // Otherwise, use the id directly (for problems coming from other sources)
+      const problemId = selectedProblem.problemId || selectedProblem.id;
+
+      // Validate that we have a problem ID
+      if (!problemId) {
+        toast.error('Cannot create study session: No problem ID found');
+        return;
+      }
+
       // Create a study session in the database
       const studySession = await createStudySession({
-        problemId: selectedProblem.id,
+        problemId: problemId,
         metadata: {
           studyMode: selectedMode.id,
           modeName: selectedMode.name,
@@ -222,20 +198,11 @@ const StudyModePage = () => {
     } catch (error) {
       console.error('Error generating variants:', error);
       
-      // Fallback to mock variants if AI generation fails
-      toast.warn('AI generation failed, using fallback variants');
-      const fallbackVariants = baseVariants.map((variant, index) => ({
-        ...variant,
-        id: `${variant.id}-${selectedMode.id}-${index}`,
-        title: variant.title.replace('Variant', `${selectedMode.name} Variant`),
-        excerpt: `${variant.excerpt} Focus on ${selectedProblem.title.toLowerCase()}.`,
-        subject: selectedProblem.subject,
-        tags: selectedProblem.tags || [],
-        lastReviewed: 'Fallback variant'
-      }));
-
-      setVariants(fallbackVariants);
-      setActiveStep(3);
+      // Show error message without fallback
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to generate variants';
+      toast.error(`AI generation failed: ${errorMessage}`);
+      
+      // Don't proceed to step 3, stay on step 2 so user can try again
     } finally {
       setLoading(false);
     }
@@ -250,6 +217,27 @@ const StudyModePage = () => {
 
   const handleChangeNote = () => {
     setActiveStep(2);
+  };
+
+  const handleLaunchVariant = (variant) => {
+    // Navigate to solve problems page with the variant as a problem
+    navigate('/solve-problems', {
+      state: {
+        problem: {
+          id: variant.id,
+          title: variant.title,
+          description: variant.excerpt || variant.description,
+          subject: selectedProblem?.subject || 'Study Session',
+          difficulty: variant.difficulty || 'medium',
+          hints: variant.hints || [],
+          tags: variant.tags || selectedProblem?.tags || [],
+          isVariant: true,
+          originalProblemTitle: selectedProblem?.title,
+          studyMode: selectedMode?.name
+        }
+      }
+    });
+    toast.info(`Launching ${variant.title}...`);
   };
 
   const currentStep = steps.find((step) => step.id === activeStep);
@@ -288,8 +276,8 @@ const StudyModePage = () => {
             <span className="hero-eyebrow">Phase 6: Create Study Mode</span>
             <h1>Design a smarter study session</h1>
             <p>
-              Select the practice flow, pull in a saved item, and preview mock variants. AI-powered variant
-              generation will be available in Phase 4.
+              Select your study mode, choose a saved problem, and generate AI-powered practice variants
+              tailored to your learning goals.
             </p>
             <div className="hero-actions">
               <Button
@@ -380,7 +368,7 @@ const StudyModePage = () => {
               <div className="panel-heading panel-heading-with-actions">
                 <div>
                   <h2>Select items to practice</h2>
-                  <p>Choose a saved item. Mock variants will be shown for demonstration (AI generation in Phase 4).</p>
+                  <p>Choose a saved problem to generate AI-powered practice variants.</p>
                 </div>
                 <Button variant="ghost" size="small" onClick={() => setActiveStep(1)}>
                   Change study mode
@@ -449,6 +437,7 @@ const StudyModePage = () => {
               onChangeNote={handleChangeNote}
               onReset={handleResetSession}
               onRegenerate={handleGenerateSession}
+              onLaunchVariant={handleLaunchVariant}
             />
           )}
 

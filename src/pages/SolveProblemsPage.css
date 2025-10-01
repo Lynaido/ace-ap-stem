@@ -190,6 +190,43 @@
 }
 
 
+.variant-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(251, 146, 60, 0.12) 100%);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+  border-radius: 16px;
+  margin-bottom: 1rem;
+}
+
+.variant-banner-icon {
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.variant-banner-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.variant-banner-content strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.variant-banner-content p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(15, 23, 42, 0.7);
+  line-height: 1.5;
+}
+
 .card-heading {
   text-align: center;
   display: flex;

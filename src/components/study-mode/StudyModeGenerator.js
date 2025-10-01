@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Button from '../primitives/Button';
 import './StudyModeGenerator.css';
 
@@ -21,7 +21,9 @@ const StudyModeGenerator = ({
   onRegenerate,
   onChangeNote,
   onReset,
+  onLaunchVariant,
 }) => {
+  const [previewingHints, setPreviewingHints] = useState(null);
   const hasVariants = Array.isArray(variants) && variants.length > 0;
   const modeId = selectedMode?.id;
   const problemTags = selectedProblem?.tags || [];
@@ -123,16 +125,40 @@ const StudyModeGenerator = ({
                     </div>
                     <div className="variant-detail">
                       <span className="detail-label">Estimated time</span>
-                      <span className="detail-value">{estimatedTime}</span>
+                      <span className="detail-value">{variant.estimatedTime ? `${variant.estimatedTime} min` : estimatedTime}</span>
                     </div>
                     <div className="variant-detail">
-                      <span className="detail-label">Support</span>
-                      <span className="detail-value">{supportDescription}</span>
+                      <span className="detail-label">Difficulty</span>
+                      <span className="detail-value">{variant.difficulty || 'Medium'}</span>
                     </div>
+                    {variant.hints && variant.hints.length > 0 && previewingHints === variant.id && (
+                      <div className="variant-hints-preview">
+                        <span className="detail-label">Available hints ({variant.hints.length})</span>
+                        <ul className="hints-list">
+                          {variant.hints.map((hint, hintIndex) => (
+                            <li key={hintIndex}>{hint}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                   <div className="variant-actions">
-                    <Button variant="primary" size="small">Launch variant</Button>
-                    <Button variant="ghost" size="small">Preview hints</Button>
+                    <Button 
+                      variant="primary" 
+                      size="small"
+                      onClick={() => onLaunchVariant && onLaunchVariant(variant)}
+                    >
+                      Launch variant
+                    </Button>
+                    {variant.hints && variant.hints.length > 0 && (
+                      <Button 
+                        variant="ghost" 
+                        size="small"
+                        onClick={() => setPreviewingHints(previewingHints === variant.id ? null : variant.id)}
+                      >
+                        {previewingHints === variant.id ? 'Hide hints' : `Preview hints (${variant.hints.length})`}
+                      </Button>
+                    )}
                   </div>
                 </article>
               );

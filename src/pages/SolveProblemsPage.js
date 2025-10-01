@@ -36,6 +36,7 @@ const SolveProblemsPage = () => {
   const [isGeneratingConceptNotes, setIsGeneratingConceptNotes] = useState(false);
   const [activeView, setActiveView] = useState(null);
   const [isCreateMode, setIsCreateMode] = useState(false);
+  const [loadedVariant, setLoadedVariant] = useState(null);
 
   // Check if we should start in create mode
   useEffect(() => {
@@ -45,6 +46,38 @@ const SolveProblemsPage = () => {
       setInputMode('text'); // Switch to text input for problem creation
     }
   }, [location.search]);
+
+  // Handle incoming problem from Study Mode (variant launch)
+  useEffect(() => {
+    const incomingProblem = location.state?.problem;
+    if (incomingProblem && !loadedVariant) {
+      // Store variant info
+      setLoadedVariant({
+        isVariant: incomingProblem.isVariant,
+        originalProblemTitle: incomingProblem.originalProblemTitle,
+        studyMode: incomingProblem.studyMode,
+        hints: incomingProblem.hints || []
+      });
+      
+      // Pre-fill the form with variant data
+      const description = incomingProblem.description || incomingProblem.excerpt || incomingProblem.title || '';
+      setProblemText(description);
+      setSelectedSubject(incomingProblem.subject || '');
+      setInputMode('text');
+      
+      // Reset other states
+      setShowSolution(false);
+      setActiveView(null);
+      
+      // Scroll to top and show the input area
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
+      
+      // Clear the state to prevent re-filling on subsequent renders
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, loadedVariant]);
 
   useEffect(() => {
     if (showSolution) {
@@ -350,11 +383,31 @@ const SolveProblemsPage = () => {
                 )}
               </div>
               <div className="card-heading">
+                {loadedVariant?.isVariant && (
+                  <div className="variant-banner">
+                    <div className="variant-banner-icon">🎯</div>
+                    <div className="variant-banner-content">
+                      <strong>Study Mode Variant</strong>
+                      <p>
+                        {loadedVariant.studyMode && `${loadedVariant.studyMode} • `}
+                        Based on: {loadedVariant.originalProblemTitle}
+                        {loadedVariant.hints?.length > 0 && ` • ${loadedVariant.hints.length} hints available`}
+                      </p>
+                    </div>
+                  </div>
+                )}
                 {isCreateMode ? (
                   <>
                     <h1>Create Your Problem</h1>
                     <p className="card-subtitle">
                       Create and save a new problem to your personal library. You can return to it later or generate study variants.
+                    </p>
+                  </>
+                ) : loadedVariant?.isVariant ? (
+                  <>
+                    <h1>Practice Variant Loaded</h1>
+                    <p className="card-subtitle">
+                      Work through this AI-generated practice variant. Click "Solve Problem" to get step-by-step guidance.
                     </p>
                   </>
                 ) : (

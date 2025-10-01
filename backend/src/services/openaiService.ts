@@ -3,6 +3,10 @@ import config from '../config/environment';
 import logger from '../config/logger';
 
 // Initialize OpenAI client
+if (!config.openaiApiKey) {
+  logger.warn('OPENAI_API_KEY is not set. AI variant generation will not work.');
+}
+
 const openai = new OpenAI({
   apiKey: config.openaiApiKey,
 });
@@ -31,6 +35,12 @@ export const generateProblemVariants = async (params: GenerateVariantsParams): P
   const { originalProblem, studyMode, variantCount = 3 } = params;
   
   try {
+    // Check if API key is configured
+    if (!config.openaiApiKey) {
+      logger.error('OPENAI_API_KEY is not configured');
+      throw new Error('OpenAI API key is not configured. Please set OPENAI_API_KEY in your environment variables.');
+    }
+
     logger.info('Generating problem variants with OpenAI', { 
       studyMode, 
       subject: originalProblem.subject,
@@ -62,6 +72,10 @@ export const generateProblemVariants = async (params: GenerateVariantsParams): P
 
     const variants = parseVariantsResponse(responseContent);
     
+    if (variants.length === 0) {
+      throw new Error('Failed to parse any valid variants from OpenAI response');
+    }
+
     logger.info('Successfully generated problem variants', { 
       generatedCount: variants.length,
       studyMode 
@@ -70,6 +84,20 @@ export const generateProblemVariants = async (params: GenerateVariantsParams): P
     return variants;
   } catch (error) {
     logger.error('Error generating problem variants:', error);
+    
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes('API key')) {
+        throw new Error('OpenAI API key is invalid or not configured properly.');
+      }
+      if (error.message.includes('quota')) {
+        throw new Error('OpenAI API quota exceeded. Please check your usage limits.');
+      }
+      if (error.message.includes('rate limit')) {
+        throw new Error('OpenAI API rate limit reached. Please try again in a moment.');
+      }
+    }
+    
     throw new Error(`Failed to generate variants: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };

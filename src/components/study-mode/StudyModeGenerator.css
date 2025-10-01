@@ -241,6 +241,29 @@
   gap: 0.75rem;
 }
 
+.variant-hints-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.hints-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hints-list li {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: rgba(15, 23, 42, 0.72);
+}
+
 .study-mode-generator-placeholder {
   display: flex;
   flex-direction: column;

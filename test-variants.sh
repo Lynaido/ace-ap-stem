@@ -62,3 +62,4 @@ VARIANT_RESPONSE=$(curl -s -X POST http://localhost:3001/api/study-sessions/SESS
 echo "AI Variants generated: $VARIANT_RESPONSE"
 
 echo "✅ Test completed!"
+

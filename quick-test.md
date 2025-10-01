@@ -76,3 +76,4 @@
 - **Authentication errors**: Make sure you're logged in
 - **Network errors**: Check backend is running on port 3001
 - **AI errors**: Check OpenAI API key and credits
+
