@@ -122,7 +122,6 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
     }
     logger.error('Registration error:', error);
     next(error);
-    return res.status(500).json({ error: 'Internal server error' }); // Ensure all code paths return a value
   }
 };
 
@@ -200,7 +199,6 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     }
     logger.error('Login error:', error);
     next(error);
-    return res.status(500).json({ error: 'Internal server error' }); // Ensure all code paths return a value
   }
 };
 
@@ -258,8 +256,7 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
     return; // Ensure all code paths return a value
   } catch (error) {
     logger.error('Token refresh error:', error);
-    res.status(401).json({ error: 'Invalid refresh token' });
-    return res.status(500).json({ error: 'Internal server error' }); // Ensure all code paths return a value
+    next(error);
   }
 };
 
@@ -324,6 +321,5 @@ export const me = async (req: Request, res: Response, next: NextFunction) => {
   } catch (error) {
     logger.error('Get user error:', error);
     next(error);
-    return res.status(500).json({ error: 'Internal server error' }); // Ensure all code paths return a value
   }
 };

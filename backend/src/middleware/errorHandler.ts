@@ -27,8 +27,7 @@ export const errorHandler = (
 
   // Log the error
   logger.error({
-    error: error.message,
-    stack: error.stack,
+    error,
     url: req.url,
     method: req.method,
     ip: req.ip,

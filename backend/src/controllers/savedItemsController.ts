@@ -107,7 +107,7 @@ export const getAllSavedItems = async (req: Request, res: Response): Promise<voi
       }
     });
   } catch (error) {
-    logger.error('Error fetching saved items:', error);
+    logger.error('Error fetching saved items:', { error });
     res.status(500).json({
       success: false,
       error: 'Failed to fetch saved items'
@@ -172,7 +172,7 @@ export const getSavedItemById = async (req: Request, res: Response): Promise<voi
       data: savedItem
     });
   } catch (error) {
-    logger.error('Error fetching saved item:', error);
+    logger.error('Error fetching saved item:', { error });
     res.status(500).json({
       success: false,
       error: 'Failed to fetch saved item'
@@ -349,7 +349,7 @@ export const createSavedItem = async (req: Request, res: Response): Promise<void
       return;
     }
 
-    logger.error('Error creating saved item:', error);
+    logger.error('Error creating saved item:', { error });
     res.status(500).json({
       success: false,
       error: 'Failed to save item'
@@ -437,7 +437,7 @@ export const updateSavedItem = async (req: Request, res: Response): Promise<void
       return;
     }
 
-    logger.error('Error updating saved item:', error);
+    logger.error('Error updating saved item:', { error });
     res.status(500).json({
       success: false,
       error: 'Failed to update saved item'
@@ -484,7 +484,7 @@ export const deleteSavedItem = async (req: Request, res: Response): Promise<void
       message: 'Saved item deleted successfully'
     });
   } catch (error) {
-    logger.error('Error deleting saved item:', error);
+    logger.error('Error deleting saved item:', { error });
     res.status(500).json({
       success: false,
       error: 'Failed to delete saved item'

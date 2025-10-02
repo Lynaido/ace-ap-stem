@@ -56,9 +56,8 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     next();
     return; // Ensure all code paths return a value
   } catch (error) {
-    logger.error('Token authentication error:', error);
-    res.status(401).json({ error: 'Invalid token' });
-    return res.status(500).json({ error: 'Internal server error' }); // Ensure all code paths return a value
+    // The error will be handled by the global error handler
+    next(error);
   }
 };
 
