@@ -57,7 +57,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     return; // Ensure all code paths return a value
   } catch (error) {
     // The error will be handled by the global error handler
-    next(error);
+    return next(error);
   }
 };
 

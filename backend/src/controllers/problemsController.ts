@@ -587,7 +587,13 @@ export const generateSolution = async (req: Request, res: Response): Promise<voi
         data: { status: 'RECEIVED' }
       });
 
-      throw aiError;
+      // Send error response if not already sent
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          error: aiError instanceof Error ? aiError.message : 'Failed to generate solution'
+        });
+      }
     }
   } catch (error) {
     logger.error('Error generating solution:', error);
@@ -709,7 +715,13 @@ export const generateHints = async (req: Request, res: Response): Promise<void> 
         });
       }
 
-      throw aiError;
+      // Send error response if not already sent
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          error: aiError instanceof Error ? aiError.message : 'Failed to generate hints'
+        });
+      }
     }
   } catch (error) {
     logger.error('Error generating hints:', error);
@@ -827,7 +839,13 @@ export const generateConceptNotes = async (req: Request, res: Response): Promise
         });
       }
 
-      throw aiError;
+      // Send error response if not already sent
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          error: aiError instanceof Error ? aiError.message : 'Failed to generate concept notes'
+        });
+      }
     }
   } catch (error) {
     logger.error('Error generating concept notes:', error);

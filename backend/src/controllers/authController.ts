@@ -121,7 +121,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
       return res.status(400).json({ error: 'Validation error', details: error.errors });
     }
     logger.error('Registration error:', error);
-    next(error);
+    return next(error);
   }
 };
 
@@ -198,7 +198,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       return res.status(400).json({ error: 'Validation error', details: error.errors });
     }
     logger.error('Login error:', error);
-    next(error);
+    return next(error);
   }
 };
 
@@ -256,7 +256,7 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
     return; // Ensure all code paths return a value
   } catch (error) {
     logger.error('Token refresh error:', error);
-    next(error);
+    return next(error);
   }
 };
 
@@ -320,6 +320,6 @@ export const me = async (req: Request, res: Response, next: NextFunction) => {
     return; // Ensure all code paths return a value
   } catch (error) {
     logger.error('Get user error:', error);
-    next(error);
+    return next(error);
   }
 };

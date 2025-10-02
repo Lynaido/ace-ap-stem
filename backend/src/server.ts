@@ -45,8 +45,8 @@ app.use(cookieParser());
 // Compression middleware
 app.use(compression());
 
-// Request timeout
-app.use(timeoutMiddleware(30000));
+// Request timeout - intelligent timeout based on endpoint
+app.use(timeoutMiddleware(30000)); // 30 seconds default, AI endpoints get longer timeouts
 
 // Morgan logging for development
 if (config.nodeEnv === 'development') {

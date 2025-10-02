@@ -16,6 +16,8 @@ interface EnvironmentConfig {
   googleClientSecret: string;
   googleCallbackUrl: string;
   openaiApiKey: string;
+  openaiTimeoutMs: number;
+  openaiConceptNotesTimeoutMs: number;
   redisUrl: string;
   frontendUrl: string;
   maxFileSize: number;
@@ -44,6 +46,11 @@ export const config: EnvironmentConfig = {
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
   googleCallbackUrl: process.env.GOOGLE_CALLBACK_URL || '',
   openaiApiKey: process.env.OPENAI_API_KEY || '',
+  openaiTimeoutMs: parseInt(process.env.OPENAI_TIMEOUT_MS || '120000', 10),
+  openaiConceptNotesTimeoutMs: parseInt(
+    process.env.OPENAI_CONCEPT_NOTES_TIMEOUT_MS || process.env.OPENAI_TIMEOUT_MS || '120000',
+    10
+  ),
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
   frontendUrl: validateEnvironmentVariable('FRONTEND_URL', process.env.FRONTEND_URL),
   maxFileSize: parseInt(process.env.MAX_FILE_SIZE || '10485760', 10), // 10MB default

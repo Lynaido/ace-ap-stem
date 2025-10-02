@@ -7,9 +7,28 @@ if (!config.openaiApiKey) {
   logger.warn('OPENAI_API_KEY is not set. AI variant generation will not work.');
 }
 
+const DEFAULT_OPENAI_TIMEOUT_MS = Math.max(config.openaiTimeoutMs || 60000, 1000);
+const CONCEPT_NOTES_TIMEOUT_MS = Math.max(config.openaiConceptNotesTimeoutMs || DEFAULT_OPENAI_TIMEOUT_MS, 1000);
+
 const openai = new OpenAI({
   apiKey: config.openaiApiKey,
+  timeout: DEFAULT_OPENAI_TIMEOUT_MS,
+  maxRetries: 3, // Allow an extra retry for transient errors
 });
+
+const isAbortOrTimeoutError = (error: unknown): boolean => {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message?.toLowerCase?.() ?? '';
+  return (
+    error.name === 'AbortError' ||
+    message.includes('abort') ||
+    message.includes('timeout') ||
+    message.includes('fetch failed due to')
+  );
+};
 
 export interface ProblemVariant {
   id: string;
@@ -111,8 +130,10 @@ export const generateProblemVariants = async (params: GenerateVariantsParams): P
 
     const prompt = createVariantPrompt(originalProblem, studyMode, variantCount);
     
+    const model = selectModel({ taskType: 'variants' });
+
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini', // Using the cost-effective model for variant generation
+      model, // Using the cost-effective GPT-5 Nano model for variant generation
       messages: [
         {
           role: 'system',
@@ -123,8 +144,7 @@ export const generateProblemVariants = async (params: GenerateVariantsParams): P
           content: prompt
         }
       ],
-      temperature: 0.7,
-      max_tokens: 2000,
+      max_completion_tokens: 2000,
     });
 
     const responseContent = completion.choices[0]?.message?.content;
@@ -237,32 +257,32 @@ export const selectModel = (params: ModelSelectionParams): string => {
 
   // If escalation requested, use flagship model
   if (escalate) {
-    return 'gpt-4o';
+    return 'gpt-5-flagship';
   }
 
-  // Task-based routing
+  // Task-based routing with GPT-5 models
   switch (taskType) {
     case 'variants':
-      return 'gpt-4o-mini'; // Cost-effective for variants
-    
+      return 'gpt-5-nano'; // Most cost-effective for variants
+
     case 'hints':
-      return 'gpt-4o-mini'; // Mini is good for hints
-    
+      return 'gpt-5-mini'; // Mini for hints generation
+
     case 'concepts':
-      return 'gpt-4o-mini'; // Mini handles concept extraction well
-    
+      return 'gpt-5-mini'; // Mini handles concept extraction well
+
     case 'chat':
-      return 'gpt-4o-mini'; // Mini for conversational responses
-    
+      return 'gpt-5-mini'; // Mini for conversational responses
+
     case 'solution':
       // Difficulty-based routing for solutions
       if (difficulty === 'hard' || difficulty === 'very-hard') {
-        return 'gpt-4o'; // Flagship for complex problems
+        return 'gpt-5-flagship'; // Flagship for complex problems
       }
-      return 'gpt-4o-mini'; // Mini for easy/medium problems
-    
+      return 'gpt-5-mini'; // Mini for easy/medium problems
+
     default:
-      return 'gpt-4o-mini';
+      return 'gpt-5-mini';
   }
 };
 
@@ -299,8 +319,7 @@ export const generateSolution = async (params: {
           content: prompt
         }
       ],
-      temperature: 0.3, // Lower temperature for more consistent solutions
-      max_tokens: 3000,
+      max_completion_tokens: 3000,
     });
 
     const responseContent = completion.choices[0]?.message?.content;
@@ -421,8 +440,7 @@ export const generateHints = async (params: {
           content: prompt
         }
       ],
-      temperature: 0.5,
-      max_tokens: 2000,
+      max_completion_tokens: 2000,
     });
 
     const responseContent = completion.choices[0]?.message?.content;
@@ -510,7 +528,7 @@ const parseHintsResponse = (response: string): HintsResponse => {
   }
 };
 
-// Generate concept notes
+// Generate concept notes with fallback mechanism
 export const generateConceptNotes = async (params: {
   problemText: string;
   subject: string;
@@ -527,25 +545,30 @@ export const generateConceptNotes = async (params: {
 
     logger.info('Generating concept notes with OpenAI', { subject, difficulty });
 
+    // Use flagship model for concept notes to ensure quality
     const model = selectModel({ difficulty, subject, taskType: 'concepts' });
-    
+
     const prompt = createConceptNotesPrompt(problemText, subject, difficulty, options);
 
-    const completion = await openai.chat.completions.create({
-      model,
-      messages: [
-        {
-          role: 'system',
-          content: `You are a ${subject} educator who creates comprehensive study notes that help students understand the concepts behind problems. Focus on clear explanations, formulas, examples, and practical tips.`
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.4,
-      max_tokens: 3000,
-    });
+    const completion = await openai.chat.completions.create(
+      {
+        model,
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert ${subject} educator creating comprehensive, educational concept notes. Your goal is to provide students with deep understanding of the concepts needed to solve problems independently. Focus on clarity, practical applications, and building strong foundational knowledge.`
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_completion_tokens: 3000, // Increased for more comprehensive content
+      },
+      {
+        timeout: CONCEPT_NOTES_TIMEOUT_MS
+      }
+    );
 
     const responseContent = completion.choices[0]?.message?.content;
     if (!responseContent) {
@@ -553,48 +576,60 @@ export const generateConceptNotes = async (params: {
     }
 
     const conceptNotes = parseConceptNotesResponse(responseContent, subject, difficulty);
-    
+
     logger.info('Successfully generated concept notes', { noteCount: conceptNotes.conceptNotes.length });
 
     return conceptNotes;
   } catch (error) {
     logger.error('Error generating concept notes:', error);
+
+    // Handle specific error types with fallback
+    if (isAbortOrTimeoutError(error)) {
+      logger.warn('Enhanced concept notes failed or timed out, attempting fallback method');
+      return await generateConceptNotesFallback(params);
+    }
+
+    if (error instanceof Error) {
+      if (error.message.includes('rate limit')) {
+        throw new Error('API rate limit reached. Please wait a moment and try again.');
+      }
+      if (error.message.includes('insufficient_quota')) {
+        throw new Error('API quota exceeded. Please check your OpenAI usage limits.');
+      }
+    }
+
     throw new Error(`Failed to generate concept notes: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
-const createConceptNotesPrompt = (problemText: string, subject: string, difficulty: string, options?: any): string => {
-  let optionsPrompt = '';
-  if (options) {
-    if (options.focusAreas) {
-      optionsPrompt += `\n- Focus specifically on these areas: ${options.focusAreas.join(', ')}`;
-    }
-    if (options.depthLevel) {
-      optionsPrompt += `\n- Adjust the depth to be ${options.depthLevel}`;
-    }
-  }
+// Fallback concept notes generation with simpler prompts
+const generateConceptNotesFallback = async (params: {
+  problemText: string;
+  subject: string;
+  difficulty?: string;
+  options?: any;
+}): Promise<ConceptNotesResponse> => {
+  const { problemText, subject, difficulty = 'medium' } = params;
 
-  return `Create comprehensive concept notes for this ${subject} problem:
+  try {
+    logger.info('Generating fallback concept notes with OpenAI', { subject, difficulty });
 
-**Problem:**
-${problemText}
+    const model = 'gpt-5-mini'; // Use mini model for fallback
 
-**Subject:** ${subject}
-**Difficulty:** ${difficulty}
+    const fallbackPrompt = `Create 2-3 basic concept notes for this ${subject} problem:
 
-**Requirements:**${optionsPrompt}
-1. Identify 4-6 key concepts relevant to solving this problem
-2. For each concept, provide:
-   - Type: definition, formula, example, tip, common-mistake, or application
-   - Title: Concise name
-   - Description: One-sentence summary
-   - Content: Detailed explanation
-   - Formula (if applicable): Mathematical expression
-   - Variables (if applicable): Symbol definitions
-   - Examples: Practical examples
-   - Related topics: Connected concepts
+**Problem:** ${problemText}
 
-**Response Format (JSON):**
+**Task:** Generate simple concept notes explaining the key concepts needed to solve this problem.
+
+**Each note should include:**
+- id: unique identifier
+- type: definition or formula
+- title: concept name
+- description: brief summary
+- content: short explanation
+
+**JSON Format:**
 \`\`\`json
 {
   "conceptNotes": [
@@ -602,14 +637,128 @@ ${problemText}
       "id": "concept-1",
       "type": "definition",
       "title": "Concept Name",
-      "description": "Brief one-sentence summary",
-      "content": "Detailed explanation of the concept...",
-      "formula": "F = ma (if applicable)",
+      "description": "Brief summary",
+      "content": "Short explanation of the concept."
+    }
+  ],
+  "subject": "${subject}",
+  "difficulty": "${difficulty}"
+}
+\`\`\``;
+
+    const completion = await openai.chat.completions.create(
+      {
+        model,
+        messages: [
+          {
+            role: 'system',
+            content: `You are a ${subject} educator creating simple study notes.`
+          },
+          {
+            role: 'user',
+            content: fallbackPrompt
+          }
+        ],
+        max_completion_tokens: 1500, // Reduced token limit for fallback
+      },
+      {
+        timeout: Math.min(CONCEPT_NOTES_TIMEOUT_MS, DEFAULT_OPENAI_TIMEOUT_MS)
+      }
+    );
+
+    const responseContent = completion.choices[0]?.message?.content;
+    if (!responseContent) {
+      throw new Error('No response content from OpenAI fallback');
+    }
+
+    const conceptNotes = parseConceptNotesResponse(responseContent, subject, difficulty);
+
+    logger.info('Successfully generated fallback concept notes', { noteCount: conceptNotes.conceptNotes.length });
+
+    return conceptNotes;
+  } catch (fallbackError) {
+    logger.error('Fallback concept notes also failed:', fallbackError);
+    throw new Error(`Failed to generate concept notes: ${fallbackError instanceof Error ? fallbackError.message : 'Unknown error'}`);
+  }
+};
+
+const createConceptNotesPrompt = (problemText: string, subject: string, difficulty: string, options?: any): string => {
+  let optionsPrompt = '';
+  if (options) {
+    if (options.focusAreas) {
+      optionsPrompt += `\nFocus on: ${options.focusAreas.join(', ')}`;
+    }
+    if (options.depthLevel) {
+      optionsPrompt += `\nDepth: ${options.depthLevel}`;
+    }
+  }
+
+  return `Create comprehensive educational concept notes for this ${subject} problem:
+
+**Problem:** ${problemText}
+
+**Task:** Generate 4-6 detailed concept notes covering all essential theories, formulas, and concepts needed to understand and solve this problem independently.${optionsPrompt}
+
+**Requirements:**
+1. **Multiple Note Types**: Include definitions, formulas, examples, tips, common mistakes, and applications
+2. **Educational Depth**: Each note should provide thorough understanding, not just surface-level explanations
+3. **Practical Application**: Show how each concept applies specifically to this problem
+4. **Progressive Learning**: Structure notes to build understanding from fundamentals to advanced applications
+5. **Rich Content**: Include formulas with variable explanations, step-by-step derivations, real-world applications, and common pitfalls
+
+**Each note must include:**
+- **id**: Unique identifier
+- **type**: definition, formula, example, tip, common-mistake, or application
+- **title**: Clear, descriptive concept name
+- **description**: 2-3 sentence summary that explains the concept's relevance
+- **content**: Detailed explanation (200-400 words) covering:
+  * Core principle and definition
+  * Mathematical formulation (when applicable)
+  * Step-by-step reasoning process
+  * Common applications and real-world examples
+  * Potential mistakes or misconceptions
+  * Tips for problem-solving application
+
+**Enhanced JSON Format:**
+\`\`\`json
+{
+  "conceptNotes": [
+    {
+      "id": "power-definition",
+      "type": "definition",
+      "title": "Power in Physics",
+      "description": "Power is a fundamental concept in physics that measures the rate of energy transfer or work done. Understanding power is crucial for analyzing systems that involve energy conversion over time, such as electrical circuits, mechanical systems, and thermal processes.",
+      "content": "Power represents how quickly work is done or energy is transferred in a system. In mathematical terms, power P is defined as the rate of change of work W with respect to time t, expressed as P = dW/dt. This concept is essential for understanding energy efficiency, system performance, and time-dependent processes. For example, a 100-watt light bulb converts electrical energy to light and heat energy at a rate of 100 joules per second. Common units include watts (joules/second), horsepower, and kilowatts. When solving problems, remember that power can be calculated as P = F × v (force times velocity) for mechanical systems or P = I²R (current squared times resistance) for electrical systems. Students often confuse power with energy - remember that energy is the total amount transferred, while power describes how fast that transfer occurs."
+    },
+    {
+      "id": "power-formula",
+      "type": "formula",
+      "title": "Power Formulas and Applications",
+      "description": "Multiple formulas exist for calculating power depending on the available information and the physical context. These formulas allow conversion between different forms of energy and work measurements.",
+      "content": "The fundamental power formula is P = W/t, where W is work and t is time. For mechanical systems, P = F × v, where F is force and v is velocity. In electrical systems, P = V × I (voltage times current) or P = I²R = V²/R. Each formula serves different scenarios: use P = Fv for constant force problems, P = VI for basic electrical calculations, and P = I²R when resistance is known. Variable meanings: P (watts), W (joules), t (seconds), F (newtons), v (m/s), V (volts), I (amperes), R (ohms). When deriving these formulas, start from the definition P = dW/dt and substitute appropriate work expressions. Common mistake: forgetting to convert units (e.g., horsepower to watts). Application tip: In circuits, use P = I²R when current is constant, P = V²/R when voltage is constant.",
+      "formula": "P = W/t | P = F×v | P = V×I | P = I²R | P = V²/R",
       "variables": [
-        { "symbol": "F", "meaning": "Force in Newtons" }
-      ],
-      "examples": ["Example 1: ...", "Example 2: ..."],
-      "relatedTopics": ["Related Concept 1", "Related Concept 2"]
+        {"symbol": "P", "meaning": "Power in watts"},
+        {"symbol": "W", "meaning": "Work in joules"},
+        {"symbol": "t", "meaning": "Time in seconds"},
+        {"symbol": "F", "meaning": "Force in newtons"},
+        {"symbol": "v", "meaning": "Velocity in m/s"},
+        {"symbol": "V", "meaning": "Voltage in volts"},
+        {"symbol": "I", "meaning": "Current in amperes"},
+        {"symbol": "R", "meaning": "Resistance in ohms"}
+      ]
+    },
+    {
+      "id": "power-example",
+      "type": "example",
+      "title": "Calculating Power Example",
+      "description": "A practical example demonstrating how to calculate power using work and time measurements, showing the step-by-step process for determining power in a mechanical system.",
+      "content": "Consider a crane lifting a 500 kg load to a height of 20 meters in 40 seconds. To find the power developed by the crane motor: Step 1 - Calculate work done: W = mgh = 500 × 9.8 × 20 = 98,000 joules. Step 2 - Apply power formula: P = W/t = 98,000 / 40 = 2,450 watts. This means the crane motor must provide at least 2,450 watts of power, though actual power would be higher due to efficiency losses. Real-world application: Construction cranes are rated by their power capacity - a 10-ton crane might need 50,000+ watts for heavy lifting. Common mistake: Forgetting that power requirements increase with faster lifting speeds. Problem-solving tip: Always check if the calculated power seems reasonable for the application - 2,450 watts is about 3.3 horsepower, which is typical for small construction equipment.",
+      "examples": [
+        "Crane lifting 500kg load 20m in 40s: P = (500×9.8×20)/40 = 2,450W",
+        "Light bulb: P = V×I = 120V × 0.5A = 60W",
+        "Car engine: 200 horsepower = 149,140W of mechanical power"
+      ]
     }
   ],
   "subject": "${subject}",
@@ -617,7 +766,12 @@ ${problemText}
 }
 \`\`\`
 
-Focus on concepts that would help students solve similar problems in the future.`;
+**Guidelines:**
+- Create notes that build conceptual understanding progressively
+- Include specific problem-solving strategies and tips
+- Explain common mistakes and how to avoid them
+- Provide context for when and why each concept matters
+- Use clear, educational language suitable for AP-level students`;
 };
 
 const parseConceptNotesResponse = (response: string, subject: string, difficulty: string): ConceptNotesResponse => {

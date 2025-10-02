@@ -66,6 +66,13 @@ Once the server is running, visit:
 
 See `.env.example` for all required and optional environment variables.
 
+### OpenAI-specific tuning
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `OPENAI_TIMEOUT_MS` | `120000` | Base request timeout (in milliseconds) used for OpenAI API calls across the service. Increase this if larger generations are being aborted prematurely. |
+| `OPENAI_CONCEPT_NOTES_TIMEOUT_MS` | `OPENAI_TIMEOUT_MS` | Optional override for concept note generations. Use when concept notes need additional time without affecting other AI features. |
+
 ## Database Setup
 
 This project uses **PostgreSQL** with **Prisma ORM** for database management.

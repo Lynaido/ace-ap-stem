@@ -93,19 +93,45 @@ export const uploadRateLimiter = createRateLimit(
   'Too many file uploads, please try again later.'
 );
 
-// Request timeout middleware
-export const timeoutMiddleware = (timeoutMs: number = 30000) => {
+// Request timeout middleware with intelligent timeout based on endpoint
+export const timeoutMiddleware = (defaultTimeoutMs: number = 30000) => {
   return (req: Request, res: Response, next: NextFunction) => {
+    // Determine timeout based on request path
+    let timeoutMs = defaultTimeoutMs;
+
+    // AI-related endpoints need longer timeouts
+    if (req.path.includes('/concept-notes') ||
+        req.path.includes('/solutions') ||
+        req.path.includes('/hints')) {
+      timeoutMs = 180000; // 3 minutes for AI operations
+    }
+    // File uploads need longer timeouts
+    else if (req.path.includes('/uploads')) {
+      timeoutMs = 120000; // 2 minutes for file uploads
+    }
+    // Regular API endpoints use default timeout
+    else {
+      timeoutMs = defaultTimeoutMs; // 30 seconds for regular endpoints
+    }
+
     const timeout = setTimeout(() => {
-      res.status(408).json({
-        success: false,
-        error: {
-          message: 'Request timeout',
-        },
-      });
+      if (!res.headersSent) {
+        res.status(408).json({
+          success: false,
+          error: {
+            message: `Request timeout after ${timeoutMs / 1000} seconds`,
+          },
+        });
+      }
     }, timeoutMs);
 
+    // Clear timeout when response finishes
     res.on('finish', () => {
+      clearTimeout(timeout);
+    });
+
+    // Also clear timeout if response is closed
+    res.on('close', () => {
       clearTimeout(timeout);
     });
 
