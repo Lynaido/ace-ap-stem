@@ -5,7 +5,10 @@ import {
   createProblem,
   updateProblem,
   deleteProblem,
-  associateAssetsWithProblem
+  associateAssetsWithProblem,
+  generateSolution,
+  generateHints,
+  generateConceptNotes
 } from '../controllers/problemsController';
 import { authenticateToken } from '../middleware/auth';
 
@@ -435,5 +438,83 @@ router.delete('/:id', deleteProblem);
  *               $ref: '#/components/schemas/Error'
  */
 router.post('/:id/assets', associateAssetsWithProblem);
+
+/**
+ * @swagger
+ * /api/problems/{id}/solutions:
+ *   post:
+ *     summary: Generate AI solution for a problem
+ *     description: Generate a step-by-step AI solution for a specific problem
+ *     tags: [Problems]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Problem ID
+ *     responses:
+ *       200:
+ *         description: Solution generated successfully
+ *       404:
+ *         description: Problem not found
+ *       500:
+ *         description: Failed to generate solution
+ */
+router.post('/:id/solutions', generateSolution);
+
+/**
+ * @swagger
+ * /api/problems/{id}/hints:
+ *   post:
+ *     summary: Generate AI hints for a problem
+ *     description: Generate progressive hints for a specific problem
+ *     tags: [Problems]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Problem ID
+ *     responses:
+ *       200:
+ *         description: Hints generated successfully
+ *       404:
+ *         description: Problem not found
+ *       500:
+ *         description: Failed to generate hints
+ */
+router.post('/:id/hints', generateHints);
+
+/**
+ * @swagger
+ * /api/problems/{id}/concept-notes:
+ *   post:
+ *     summary: Generate AI concept notes for a problem
+ *     description: Generate concept notes explaining relevant topics for a problem
+ *     tags: [Problems]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Problem ID
+ *     responses:
+ *       200:
+ *         description: Concept notes generated successfully
+ *       404:
+ *         description: Problem not found
+ *       500:
+ *         description: Failed to generate concept notes
+ */
+router.post('/:id/concept-notes', generateConceptNotes);
 
 export default router;
