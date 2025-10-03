@@ -790,7 +790,12 @@ export const generateConceptNotes = async (req: Request, res: Response): Promise
         options
       });
 
-      // Save concept notes to database
+      // Validate and save concept notes to the database
+      if (!conceptNotesData || !Array.isArray(conceptNotesData.conceptNotes) || conceptNotesData.conceptNotes.length === 0) {
+        logger.error('Invalid or empty concept notes structure received from AI service', { conceptNotesData });
+        throw new Error('Failed to generate valid concept notes from AI service.');
+      }
+
       const conceptNotes = await Promise.all(
         conceptNotesData.conceptNotes.map(note =>
           prisma.conceptNote.create({
@@ -839,13 +844,15 @@ export const generateConceptNotes = async (req: Request, res: Response): Promise
         });
       }
 
-      // Send error response if not already sent
-      if (!res.headersSent) {
-        res.status(500).json({
-          success: false,
-          error: aiError instanceof Error ? aiError.message : 'Failed to generate concept notes'
-        });
-      }
+// Send error response if not already sent
+if (!res.headersSent) {
+  const errorMessage = aiError instanceof Error ? aiError.message : 'An unknown error occurred while generating concept notes.';
+  logger.error(`AI concept note generation failed for problem ${id}: ${errorMessage}`, { jobId: aiJob?.id });
+  res.status(500).json({
+    success: false,
+    error: `Failed to generate concept notes: ${errorMessage}`
+  });
+}
     }
   } catch (error) {
     logger.error('Error generating concept notes:', error);

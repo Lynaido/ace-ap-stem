@@ -137,7 +137,7 @@ export const generateProblemVariants = async (params: GenerateVariantsParams): P
       messages: [
         {
           role: 'system',
-          content: 'You are an expert AP STEM educator who creates practice problem variants to help students master concepts through deliberate practice.'
+          content: 'You are an expert AP STEM educator who creates practice problem variants to help students master concepts through deliberate practice. You must respond with valid JSON only.'
         },
         {
           role: 'user',
@@ -145,12 +145,21 @@ export const generateProblemVariants = async (params: GenerateVariantsParams): P
         }
       ],
       max_completion_tokens: 2000,
+      response_format: { type: "json_object" },
     });
 
     const responseContent = completion.choices[0]?.message?.content;
     if (!responseContent) {
       throw new Error('No response content from OpenAI');
     }
+
+    logger.info('Received variants response from OpenAI', { 
+      contentLength: responseContent.length,
+      firstChars: responseContent.substring(0, 100),
+      lastChars: responseContent.substring(Math.max(0, responseContent.length - 50)),
+      finishReason: completion.choices[0]?.finish_reason,
+      model: completion.model
+    });
 
     const variants = parseVariantsResponse(responseContent);
     
@@ -200,42 +209,172 @@ Difficulty: ${problem.difficulty}
 2. Maintain the same difficulty level: ${problem.difficulty}
 3. Ensure variants are appropriate for ${problem.subject}
 4. Each variant should take approximately 10-15 minutes to solve
-5. Include 2-3 helpful hints for each variant
+5. Include 2-3 helpful hints for each variant that progressively guide students
+6. Make each variant unique and challenging in different ways
 
-**Response Format (JSON):**
-\`\`\`json
+**IMPORTANT: Return ONLY a JSON array (no markdown, no code fences, no explanation).**
+
+**Required JSON Format:**
 [
   {
     "id": "variant-1",
     "title": "Brief descriptive title",
-    "description": "Complete problem statement with all necessary information",
+    "description": "Complete problem statement with all necessary information, numbers, and context",
     "difficulty": "${problem.difficulty}",
     "estimatedTime": 12,
     "hints": [
       "First hint that guides students toward the approach",
-      "Second hint that provides a key insight",
-      "Third hint that helps with common mistakes"
+      "Second hint that provides a key insight or formula",
+      "Third hint that helps with common mistakes or calculations"
+    ]
+  },
+  {
+    "id": "variant-2",
+    "title": "Different scenario title",
+    "description": "Another complete problem with different numbers/context",
+    "difficulty": "${problem.difficulty}",
+    "estimatedTime": 12,
+    "hints": [
+      "Hint 1 for variant 2",
+      "Hint 2 for variant 2",
+      "Hint 3 for variant 2"
     ]
   }
+  (continue for ${count} total variants)
 ]
-\`\`\`
 
-Focus on creating variants that help students practice the core concepts while building confidence through varied applications.`;
+Focus on creating variants that help students practice the core concepts while building confidence through varied applications. Each variant should be completely self-contained with all necessary information to solve it.`;
+};
+
+const extractJson = (text: string): string | null => {
+  // Remove BOM and trim
+  text = text.replace(/^\uFEFF/, '').trim();
+  
+  // If using response_format: json_object, the entire response should be JSON
+  // Try parsing directly first
+  if (text.startsWith('{') || text.startsWith('[')) {
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    const firstBracket = text.indexOf('[');
+    const lastBracket = text.lastIndexOf(']');
+
+    let start = -1;
+    let end = -1;
+
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      start = firstBrace;
+      end = lastBrace;
+    } else if (firstBracket !== -1 && lastBracket > firstBracket) {
+      start = firstBracket;
+      end = lastBracket;
+    }
+
+    if (start !== -1 && end !== -1) {
+      return text.substring(start, end + 1);
+    }
+  }
+
+  // Fallback: Try to find the JSON block in markdown
+  const markdownMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
+  if (markdownMatch && markdownMatch[1]) {
+    return markdownMatch[1].trim();
+  }
+
+  // Another fallback: find any JSON block in code fences
+  const codeBlockMatch = text.match(/```\s*([\s\S]*?)\s*```/);
+  if (codeBlockMatch && codeBlockMatch[1]) {
+    const content = codeBlockMatch[1].trim();
+    if (content.startsWith('{') || content.startsWith('[')) {
+      return content;
+    }
+  }
+
+  // Last resort: find the first and last brace or bracket anywhere
+  const firstBrace = text.indexOf('{');
+  const lastBrace = text.lastIndexOf('}');
+  const firstBracket = text.indexOf('[');
+  const lastBracket = text.lastIndexOf(']');
+
+  let start = -1;
+  let end = -1;
+
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    start = firstBrace;
+    end = lastBrace;
+  } else if (firstBracket !== -1 && lastBracket > firstBracket) {
+    start = firstBracket;
+    end = lastBracket;
+  }
+
+  if (start !== -1 && end !== -1) {
+    return text.substring(start, end + 1);
+  }
+
+  return null;
 };
 
 const parseVariantsResponse = (response: string): ProblemVariant[] => {
+  logger.info('Raw variants response from OpenAI (first 500 chars):', { 
+    preview: response.substring(0, 500),
+    fullLength: response.length 
+  });
+
   try {
-    // Extract JSON from the response (in case it's wrapped in markdown)
-    const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
-    const jsonContent = jsonMatch ? jsonMatch[1] : response;
+    const jsonContent = extractJson(response);
+    if (!jsonContent) {
+      logger.error('No JSON content found in variants response', { 
+        rawResponse: response.substring(0, 1000) 
+      });
+      throw new Error('No JSON content found in response.');
+    }
     
-    const parsed = JSON.parse(jsonContent);
+    logger.info('Extracted variants JSON (first 300 chars):', {
+      preview: jsonContent.substring(0, 300),
+      fullLength: jsonContent.length
+    });
+
+    // Try parsing directly first (for response_format: json_object)
+    let parsed;
+    try {
+      // Clean up common issues
+      let cleanedContent = jsonContent
+        .trim()
+        .replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F]+/g, "")
+        .replace(/,\s*([}\]])/g, '$1')
+        .replace(/^\uFEFF/, '');
+      
+      parsed = JSON.parse(cleanedContent);
+      logger.info('Successfully parsed variants JSON on first attempt');
+    } catch (firstError) {
+      logger.warn('First variants parse attempt failed, trying additional cleaning', {
+        errorMessage: firstError instanceof Error ? firstError.message : String(firstError),
+        firstChars: jsonContent.substring(0, 100)
+      });
+      
+      // Try more aggressive cleaning
+      let cleanedContent = jsonContent
+        .trim()
+        .replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F]+/g, "")
+        .replace(/,\s*([}\]])/g, '$1')
+        .replace(/^\uFEFF/, '')
+        .replace(/\\([^"\\\/bfnrtu])/g, '\\\\$1');
+      
+      parsed = JSON.parse(cleanedContent);
+      logger.info('Successfully parsed variants JSON after cleaning');
+    }
     
-    if (!Array.isArray(parsed)) {
-      throw new Error('Response is not an array');
+    // Handle both array format and object with variants property
+    let variantsArray;
+    if (Array.isArray(parsed)) {
+      variantsArray = parsed;
+    } else if (parsed.variants && Array.isArray(parsed.variants)) {
+      variantsArray = parsed.variants;
+    } else {
+      logger.error('Parsed variants is neither an array nor has variants property', { parsed });
+      throw new Error('Response format is invalid - expected array or object with variants property');
     }
 
-    return parsed.map((variant: any, index: number) => ({
+    const mappedVariants = variantsArray.map((variant: any, index: number) => ({
       id: variant.id || `variant-${index + 1}`,
       title: variant.title || `Practice Variant ${index + 1}`,
       description: variant.description || '',
@@ -243,11 +382,15 @@ const parseVariantsResponse = (response: string): ProblemVariant[] => {
       estimatedTime: variant.estimatedTime || 10,
       hints: Array.isArray(variant.hints) ? variant.hints : []
     }));
+
+    logger.info('Successfully mapped variants', { count: mappedVariants.length });
+    return mappedVariants;
   } catch (error) {
-    logger.error('Error parsing variants response:', error);
-    
-    // Fallback: return a basic variant if parsing fails
-    return [];
+    logger.error('Error parsing variants response:', {
+      errorMessage: error instanceof Error ? error.message : String(error),
+      responsePreview: response.substring(0, 500)
+    });
+    throw new Error(`Failed to parse variants: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
@@ -312,7 +455,7 @@ export const generateSolution = async (params: {
       messages: [
         {
           role: 'system',
-          content: `You are an expert ${subject} tutor who provides clear, step-by-step solutions to AP-level problems. Break down complex problems into manageable steps with detailed explanations.`
+          content: `You are an expert ${subject} tutor who provides clear, step-by-step solutions to AP-level problems. Break down complex problems into manageable steps with detailed explanations. You must respond with valid JSON only.`
         },
         {
           role: 'user',
@@ -320,6 +463,7 @@ export const generateSolution = async (params: {
         }
       ],
       max_completion_tokens: 3000,
+      response_format: { type: "json_object" },
     });
 
     const responseContent = completion.choices[0]?.message?.content;
@@ -387,12 +531,55 @@ ${imageContext ? `**Visual Context:**\n${imageContext}\n` : ''}
 };
 
 const parseSolutionResponse = (response: string): SolutionResponse => {
+  const jsonContent = extractJson(response);
+  if (!jsonContent) {
+    logger.error('Error parsing solution response: No JSON content found.', { rawResponse: response });
+    return {
+      steps: [{ stepNumber: 1, title: 'Error', content: 'Failed to find JSON in the AI response.', explanation: 'The AI response was malformed.' }],
+      finalAnswer: 'An error occurred while generating the solution.',
+      confidence: 0,
+      methodology: 'Error handling'
+    };
+  }
+
   try {
-    const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
-    const jsonContent = jsonMatch ? jsonMatch[1] : response;
+    // Improved cleaning to handle response_format: json_object
+    let parsed;
+    try {
+      let cleanedContent = jsonContent
+        .trim()
+        .replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F]+/g, "")
+        .replace(/,\s*([}\]])/g, '$1')
+        .replace(/^\uFEFF/, '');
+      
+      parsed = JSON.parse(cleanedContent);
+    } catch (firstError) {
+      logger.warn('First solution parse attempt failed, trying additional cleaning', {
+        errorMessage: firstError instanceof Error ? firstError.message : String(firstError)
+      });
+      
+      let cleanedContent = jsonContent
+        .trim()
+        .replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F]+/g, "")
+        .replace(/,\s*([}\]])/g, '$1')
+        .replace(/^\uFEFF/, '')
+        .replace(/\\([^"\\\/bfnrtu])/g, '\\\\$1');
+      
+      parsed = JSON.parse(cleanedContent);
+    }
     
-    const parsed = JSON.parse(jsonContent);
-    
+    if (!parsed.steps || !Array.isArray(parsed.steps)) {
+      logger.warn('Parsed solution is missing a "steps" array.', { parsed });
+      return {
+        steps: [],
+        finalAnswer: parsed.finalAnswer || 'Could not parse steps, but final answer is available.',
+        confidence: parsed.confidence || 0.5,
+        methodology: parsed.methodology || 'Unknown',
+        assumptions: parsed.assumptions || [],
+        verificationSteps: parsed.verificationSteps || []
+      };
+    }
+
     return {
       steps: parsed.steps || [],
       finalAnswer: parsed.finalAnswer || 'Solution completed',
@@ -402,8 +589,21 @@ const parseSolutionResponse = (response: string): SolutionResponse => {
       verificationSteps: parsed.verificationSteps || []
     };
   } catch (error) {
-    logger.error('Error parsing solution response:', error);
-    throw new Error('Failed to parse solution from OpenAI response');
+    logger.error('Error parsing solution JSON:', { 
+      errorMessage: error instanceof Error ? error.message : String(error),
+      jsonContent
+    });
+    return {
+      steps: [{
+        stepNumber: 1,
+        title: 'Error',
+        content: 'Failed to parse the AI response. The response was not valid JSON.',
+        explanation: 'This is a fallback message due to a system error.'
+      }],
+      finalAnswer: 'An error occurred while generating the solution.',
+      confidence: 0,
+      methodology: 'Error handling'
+    };
   }
 };
 
@@ -433,7 +633,7 @@ export const generateHints = async (params: {
       messages: [
         {
           role: 'system',
-          content: `You are a patient ${subject} tutor who provides progressive hints that guide students to discover solutions themselves. Each hint should reveal just enough to help without giving away the complete answer.`
+          content: `You are a patient ${subject} tutor who provides progressive hints that guide students to discover solutions themselves. Each hint should reveal just enough to help without giving away the complete answer. You must respond with valid JSON only.`
         },
         {
           role: 'user',
@@ -441,6 +641,7 @@ export const generateHints = async (params: {
         }
       ],
       max_completion_tokens: 2000,
+      response_format: { type: "json_object" },
     });
 
     const responseContent = completion.choices[0]?.message?.content;
@@ -512,19 +713,54 @@ ${problemText}
 };
 
 const parseHintsResponse = (response: string): HintsResponse => {
+  const jsonContent = extractJson(response);
+  if (!jsonContent) {
+    logger.error('Error parsing hints response: No JSON content found.', { rawResponse: response });
+    return {
+      hints: [{ type: 'diagnostic', text: 'Failed to parse hints from AI response.', explanation: 'System error.' }],
+      progressionStrategy: 'Error'
+    };
+  }
+
   try {
-    const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
-    const jsonContent = jsonMatch ? jsonMatch[1] : response;
-    
-    const parsed = JSON.parse(jsonContent);
+    // Improved cleaning to handle response_format: json_object
+    let parsed;
+    try {
+      let cleanedContent = jsonContent
+        .trim()
+        .replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F]+/g, "")
+        .replace(/,\s*([}\]])/g, '$1')
+        .replace(/^\uFEFF/, '');
+      
+      parsed = JSON.parse(cleanedContent);
+    } catch (firstError) {
+      logger.warn('First hints parse attempt failed, trying additional cleaning', {
+        errorMessage: firstError instanceof Error ? firstError.message : String(firstError)
+      });
+      
+      let cleanedContent = jsonContent
+        .trim()
+        .replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F]+/g, "")
+        .replace(/,\s*([}\]])/g, '$1')
+        .replace(/^\uFEFF/, '')
+        .replace(/\\([^"\\\/bfnrtu])/g, '\\\\$1');
+      
+      parsed = JSON.parse(cleanedContent);
+    }
     
     return {
       hints: parsed.hints || [],
       progressionStrategy: parsed.progressionStrategy || 'Progressive scaffolding from concepts to procedures'
     };
   } catch (error) {
-    logger.error('Error parsing hints response:', error);
-    throw new Error('Failed to parse hints from OpenAI response');
+    logger.error('Error parsing hints JSON:', {
+      errorMessage: error instanceof Error ? error.message : String(error),
+      jsonContent
+    });
+    return {
+      hints: [{ type: 'diagnostic', text: 'Failed to parse hints from AI response.', explanation: 'The JSON was malformed.' }],
+      progressionStrategy: 'Error'
+    };
   }
 };
 
@@ -556,14 +792,15 @@ export const generateConceptNotes = async (params: {
         messages: [
           {
             role: 'system',
-            content: `You are an expert ${subject} educator creating comprehensive, educational concept notes. Your goal is to provide students with deep understanding of the concepts needed to solve problems independently. Focus on clarity, practical applications, and building strong foundational knowledge.`
+            content: `You are an expert ${subject} educator creating comprehensive, educational concept notes. Your goal is to provide students with deep understanding of the concepts needed to solve problems independently. Focus on clarity, practical applications, and building strong foundational knowledge. You must respond with valid JSON only.`
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        max_completion_tokens: 3000, // Increased for more comprehensive content
+        max_completion_tokens: 4000, // Increased for comprehensive 5-7 notes with detailed content
+        response_format: { type: "json_object" }, // Ensure valid JSON response
       },
       {
         timeout: CONCEPT_NOTES_TIMEOUT_MS
@@ -573,6 +810,20 @@ export const generateConceptNotes = async (params: {
     const responseContent = completion.choices[0]?.message?.content;
     if (!responseContent) {
       throw new Error('No response content from OpenAI');
+    }
+
+    logger.info('Received response from OpenAI', { 
+      contentLength: responseContent.length,
+      firstChars: responseContent.substring(0, 100),
+      lastChars: responseContent.substring(Math.max(0, responseContent.length - 50)),
+      finishReason: completion.choices[0]?.finish_reason,
+      model: completion.model
+    });
+
+    // Check for common issues in the response
+    if (responseContent.length < 10) {
+      logger.error('Response content is suspiciously short', { responseContent });
+      throw new Error('Received incomplete response from OpenAI');
     }
 
     const conceptNotes = parseConceptNotesResponse(responseContent, subject, difficulty);
@@ -629,8 +880,7 @@ const generateConceptNotesFallback = async (params: {
 - description: brief summary
 - content: short explanation
 
-**JSON Format:**
-\`\`\`json
+**Return JSON object only (no markdown):**
 {
   "conceptNotes": [
     {
@@ -643,8 +893,7 @@ const generateConceptNotesFallback = async (params: {
   ],
   "subject": "${subject}",
   "difficulty": "${difficulty}"
-}
-\`\`\``;
+}`;
 
     const completion = await openai.chat.completions.create(
       {
@@ -652,7 +901,7 @@ const generateConceptNotesFallback = async (params: {
         messages: [
           {
             role: 'system',
-            content: `You are a ${subject} educator creating simple study notes.`
+            content: `You are a ${subject} educator creating simple study notes. You must respond with valid JSON only.`
           },
           {
             role: 'user',
@@ -660,6 +909,7 @@ const generateConceptNotesFallback = async (params: {
           }
         ],
         max_completion_tokens: 1500, // Reduced token limit for fallback
+        response_format: { type: "json_object" }, // Ensure valid JSON response
       },
       {
         timeout: Math.min(CONCEPT_NOTES_TIMEOUT_MS, DEFAULT_OPENAI_TIMEOUT_MS)
@@ -697,98 +947,162 @@ const createConceptNotesPrompt = (problemText: string, subject: string, difficul
 
 **Problem:** ${problemText}
 
-**Task:** Generate 4-6 detailed concept notes covering all essential theories, formulas, and concepts needed to understand and solve this problem independently.${optionsPrompt}
+**Task:** Generate exactly 5-7 detailed, unique concept notes covering all essential theories, formulas, and concepts needed to understand and solve this problem independently.${optionsPrompt}
 
-**Requirements:**
-1. **Multiple Note Types**: Include definitions, formulas, examples, tips, common mistakes, and applications
-2. **Educational Depth**: Each note should provide thorough understanding, not just surface-level explanations
-3. **Practical Application**: Show how each concept applies specifically to this problem
-4. **Progressive Learning**: Structure notes to build understanding from fundamentals to advanced applications
-5. **Rich Content**: Include formulas with variable explanations, step-by-step derivations, real-world applications, and common pitfalls
+**CRITICAL REQUIREMENTS:**
+1. **Generate AT LEAST 5 NOTES** with diverse types (definitions, formulas, examples, tips, applications)
+2. **Each note must be SUBSTANTIVE** with 200-400 words of detailed explanation
+3. **Include MULTIPLE notes per type** - Don't limit to just one formula or one example
+4. **Progressive complexity** - Start with fundamentals, build to advanced applications
+5. **Problem-specific guidance** - Directly connect each concept to solving THIS specific problem
 
-**Each note must include:**
-- **id**: Unique identifier
-- **type**: definition, formula, example, tip, common-mistake, or application
-- **title**: Clear, descriptive concept name
-- **description**: 2-3 sentence summary that explains the concept's relevance
-- **content**: Detailed explanation (200-400 words) covering:
-  * Core principle and definition
-  * Mathematical formulation (when applicable)
-  * Step-by-step reasoning process
-  * Common applications and real-world examples
-  * Potential mistakes or misconceptions
-  * Tips for problem-solving application
+**Note Type Distribution (aim for this mix):**
+- 1-2 definition notes (core concepts and principles)
+- 2-3 formula notes (different formulas and their applications)
+- 1-2 example notes (worked examples showing concept application)
+- 1 tip note (problem-solving strategies)
+- 1 common-mistake note (pitfalls to avoid)
 
-**Enhanced JSON Format:**
-\`\`\`json
+**Each note MUST include:**
+- **id**: Unique identifier (e.g., "free-fall-kinematics", "velocity-time-relationship")
+- **type**: One of: definition, formula, example, tip, common-mistake, or application
+- **title**: Specific, descriptive concept name (e.g., "Kinematic Equations for Constant Acceleration")
+- **description**: 2-3 sentences explaining WHY this concept matters for THIS problem
+- **content**: 200-400 word detailed explanation including:
+  * Core principle and clear definition
+  * Mathematical formulation with ALL variables explained
+  * Step-by-step derivation or reasoning
+  * Multiple real-world applications and examples
+  * Common student mistakes and how to avoid them
+  * Specific tips for applying to problem-solving
+  * Connection to related concepts
+
+**For formula notes, ALWAYS include:**
+- **formula**: The mathematical formula as a clear string (e.g., "v = v₀ + at")
+- **variables**: Array of ALL variables with meanings [{"symbol": "v", "meaning": "Final velocity in m/s"}, ...]
+- **examples**: Array of 2-3 concrete example calculations
+
+**IMPORTANT: Return ONLY a JSON object (no markdown, no code fences, no explanation text).**
+
+**JSON Structure:**
 {
   "conceptNotes": [
     {
-      "id": "power-definition",
+      "id": "concept-1-id",
       "type": "definition",
-      "title": "Power in Physics",
-      "description": "Power is a fundamental concept in physics that measures the rate of energy transfer or work done. Understanding power is crucial for analyzing systems that involve energy conversion over time, such as electrical circuits, mechanical systems, and thermal processes.",
-      "content": "Power represents how quickly work is done or energy is transferred in a system. In mathematical terms, power P is defined as the rate of change of work W with respect to time t, expressed as P = dW/dt. This concept is essential for understanding energy efficiency, system performance, and time-dependent processes. For example, a 100-watt light bulb converts electrical energy to light and heat energy at a rate of 100 joules per second. Common units include watts (joules/second), horsepower, and kilowatts. When solving problems, remember that power can be calculated as P = F × v (force times velocity) for mechanical systems or P = I²R (current squared times resistance) for electrical systems. Students often confuse power with energy - remember that energy is the total amount transferred, while power describes how fast that transfer occurs."
+      "title": "First Concept Title",
+      "description": "Why this concept matters for solving this problem...",
+      "content": "Comprehensive 200-400 word explanation with principles, applications, examples, mistakes to avoid, and problem-solving tips...",
+      "relatedTopics": ["Related concept 1", "Related concept 2"]
     },
     {
-      "id": "power-formula",
+      "id": "concept-2-id",
       "type": "formula",
-      "title": "Power Formulas and Applications",
-      "description": "Multiple formulas exist for calculating power depending on the available information and the physical context. These formulas allow conversion between different forms of energy and work measurements.",
-      "content": "The fundamental power formula is P = W/t, where W is work and t is time. For mechanical systems, P = F × v, where F is force and v is velocity. In electrical systems, P = V × I (voltage times current) or P = I²R = V²/R. Each formula serves different scenarios: use P = Fv for constant force problems, P = VI for basic electrical calculations, and P = I²R when resistance is known. Variable meanings: P (watts), W (joules), t (seconds), F (newtons), v (m/s), V (volts), I (amperes), R (ohms). When deriving these formulas, start from the definition P = dW/dt and substitute appropriate work expressions. Common mistake: forgetting to convert units (e.g., horsepower to watts). Application tip: In circuits, use P = I²R when current is constant, P = V²/R when voltage is constant.",
-      "formula": "P = W/t | P = F×v | P = V×I | P = I²R | P = V²/R",
+      "title": "First Formula Title",
+      "description": "How this formula applies to this problem...",
+      "content": "Detailed explanation of the formula, its derivation, when to use it, common mistakes...",
+      "formula": "mathematical formula here",
       "variables": [
-        {"symbol": "P", "meaning": "Power in watts"},
-        {"symbol": "W", "meaning": "Work in joules"},
-        {"symbol": "t", "meaning": "Time in seconds"},
-        {"symbol": "F", "meaning": "Force in newtons"},
-        {"symbol": "v", "meaning": "Velocity in m/s"},
-        {"symbol": "V", "meaning": "Voltage in volts"},
-        {"symbol": "I", "meaning": "Current in amperes"},
-        {"symbol": "R", "meaning": "Resistance in ohms"}
-      ]
+        {"symbol": "variable1", "meaning": "Clear description with units"},
+        {"symbol": "variable2", "meaning": "Clear description with units"}
+      ],
+      "examples": ["Example 1: numerical calculation", "Example 2: different scenario"]
     },
-    {
-      "id": "power-example",
-      "type": "example",
-      "title": "Calculating Power Example",
-      "description": "A practical example demonstrating how to calculate power using work and time measurements, showing the step-by-step process for determining power in a mechanical system.",
-      "content": "Consider a crane lifting a 500 kg load to a height of 20 meters in 40 seconds. To find the power developed by the crane motor: Step 1 - Calculate work done: W = mgh = 500 × 9.8 × 20 = 98,000 joules. Step 2 - Apply power formula: P = W/t = 98,000 / 40 = 2,450 watts. This means the crane motor must provide at least 2,450 watts of power, though actual power would be higher due to efficiency losses. Real-world application: Construction cranes are rated by their power capacity - a 10-ton crane might need 50,000+ watts for heavy lifting. Common mistake: Forgetting that power requirements increase with faster lifting speeds. Problem-solving tip: Always check if the calculated power seems reasonable for the application - 2,450 watts is about 3.3 horsepower, which is typical for small construction equipment.",
-      "examples": [
-        "Crane lifting 500kg load 20m in 40s: P = (500×9.8×20)/40 = 2,450W",
-        "Light bulb: P = V×I = 120V × 0.5A = 60W",
-        "Car engine: 200 horsepower = 149,140W of mechanical power"
-      ]
-    }
+    (continue with 3-5 more unique, detailed notes of various types)
   ],
   "subject": "${subject}",
   "difficulty": "${difficulty}"
 }
-\`\`\`
 
-**Guidelines:**
-- Create notes that build conceptual understanding progressively
-- Include specific problem-solving strategies and tips
-- Explain common mistakes and how to avoid them
-- Provide context for when and why each concept matters
-- Use clear, educational language suitable for AP-level students`;
+**QUALITY CHECKLIST:**
+✓ Generated 5-7 unique notes (not just 3-4)
+✓ Each note is 200-400 words of substantive content
+✓ Multiple formula notes with different formulas
+✓ Includes worked examples showing calculations
+✓ Provides specific problem-solving strategies
+✓ Explains common mistakes students make
+✓ All formulas have complete variable definitions
+✓ Content is educational and builds understanding progressively`;
 };
 
 const parseConceptNotesResponse = (response: string, subject: string, difficulty: string): ConceptNotesResponse => {
+  logger.info('Raw response from OpenAI (first 500 chars):', { 
+    preview: response.substring(0, 500),
+    fullLength: response.length 
+  });
+
+  const jsonContent = extractJson(response);
+  if (!jsonContent) {
+    logger.error('Error parsing concept notes response: No JSON content found.', { rawResponse: response.substring(0, 1000) });
+    throw new Error('Failed to find JSON in AI response for concept notes.');
+  }
+
+  logger.info('Extracted JSON content (first 500 chars):', {
+    preview: jsonContent.substring(0, 500),
+    fullLength: jsonContent.length
+  });
+
   try {
-    const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
-    const jsonContent = jsonMatch ? jsonMatch[1] : response;
+    // When using response_format: json_object, OpenAI should return valid JSON directly
+    // Try parsing the response content directly first
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonContent);
+      logger.info('Successfully parsed JSON on first attempt');
+    } catch (firstError) {
+      logger.warn('First JSON parse attempt failed, trying cleaning', {
+        errorMessage: firstError instanceof Error ? firstError.message : String(firstError),
+        firstChars: jsonContent.substring(0, 100)
+      });
+      
+      // Clean up common JSON formatting issues without corrupting escape sequences
+      let cleanedContent = jsonContent
+        .trim()
+        // Remove control characters (but preserve valid escape sequences)
+        .replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F]+/g, "")
+        // Remove trailing commas before closing brackets/braces
+        .replace(/,\s*([}\]])/g, '$1')
+        // Remove any BOM or invisible characters at the start
+        .replace(/^\uFEFF/, '');
+
+      logger.info('Cleaned content (first 200 chars):', { preview: cleanedContent.substring(0, 200) });
+
+      try {
+        parsed = JSON.parse(cleanedContent);
+        logger.info('Successfully parsed JSON after cleaning');
+      } catch (secondError) {
+        logger.error('Second parse attempt also failed', {
+          errorMessage: secondError instanceof Error ? secondError.message : String(secondError),
+          cleanedPreview: cleanedContent.substring(0, 200)
+        });
+        
+        // Last resort: try to fix common escape issues
+        cleanedContent = cleanedContent
+          .replace(/\\([^"\\\/bfnrtu])/g, '\\\\$1');
+        
+        parsed = JSON.parse(cleanedContent);
+        logger.info('Successfully parsed JSON after aggressive cleaning');
+      }
+    }
+
+    if (!parsed.conceptNotes || !Array.isArray(parsed.conceptNotes)) {
+      logger.warn('Parsed concept notes is missing a "conceptNotes" array.', { parsed });
+      throw new Error('AI response for concept notes is missing the "conceptNotes" array.');
+    }
     
-    const parsed = JSON.parse(jsonContent);
+    logger.info('Successfully parsed concept notes', { count: parsed.conceptNotes.length });
     
     return {
-      conceptNotes: parsed.conceptNotes || [],
+      conceptNotes: parsed.conceptNotes,
       subject: parsed.subject || subject,
       difficulty: parsed.difficulty || difficulty
     };
   } catch (error) {
-    logger.error('Error parsing concept notes response:', error);
-    throw new Error('Failed to parse concept notes from OpenAI response');
+    logger.error('Error parsing concept notes JSON:', {
+      errorMessage: error instanceof Error ? error.message : String(error),
+      jsonContentPreview: jsonContent.substring(0, 500)
+    });
+    throw new Error(`Failed to parse concept notes JSON: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
