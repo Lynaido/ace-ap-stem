@@ -23,25 +23,29 @@ const LoadingPanel = ({ title, message }) => (
 const SolveProblemsPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentProblem, loading, createProblem, uploadFile } = useAppContext();
-  const [showSolution, setShowSolution] = useState(false);
-  
-  // Local state for AI-generated content
-  const [activeSolution, setActiveSolution] = useState(null);
-  const [activeHints, setActiveHints] = useState(null);
-  const [activeConceptNotes, setActiveConceptNotes] = useState(null);
+  const {
+    currentProblem,
+    loading,
+    createProblem,
+    uploadFile,
+    problemSolution,
+    problemHints,
+    problemConceptNotes,
+    isProblemLoading,
+    problemDisplayMode,
+    setProblemSolution,
+    setProblemHints,
+    setProblemConceptNotes,
+    setIsProblemLoading,
+    setProblemDisplayMode,
+    clearProblemState,
+    isProblemViewVisible,
+    setProblemViewVisible,
+    saveItem,
+    getFolders,
+  } = useAppContext();
   const [createdProblemId, setCreatedProblemId] = useState(null);
-  
-  // State to track which AI content is available
-  const [availableViews, setAvailableViews] = useState({
-    solution: false,
-    hints: false,
-    conceptNotes: false
-  });
-  
-  // Local error state
   const [error, setError] = useState(null);
-  
   const [problemText, setProblemText] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -54,6 +58,20 @@ const SolveProblemsPage = () => {
   const [activeView, setActiveView] = useState(null);
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [loadedVariant, setLoadedVariant] = useState(null);
+  const [folders, setFolders] = useState([]);
+
+  // Load folders on mount
+  useEffect(() => {
+    const loadFolders = async () => {
+      try {
+        const foldersData = await getFolders();
+        setFolders(foldersData);
+      } catch (error) {
+        console.error('Error loading folders:', error);
+      }
+    };
+    loadFolders();
+  }, [getFolders]);
 
   // Check if we should start in create mode
   useEffect(() => {
@@ -83,7 +101,7 @@ const SolveProblemsPage = () => {
       setInputMode('text');
       
       // Reset other states
-      setShowSolution(false);
+      setProblemViewVisible(false);
       setActiveView(null);
       
       // Scroll to top and show the input area
@@ -97,10 +115,10 @@ const SolveProblemsPage = () => {
   }, [location.state, loadedVariant]);
 
   useEffect(() => {
-    if (showSolution) {
+    if (isProblemViewVisible) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [showSolution]);
+  }, [isProblemViewVisible]);
 
   const subjects = [
     { value: 'ap_physics_1_2', label: 'AP Physics 1 & 2 (algebra-based)' },
@@ -236,13 +254,13 @@ const SolveProblemsPage = () => {
   const trimmedProblem = problemText.trim();
   const subjectLabel = subjects.find((subject) => subject.value === selectedSubject)?.label || 'this AP subject';
   const formIncomplete = !trimmedProblem || !selectedSubject;
-  const isBusy = isUploading || isSolving || isGeneratingHints || isGeneratingConceptNotes;
+  const isBusy = isUploading || isProblemLoading;
 
   const handleImageUpload = () => {
     setInputMode('upload');
     setProblemText('');
     setActiveView(null);
-    setShowSolution(false);
+    setProblemViewVisible(false);
     setIsSolving(false);
     setIsGeneratingHints(false);
     setIsGeneratingConceptNotes(false);
@@ -258,7 +276,7 @@ const SolveProblemsPage = () => {
     setInputMode('text');
     setProblemText('');
     setActiveView(null);
-    setShowSolution(false);
+    setProblemViewVisible(false);
     setIsSolving(false);
     setIsGeneratingHints(false);
     setIsGeneratingConceptNotes(false);
@@ -300,15 +318,11 @@ const SolveProblemsPage = () => {
   };
 
   const handleSolveProblem = async () => {
-    if (formIncomplete) {
-      return;
-    }
-
-    setActiveView('solution');
-    setIsSolving(true);
-    setIsGeneratingHints(true);
-    setIsGeneratingConceptNotes(true);
-    setShowSolution(true);
+    if (formIncomplete) return;
+    clearProblemState();
+    setIsProblemLoading(true);
+    setProblemDisplayMode('solution');
+    setProblemViewVisible(true);
 
     try {
       const problemData = {
@@ -316,67 +330,35 @@ const SolveProblemsPage = () => {
         description: trimmedProblem,
         subject: selectedSubject,
         difficulty: 'medium',
-        imageUrl: uploadedAsset ? uploadedAsset.url : null
+        imageUrl: uploadedAsset ? uploadedAsset.url : null,
       };
-
-      const folderId = new URLSearchParams(location.search).get('folderId');
-      const createdProblem = await createProblem(problemData, folderId);
-      
-      // Store the problem ID for later use
-      if (createdProblem?.id) {
-        setCreatedProblemId(createdProblem.id);
-      }
-
-      // Generate AI solution if not in create mode
-      if (!isCreateMode && createdProblem?.id) {
-        try {
-          console.log('Generating AI solution for problem:', createdProblem.id);
-          const { problemAPI } = await import('../utils/api');
-          const response = await problemAPI.generateSolution(createdProblem.id);
-          console.log('Solution generated:', response);
-          
-          // Store the solution and mark it as available
-          if (response?.data?.solution) {
-            setActiveSolution(response.data.solution);
-            setAvailableViews(prev => ({ ...prev, solution: true }));
-            setActiveView('solution');
-          }
-        } catch (aiError) {
-          console.error('Error generating solution:', aiError);
-          setError('Failed to generate solution. Please try again.');
+      const created = await createProblem(problemData);
+      if (created?.id) {
+        setCreatedProblemId(created.id);
+        const { problemAPI } = await import('../utils/api');
+        const solutionRes = await problemAPI.generateSolution(created.id);
+        if (solutionRes.data.solution) {
+          // Attach the database ID to the solution object
+          const solutionWithId = {
+            ...solutionRes.data.solution,
+            id: solutionRes.data.solutionId
+          };
+          setProblemSolution(solutionWithId);
         }
       }
-
-      // If in create mode, redirect to Notes Hub to see the saved problem
-      if (isCreateMode) {
-        // Wait a bit for the toast to show and for the saved item to be created
-        setTimeout(() => {
-          navigate('/notes-hub?refresh=true', { replace: true });
-        }, 2000); // Increased time to ensure saved item creation completes
-      }
-
-      // Clear form after successful submission
-      setProblemText('');
-      setSelectedSubject('');
-
-    } catch (error) {
-      console.error('Error submitting problem:', error);
-      // Error is already handled in context
+    } catch (err) {
+      setError(err.message);
     } finally {
-      setIsSolving(false);
-      setIsGeneratingHints(false);
-      setIsGeneratingConceptNotes(false);
+      setIsProblemLoading(false);
     }
   };
 
   const handleGenerateHints = async () => {
-    if (formIncomplete) {
-      return;
-    }
-
-    setActiveView('hints');
-    setIsGeneratingHints(true);
-    setShowSolution(true);
+    if (formIncomplete) return;
+    clearProblemState();
+    setIsProblemLoading(true);
+    setProblemDisplayMode('hints');
+    setProblemViewVisible(true);
 
     try {
       const problemData = {
@@ -384,44 +366,30 @@ const SolveProblemsPage = () => {
         description: trimmedProblem,
         subject: selectedSubject,
         difficulty: 'medium',
-        imageUrl: uploadedAsset ? uploadedAsset.url : null
+        imageUrl: uploadedAsset ? uploadedAsset.url : null,
       };
-
-      const folderId = new URLSearchParams(location.search).get('folderId');
-      const createdProblem = await createProblem(problemData, folderId);
-
-      if (createdProblem?.id) {
-        console.log('Generating AI hints for problem:', createdProblem.id);
+      const created = await createProblem(problemData);
+      if (created?.id) {
+        setCreatedProblemId(created.id);
         const { problemAPI } = await import('../utils/api');
-        const response = await problemAPI.generateHints(createdProblem.id);
-        console.log('Hints generated:', response);
-        
-        // Store the hints and mark them as available
-        if (response?.data?.hints) {
-          setActiveHints(response.data.hints);
-          setAvailableViews(prev => ({ ...prev, hints: true }));
-          setActiveView('hints');
+        const hintsRes = await problemAPI.generateHints(created.id);
+        if (hintsRes.data.hints) {
+          setProblemHints(hintsRes.data.hints);
         }
       }
-
-      // Clear form
-      setProblemText('');
-      setSelectedSubject('');
-    } catch (error) {
-      console.error('Error generating hints:', error);
+    } catch (err) {
+      setError(err.message);
     } finally {
-      setIsGeneratingHints(false);
+      setIsProblemLoading(false);
     }
   };
 
   const handleGenerateConceptNotes = async () => {
-    if (formIncomplete) {
-      return;
-    }
-
-    setActiveView('concepts');
-    setIsGeneratingConceptNotes(true);
-    setShowSolution(true);
+    if (formIncomplete) return;
+    clearProblemState();
+    setIsProblemLoading(true);
+    setProblemDisplayMode('concepts');
+    setProblemViewVisible(true);
 
     try {
       const problemData = {
@@ -429,47 +397,132 @@ const SolveProblemsPage = () => {
         description: trimmedProblem,
         subject: selectedSubject,
         difficulty: 'medium',
-        imageUrl: uploadedAsset ? uploadedAsset.url : null
+        imageUrl: uploadedAsset ? uploadedAsset.url : null,
       };
-
-      const folderId = new URLSearchParams(location.search).get('folderId');
-      const createdProblem = await createProblem(problemData, folderId);
-
-      if (createdProblem?.id) {
-        console.log('Generating AI concept notes for problem:', createdProblem.id);
+      const created = await createProblem(problemData);
+      if (created?.id) {
+        setCreatedProblemId(created.id);
         const { problemAPI } = await import('../utils/api');
-        const response = await problemAPI.generateConceptNotes(createdProblem.id);
-        console.log('Concept notes generated:', response);
-        
-        // Store the concept notes and mark them as available
-        if (response?.data?.conceptNotes) {
-          setActiveConceptNotes(response.data.conceptNotes);
-          setAvailableViews(prev => ({ ...prev, conceptNotes: true }));
-          setActiveView('conceptNotes');
+        const notesRes = await problemAPI.generateConceptNotes(created.id);
+        if (notesRes.data.conceptNotes && notesRes.data.conceptNoteIds) {
+          // Attach database IDs to each concept note
+          const notesWithIds = notesRes.data.conceptNotes.map((note, index) => ({
+            ...note,
+            id: notesRes.data.conceptNoteIds[index]
+          }));
+          setProblemConceptNotes(notesWithIds);
         }
       }
-
-      // Clear form
-      setProblemText('');
-      setSelectedSubject('');
-    } catch (error) {
-      console.error('Error generating concept notes:', error);
+    } catch (err) {
+      setError(err.message);
     } finally {
-      setIsGeneratingConceptNotes(false);
+      setIsProblemLoading(false);
     }
   };
 
   const handleBackToInput = () => {
-    setShowSolution(false);
-    setActiveView(null);
+    setProblemViewVisible(false);
+    clearProblemState();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleGetSolution = async () => {
+    // Always switch to solution view
+    setProblemDisplayMode('solution');
+    
+    if (problemSolution) {
+      // Solution already exists, just switch view
+      return;
+    }
+    
+    if (createdProblemId) {
+      setIsProblemLoading(true);
+      try {
+        const { problemAPI } = await import('../utils/api');
+        const res = await problemAPI.generateSolution(createdProblemId);
+        if (res.data.solution) {
+          // Attach the database ID to the solution object
+          const solutionWithId = {
+            ...res.data.solution,
+            id: res.data.solutionId
+          };
+          setProblemSolution(solutionWithId);
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsProblemLoading(false);
+      }
+    }
+  };
+
+  const handleGetHints = async () => {
+    // Always switch to hints view
+    setProblemDisplayMode('hints');
+    
+    if (problemHints && problemHints.length > 0) {
+      // Hints already exist, just switch view
+      return;
+    }
+    
+    if (createdProblemId) {
+      setIsProblemLoading(true);
+      try {
+        const { problemAPI } = await import('../utils/api');
+        const res = await problemAPI.generateHints(createdProblemId);
+        if (res.data.hints) {
+          setProblemHints(res.data.hints);
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsProblemLoading(false);
+      }
+    }
+  };
+
+  const handleGetConceptNotes = async () => {
+    if (problemConceptNotes) {
+      setProblemDisplayMode('concepts');
+      return;
+    }
+    if (createdProblemId) {
+      setIsProblemLoading(true);
+      setProblemDisplayMode('concepts');
+      try {
+        const { problemAPI } = await import('../utils/api');
+        const res = await problemAPI.generateConceptNotes(createdProblemId);
+        if (res.data.conceptNotes && res.data.conceptNoteIds) {
+          // Attach database IDs to each concept note
+          const notesWithIds = res.data.conceptNotes.map((note, index) => ({
+            ...note,
+            id: res.data.conceptNoteIds[index]
+          }));
+          setProblemConceptNotes(notesWithIds);
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsProblemLoading(false);
+      }
+    }
+  };
+
+  const handleSaveItem = async (saveData) => {
+    try {
+      await saveItem(saveData);
+      // Optionally navigate to notes hub
+      // navigate('/notes-hub?refresh=true');
+    } catch (error) {
+      throw error;
+    }
+  };
+
   return (
-    <div className={`solve-problems-page ${showSolution ? 'solution-mode' : 'upload-mode'}`}>
+    <div className={`solve-problems-page ${isProblemViewVisible ? 'solution-mode' : 'upload-mode'}`}>
       <div className="solve-problems-layout">
         <div className="main-content">
-          {!showSolution ? (
+          {!isProblemViewVisible ? (
             <div className="upload-card">
               <div className="card-top-bar">
                 {isCreateMode ? (
@@ -659,30 +712,30 @@ const SolveProblemsPage = () => {
                   size="large"
                   onClick={handleSolveProblem}
                   disabled={formIncomplete || isBusy}
-                  className={`problem-action-button solve-action ${isSolving ? 'btn-loading' : ''}`}
+                  className={`problem-action-button solve-action ${isProblemLoading && problemDisplayMode === 'solution' ? 'btn-loading' : ''}`}
                   icon={<FaBolt aria-hidden="true" />}
                 >
-                  {isSolving ? 'Analyzing Problem' : 'Solve Problem'}
+                  {isProblemLoading && problemDisplayMode === 'solution' ? 'Analyzing...' : 'Solve Problem'}
                 </Button>
                 <Button
                   variant="ghost"
                   size="large"
                   onClick={handleGenerateHints}
                   disabled={formIncomplete || isBusy}
-                  className={`problem-action-button hints-action ${isGeneratingHints ? 'btn-loading' : ''}`}
+                  className={`problem-action-button hints-action ${isProblemLoading && problemDisplayMode === 'hints' ? 'btn-loading' : ''}`}
                   icon={<FaEye aria-hidden="true" />}
                 >
-                  {isGeneratingHints ? 'Preparing Hints' : 'Step-by-Step Hints'}
+                  {isProblemLoading && problemDisplayMode === 'hints' ? 'Preparing...' : 'Step-by-Step Hints'}
                 </Button>
                 <Button
                   variant="ghost"
                   size="large"
                   onClick={handleGenerateConceptNotes}
                   disabled={formIncomplete || isBusy}
-                  className={`problem-action-button concept-action ${isGeneratingConceptNotes ? 'btn-loading' : ''}`}
+                  className={`problem-action-button concept-action ${isProblemLoading && problemDisplayMode === 'concepts' ? 'btn-loading' : ''}`}
                   icon={<FaRegLightbulb aria-hidden="true" />}
                 >
-                  {isGeneratingConceptNotes ? 'Curating Notes' : 'Generate Concept Notes'}
+                  {isProblemLoading && problemDisplayMode === 'concepts' ? 'Curating...' : 'Generate Concept Notes'}
                 </Button>
               </div>
 
@@ -716,35 +769,34 @@ const SolveProblemsPage = () => {
                 </div>
               </div>
 
-              {/* Tabs to switch between different AI views */}
-              {(availableViews.solution || availableViews.hints || availableViews.conceptNotes) && (
+              {(problemSolution || problemHints.length > 0 || problemConceptNotes) && (
                 <div className="ai-content-tabs" role="tablist">
-                  {availableViews.solution && (
+                  {problemSolution && (
                     <button
-                      className={`ai-tab ${activeView === 'solution' ? 'active' : ''}`}
-                      onClick={() => setActiveView('solution')}
+                      className={`ai-tab ${problemDisplayMode === 'solution' ? 'active' : ''}`}
+                      onClick={() => setProblemDisplayMode('solution')}
                       role="tab"
-                      aria-selected={activeView === 'solution'}
+                      aria-selected={problemDisplayMode === 'solution'}
                     >
                       <FaBolt aria-hidden="true" /> Solution
                     </button>
                   )}
-                  {availableViews.hints && (
+                  {problemHints.length > 0 && (
                     <button
-                      className={`ai-tab ${activeView === 'hints' ? 'active' : ''}`}
-                      onClick={() => setActiveView('hints')}
+                      className={`ai-tab ${problemDisplayMode === 'hints' ? 'active' : ''}`}
+                      onClick={() => setProblemDisplayMode('hints')}
                       role="tab"
-                      aria-selected={activeView === 'hints'}
+                      aria-selected={problemDisplayMode === 'hints'}
                     >
                       <FaEye aria-hidden="true" /> Hints
                     </button>
                   )}
-                  {availableViews.conceptNotes && (
+                  {problemConceptNotes && (
                     <button
-                      className={`ai-tab ${activeView === 'conceptNotes' ? 'active' : ''}`}
-                      onClick={() => setActiveView('conceptNotes')}
+                      className={`ai-tab ${problemDisplayMode === 'concepts' ? 'active' : ''}`}
+                      onClick={() => setProblemDisplayMode('concepts')}
                       role="tab"
-                      aria-selected={activeView === 'conceptNotes'}
+                      aria-selected={problemDisplayMode === 'concepts'}
                     >
                       <FaRegLightbulb aria-hidden="true" /> Concept Notes
                     </button>
@@ -753,165 +805,45 @@ const SolveProblemsPage = () => {
               )}
 
               <div className="solution-content-stack">
-                {/* Show loading state */}
-                {(isSolving || isGeneratingHints || isGeneratingConceptNotes) && (
+                {isProblemLoading && (
                   <LoadingPanel
-                    title={isSolving ? "Generating Solution..." : isGeneratingHints ? "Generating Hints..." : "Generating Concept Notes..."}
+                    title="Generating..."
                     message="Our AI is analyzing your problem and creating helpful content."
                   />
                 )}
 
-                {/* Display the active AI content */}
-                {!isSolving && !isGeneratingHints && !isGeneratingConceptNotes && (
-                  <>
-                    {activeView === 'solution' && activeSolution && (
-                      <SolutionDisplay 
-                        solution={activeSolution}
-                        onGetHints={async () => {
-                          if (availableViews.hints) {
-                            setActiveView('hints');
-                          } else if (createdProblemId) {
-                            setIsGeneratingHints(true);
-                            try {
-                              const { problemAPI } = await import('../utils/api');
-                              const response = await problemAPI.generateHints(createdProblemId);
-                              if (response?.data?.hints) {
-                                setActiveHints(response.data.hints);
-                                setAvailableViews(prev => ({ ...prev, hints: true }));
-                                setActiveView('hints');
-                              }
-                            } catch (error) {
-                              console.error('Error generating hints:', error);
-                              setError('Failed to generate hints. Please try again.');
-                            } finally {
-                              setIsGeneratingHints(false);
-                            }
-                          }
-                        }}
-                        onViewConceptNotes={async () => {
-                          if (availableViews.conceptNotes) {
-                            setActiveView('conceptNotes');
-                          } else if (createdProblemId) {
-                            setIsGeneratingConceptNotes(true);
-                            try {
-                              const { problemAPI } = await import('../utils/api');
-                              const response = await problemAPI.generateConceptNotes(createdProblemId);
-                              if (response?.data?.conceptNotes) {
-                                setActiveConceptNotes(response.data.conceptNotes);
-                                setAvailableViews(prev => ({ ...prev, conceptNotes: true }));
-                                setActiveView('conceptNotes');
-                              }
-                            } catch (error) {
-                              console.error('Error generating concept notes:', error);
-                              setError('Failed to generate concept notes. Please try again.');
-                            } finally {
-                              setIsGeneratingConceptNotes(false);
-                            }
-                          }
-                        }}
-                        isGeneratingHints={isGeneratingHints}
-                        isGeneratingConceptNotes={isGeneratingConceptNotes}
-                      />
-                    )}
-                    {activeView === 'hints' && activeHints && (
-                      <HintsDisplay 
-                        hints={activeHints}
-                        onGetSolution={async () => {
-                          if (availableViews.solution) {
-                            setActiveView('solution');
-                          } else if (createdProblemId) {
-                            setIsSolving(true);
-                            try {
-                              const { problemAPI } = await import('../utils/api');
-                              const response = await problemAPI.generateSolution(createdProblemId);
-                              if (response?.data?.solution) {
-                                setActiveSolution(response.data.solution);
-                                setAvailableViews(prev => ({ ...prev, solution: true }));
-                                setActiveView('solution');
-                              }
-                            } catch (error) {
-                              console.error('Error generating solution:', error);
-                              setError('Failed to generate solution. Please try again.');
-                            } finally {
-                              setIsSolving(false);
-                            }
-                          }
-                        }}
-                        onViewConceptNotes={async () => {
-                          if (availableViews.conceptNotes) {
-                            setActiveView('conceptNotes');
-                          } else if (createdProblemId) {
-                            setIsGeneratingConceptNotes(true);
-                            try {
-                              const { problemAPI } = await import('../utils/api');
-                              const response = await problemAPI.generateConceptNotes(createdProblemId);
-                              if (response?.data?.conceptNotes) {
-                                setActiveConceptNotes(response.data.conceptNotes);
-                                setAvailableViews(prev => ({ ...prev, conceptNotes: true }));
-                                setActiveView('conceptNotes');
-                              }
-                            } catch (error) {
-                              console.error('Error generating concept notes:', error);
-                              setError('Failed to generate concept notes. Please try again.');
-                            } finally {
-                              setIsGeneratingConceptNotes(false);
-                            }
-                          }
-                        }}
-                        isGeneratingSolution={isSolving}
-                        isGeneratingConceptNotes={isGeneratingConceptNotes}
-                      />
-                    )}
-                    {activeView === 'conceptNotes' && activeConceptNotes && (
-                      <ConceptNotesDisplay 
-                        conceptNotes={activeConceptNotes}
-                        onGetSolution={async () => {
-                          if (availableViews.solution) {
-                            setActiveView('solution');
-                          } else if (createdProblemId) {
-                            setIsSolving(true);
-                            try {
-                              const { problemAPI } = await import('../utils/api');
-                              const response = await problemAPI.generateSolution(createdProblemId);
-                              if (response?.data?.solution) {
-                                setActiveSolution(response.data.solution);
-                                setAvailableViews(prev => ({ ...prev, solution: true }));
-                                setActiveView('solution');
-                              }
-                            } catch (error) {
-                              console.error('Error generating solution:', error);
-                              setError('Failed to generate solution. Please try again.');
-                            } finally {
-                              setIsSolving(false);
-                            }
-                          }
-                        }}
-                        onGetHints={async () => {
-                          if (availableViews.hints) {
-                            setActiveView('hints');
-                          } else if (createdProblemId) {
-                            setIsGeneratingHints(true);
-                            try {
-                              const { problemAPI } = await import('../utils/api');
-                              const response = await problemAPI.generateHints(createdProblemId);
-                              if (response?.data?.hints) {
-                                setActiveHints(response.data.hints);
-                                setAvailableViews(prev => ({ ...prev, hints: true }));
-                                setActiveView('hints');
-                              }
-                            } catch (error) {
-                              console.error('Error generating hints:', error);
-                              setError('Failed to generate hints. Please try again.');
-                            } finally {
-                              setIsGeneratingHints(false);
-                            }
-                          }
-                        }}
-                        isGeneratingSolution={isSolving}
-                        isGeneratingHints={isGeneratingHints}
-                      />
-                    )}
-                  </>
+                {!isProblemLoading && problemDisplayMode === 'solution' && problemSolution && (
+                  <SolutionDisplay
+                    solution={problemSolution}
+                    onGetHints={handleGetHints}
+                    onViewConceptNotes={handleGetConceptNotes}
+                    isGeneratingHints={isProblemLoading && problemDisplayMode === 'hints'}
+                    isGeneratingConceptNotes={isProblemLoading && problemDisplayMode === 'concepts'}
+                    onSave={handleSaveItem}
+                    folders={folders}
+                    currentProblem={currentProblem}
+                  />
+                )}
+                {!isProblemLoading && problemDisplayMode === 'hints' && problemHints.length > 0 && (
+                  <HintsDisplay
+                    hints={problemHints}
+                    onGetSolution={handleGetSolution}
+                    onViewConceptNotes={handleGetConceptNotes}
+                    isGeneratingSolution={isProblemLoading && problemDisplayMode === 'solution'}
+                    isGeneratingConceptNotes={isProblemLoading && problemDisplayMode === 'concepts'}
+                  />
+                )}
+                {!isProblemLoading && problemDisplayMode === 'concepts' && problemConceptNotes && (
+                  <ConceptNotesDisplay
+                    conceptNotes={problemConceptNotes}
+                    onGetSolution={handleGetSolution}
+                    onGetHints={handleGetHints}
+                    isGeneratingSolution={isProblemLoading && problemDisplayMode === 'solution'}
+                    isGeneratingHints={isProblemLoading && problemDisplayMode === 'hints'}
+                    onSave={handleSaveItem}
+                    folders={folders}
+                    currentProblem={currentProblem}
+                  />
                 )}
 
                 {/* Show error if any */}

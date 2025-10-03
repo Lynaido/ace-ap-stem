@@ -45,7 +45,15 @@ const initialState = {
 
   // UI State
   loading: false,
-  error: null
+  error: null,
+
+  //Persisting data
+  problemSolution: null,
+  problemHints: [],
+  problemConceptNotes: null,
+  isProblemLoading: false,
+  problemDisplayMode: null,
+  isProblemViewVisible: false,
 };
 
 // Action types
@@ -85,7 +93,16 @@ const ActionTypes = {
   // UI actions
   SET_LOADING: 'SET_LOADING',
   SET_ERROR: 'SET_ERROR',
-  CLEAR_ERROR: 'CLEAR_ERROR'
+  CLEAR_ERROR: 'CLEAR_ERROR',
+
+  // Persisting data actions
+  SET_PROBLEM_SOLUTION: 'SET_PROBLEM_SOLUTION',
+  SET_PROBLEM_HINTS: 'SET_PROBLEM_HINTS',
+  SET_PROBLEM_CONCEPT_NOTES: 'SET_PROBLEM_CONCEPT_NOTES',
+  SET_IS_PROBLEM_LOADING: 'SET_IS_PROBLEM_LOADING',
+  SET_PROBLEM_DISPLAY_MODE: 'SET_PROBLEM_DISPLAY_MODE',
+  CLEAR_PROBLEM_STATE: 'CLEAR_PROBLEM_STATE',
+  SET_PROBLEM_VIEW_VISIBLE: 'SET_PROBLEM_VIEW_VISIBLE'
 };
 
 // Reducer function
@@ -102,16 +119,10 @@ function appReducer(state, action) {
 
     case ActionTypes.LOGOUT:
       return {
-        ...state,
+        ...initialState,
         user: null,
         isAuthenticated: false,
         isAuthLoading: false,
-        activeProblem: null,
-        activeSolution: null,
-        activeHints: [],
-        activeConceptNotes: null,
-        chatHistory: [],
-        isChatOpen: false
       };
 
     case ActionTypes.SET_AUTH_LOADING:
@@ -301,6 +312,60 @@ function appReducer(state, action) {
       return {
         ...state,
         error: null
+      };
+
+    // Persisting data reducer cases
+    case ActionTypes.SET_PROBLEM_SOLUTION:
+      return {
+        ...state,
+        problemSolution: action.payload,
+        isProblemLoading: false,
+        problemDisplayMode: 'solution'
+      };
+    case ActionTypes.SET_PROBLEM_HINTS:
+      return {
+        ...state,
+        problemHints: action.payload,
+        isProblemLoading: false,
+        problemDisplayMode: 'hints'
+      };
+    case ActionTypes.SET_PROBLEM_CONCEPT_NOTES:
+      return {
+        ...state,
+        problemConceptNotes: action.payload,
+        isProblemLoading: false,
+        problemDisplayMode: 'concepts'
+      };
+    case ActionTypes.SET_IS_PROBLEM_LOADING:
+      return {
+        ...state,
+        isProblemLoading: action.payload
+      };
+    case ActionTypes.SET_PROBLEM_DISPLAY_MODE:
+      return {
+        ...state,
+        problemDisplayMode: action.payload
+      };
+    case ActionTypes.CLEAR_PROBLEM_STATE:
+      return {
+        ...state,
+        currentProblem: null,
+        problemSolution: null,
+        problemHints: [],
+        problemConceptNotes: null,
+        isProblemLoading: false,
+        problemDisplayMode: null,
+        isProblemViewVisible: false,
+        activeSolution: null,
+        activeHints: [],
+        activeConceptNotes: null,
+        displayMode: null
+      };
+
+    case ActionTypes.SET_PROBLEM_VIEW_VISIBLE:
+      return {
+        ...state,
+        isProblemViewVisible: action.payload
       };
 
     default:
@@ -954,7 +1019,16 @@ export const AppProvider = ({ children }) => {
     // UI actions
     setLoading: (loading) => dispatch({ type: ActionTypes.SET_LOADING, payload: loading }),
     setError: (error) => dispatch({ type: ActionTypes.SET_ERROR, payload: error }),
-    clearError: () => dispatch({ type: ActionTypes.CLEAR_ERROR })
+    clearError: () => dispatch({ type: ActionTypes.CLEAR_ERROR }),
+
+    // Persisting data actions
+    setProblemSolution: (solution) => dispatch({ type: ActionTypes.SET_PROBLEM_SOLUTION, payload: solution }),
+    setProblemHints: (hints) => dispatch({ type: ActionTypes.SET_PROBLEM_HINTS, payload: hints }),
+    setProblemConceptNotes: (notes) => dispatch({ type: ActionTypes.SET_PROBLEM_CONCEPT_NOTES, payload: notes }),
+    setIsProblemLoading: (loading) => dispatch({ type: ActionTypes.SET_IS_PROBLEM_LOADING, payload: loading }),
+    setProblemDisplayMode: (mode) => dispatch({ type: ActionTypes.SET_PROBLEM_DISPLAY_MODE, payload: mode }),
+    clearProblemState: () => dispatch({ type: ActionTypes.CLEAR_PROBLEM_STATE }),
+    setProblemViewVisible: (visible) => dispatch({ type: ActionTypes.SET_PROBLEM_VIEW_VISIBLE, payload: visible })
   };
 
   const value = {

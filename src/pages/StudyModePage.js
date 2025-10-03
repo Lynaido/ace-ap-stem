@@ -116,7 +116,8 @@ const StudyModePage = () => {
     return alreadyIncluded ? notesFromItems : [normalizedIncomingProblem, ...notesFromItems];
   }, [normalizedIncomingProblem, savedItems]);
 
-  const [activeStep, setActiveStep] = useState(normalizedIncomingProblem ? 2 : 1);
+  // Always start at step 1 (Choose Mode), but pre-select the problem if coming from NotesHub
+  const [activeStep, setActiveStep] = useState(1);
   const [selectedMode, setSelectedMode] = useState(null);
   const [selectedProblem, setSelectedProblem] = useState(normalizedIncomingProblem);
   const [variants, setVariants] = useState([]);
@@ -287,17 +288,19 @@ const StudyModePage = () => {
               tailored to your learning goals.
             </p>
             <div className="hero-actions">
-              <Button
-                variant="primary"
-                size="large"
-                onClick={() => setActiveStep(selectedMode ? (selectedProblem ? 3 : 2) : 1)}
-              >
-                Continue where you left off
-              </Button>
-              {(selectedMode || selectedProblem) && (
-                <Button variant="ghost" size="medium" onClick={handleResetSession}>
-                  Start over
-                </Button>
+              {(selectedMode || selectedProblem || variants.length > 0) && (
+                <>
+                  <Button
+                    variant="primary"
+                    size="large"
+                    onClick={() => setActiveStep(selectedMode ? (selectedProblem ? 3 : 2) : 1)}
+                  >
+                    Continue where you left off
+                  </Button>
+                  <Button variant="ghost" size="medium" onClick={handleResetSession}>
+                    Start over
+                  </Button>
+                </>
               )}
             </div>
           </div>

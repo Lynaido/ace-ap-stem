@@ -1,11 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import Button from '../primitives/Button';
 import Card from '../primitives/Card';
+import SaveNotesModal from '../notes/SaveNotesModal';
 import './SolutionDisplay.css';
 
-const SolutionDisplay = ({ solution, problemText, onGetHints, onViewConceptNotes, isGeneratingHints, isGeneratingConceptNotes }) => {
+const SolutionDisplay = ({ solution, problemText, onGetHints, onViewConceptNotes, isGeneratingHints, isGeneratingConceptNotes, onSave, folders = [], currentProblem }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [showAllSteps, setShowAllSteps] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [lastSolutionId, setLastSolutionId] = useState(null);
+
+  // Reset step navigation when solution changes
+  useEffect(() => {
+    if (solution?.id && solution.id !== lastSolutionId) {
+      setCurrentStep(0);
+      setShowAllSteps(false);
+      setLastSolutionId(solution.id);
+    }
+  }, [solution?.id, lastSolutionId]);
 
   if (!solution || !solution.steps) {
     return null;
@@ -41,12 +53,7 @@ const SolutionDisplay = ({ solution, problemText, onGetHints, onViewConceptNotes
         <span className="step-counter">
           Step {currentStep + 1} of {totalSteps}
         </span>
-        <div className="progress-bar">
-          <div 
-            className="progress-fill" 
-            style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
-          />
-        </div>
+        
       </div>
       <div className="step-controls">
         <Button
@@ -140,36 +147,55 @@ const SolutionDisplay = ({ solution, problemText, onGetHints, onViewConceptNotes
         </div>
       )}
 
-      <div className="solution-actions">
-        <Button 
-          variant="outline" 
-          size="small"
-          onClick={() => {
-            // TODO: Implement save to notes functionality
-            alert('Solution saved! (This will be implemented to save to your notes)');
-          }}
-        >
-          Save Solution
-        </Button>
-        <Button 
-          variant="outline" 
-          size="small"
-          onClick={onGetHints}
-          disabled={isGeneratingHints}
-        >
-          {isGeneratingHints ? 'Generating...' : 'Get Hints Instead'}
-        </Button>
-        <Button 
-          variant="outline" 
-          size="small"
-          onClick={onViewConceptNotes}
-          disabled={isGeneratingConceptNotes}
-        >
-          {isGeneratingConceptNotes ? 'Generating...' : 'View Concept Notes'}
-        </Button>
-      </div>
+      {(onSave || onGetHints || onViewConceptNotes) && (
+        <div className="solution-actions">
+          {onSave && (
+            <Button 
+              variant="outline" 
+              size="small"
+              onClick={() => setShowSaveModal(true)}
+            >
+              Save Solution
+            </Button>
+          )}
+          {onGetHints && (
+            <Button 
+              variant="outline" 
+              size="small"
+              onClick={onGetHints}
+              disabled={isGeneratingHints}
+            >
+              {isGeneratingHints ? 'Generating...' : 'Get Hints Instead'}
+            </Button>
+          )}
+          {onViewConceptNotes && (
+            <Button 
+              variant="outline" 
+              size="small"
+              onClick={onViewConceptNotes}
+              disabled={isGeneratingConceptNotes}
+            >
+              {isGeneratingConceptNotes ? 'Generating...' : 'View Concept Notes'}
+            </Button>
+          )}
+        </div>
+      )}
+
+      <SaveNotesModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onSave={onSave}
+        itemType="SOLUTION"
+        itemData={{
+          solutionId: solution.id,
+          problemId: currentProblem?.id
+        }}
+        folders={folders}
+        defaultTitle={currentProblem?.title || 'Solution'}
+        defaultTags={currentProblem?.subject ? [currentProblem.subject] : []}
+      />
     </Card>
   );
 };
 
-export default SolutionDisplay;
+export default memo(SolutionDisplay);

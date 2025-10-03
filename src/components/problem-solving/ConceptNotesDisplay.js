@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import Button from '../primitives/Button';
 import Card from '../primitives/Card';
 import Tabs from '../primitives/Tabs';
+import SaveNotesModal from '../notes/SaveNotesModal';
 import './ConceptNotesDisplay.css';
 
-const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHints, isGeneratingSolution, isGeneratingHints }) => {
+const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHints, isGeneratingSolution, isGeneratingHints, onSave, folders = [], currentProblem }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [expandedSections, setExpandedSections] = useState(new Set());
+  const [showSaveModal, setShowSaveModal] = useState(false);
 
   if (!conceptNotes || !conceptNotes.length) {
     return null;
@@ -23,22 +25,49 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHi
   };
 
   const tabs = [
-    { id: 'concepts', label: 'Key Concepts', count: conceptNotes.filter(note => note.type === 'concept').length },
-    { id: 'formulas', label: 'Formulas', count: conceptNotes.filter(note => note.type === 'formula').length },
-    { id: 'examples', label: 'Examples', count: conceptNotes.filter(note => note.type === 'example').length },
-    { id: 'tips', label: 'Study Tips', count: conceptNotes.filter(note => note.type === 'tip').length }
+    { 
+      id: 'concepts', 
+      label: 'Key Concepts', 
+      count: conceptNotes.filter(note => 
+        note.type === 'definition' || note.type === 'concept' || note.type === 'application'
+      ).length 
+    },
+    { 
+      id: 'formulas', 
+      label: 'Formulas', 
+      count: conceptNotes.filter(note => note.type === 'formula').length 
+    },
+    { 
+      id: 'examples', 
+      label: 'Examples', 
+      count: conceptNotes.filter(note => note.type === 'example').length 
+    },
+    { 
+      id: 'tips', 
+      label: 'Study Tips', 
+      count: conceptNotes.filter(note => 
+        note.type === 'tip' || note.type === 'common-mistake'
+      ).length 
+    }
   ];
 
   const getFilteredNotes = (tabId) => {
-    const typeMap = {
-      concepts: 'concept',
-      formulas: 'formula',
-      examples: 'example',
-      tips: 'tip'
-    };
-
-    const targetType = typeMap[tabId] || tabId;
-    return conceptNotes.filter(note => note.type === targetType);
+    switch (tabId) {
+      case 'concepts':
+        return conceptNotes.filter(note => 
+          note.type === 'definition' || note.type === 'concept' || note.type === 'application'
+        );
+      case 'formulas':
+        return conceptNotes.filter(note => note.type === 'formula');
+      case 'examples':
+        return conceptNotes.filter(note => note.type === 'example');
+      case 'tips':
+        return conceptNotes.filter(note => 
+          note.type === 'tip' || note.type === 'common-mistake'
+        );
+      default:
+        return conceptNotes;
+    }
   };
 
   const getCurrentNotes = () => {
@@ -48,7 +77,8 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHi
 
   const renderNote = (note, index) => {
     const isExpanded = expandedSections.has(note.id);
-    const hasDetails = note.details || note.formula || note.derivation || note.applications;
+    const hasDetails = note.content || note.details || note.formula || note.derivation || 
+                      note.applications || note.variables || note.examples || note.relatedTopics;
 
     return (
       <div key={note.id} className={`concept-note ${note.type}`}>
@@ -66,7 +96,7 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHi
           </div>
           {hasDetails && (
             <button className={`expand-button ${isExpanded ? 'expanded' : ''}`}>
-              ↓
+              {isExpanded ? '▲' : '▼'}
             </button>
           )}
         </div>
@@ -81,8 +111,28 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHi
             </div>
           )}
 
+          {note.variables && note.variables.length > 0 && (
+            <div className="variables-section">
+              <strong>Variables:</strong>
+              <ul className="variables-list">
+                {note.variables.map((variable, idx) => (
+                  <li key={idx}>
+                    <strong>{variable.symbol}:</strong> {variable.meaning}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {isExpanded && hasDetails && (
             <div className="note-details">
+              {note.content && (
+                <div className="content-section">
+                  <strong>Detailed Explanation:</strong>
+                  <p style={{ whiteSpace: 'pre-wrap' }}>{note.content}</p>
+                </div>
+              )}
+
               {note.details && (
                 <div className="details-section">
                   <strong>Details:</strong>
@@ -97,7 +147,18 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHi
                 </div>
               )}
 
-              {note.applications && (
+              {note.examples && note.examples.length > 0 && (
+                <div className="examples-section">
+                  <strong>Examples:</strong>
+                  <ul>
+                    {note.examples.map((example, idx) => (
+                      <li key={idx}>{example}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {note.applications && note.applications.length > 0 && (
                 <div className="applications-section">
                   <strong>Common Applications:</strong>
                   <ul>
@@ -108,7 +169,7 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHi
                 </div>
               )}
 
-              {note.relatedTopics && (
+              {note.relatedTopics && note.relatedTopics.length > 0 && (
                 <div className="related-topics">
                   <strong>Related Topics:</strong>
                   <div className="topic-tags">
@@ -127,11 +188,21 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHi
 
   const getIconForType = (type) => {
     switch (type) {
-      case 'concept': return '💡';
-      case 'formula': return '📐';
-      case 'example': return '📝';
-      case 'tip': return '💭';
-      default: return '📋';
+      case 'definition':
+      case 'concept': 
+        return '💡';
+      case 'formula': 
+        return '📐';
+      case 'example': 
+        return '📝';
+      case 'tip': 
+        return '💭';
+      case 'common-mistake':
+        return '⚠️';
+      case 'application':
+        return '🎯';
+      default: 
+        return '📋';
     }
   };
 
@@ -165,33 +236,53 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHi
         )}
       </div>
 
-      <div className="concept-notes-actions">
-        <Button 
-          variant="outline" 
-          size="small"
-          onClick={() => {
-            alert('Notes saved! (This will be implemented to save to your notes)');
-          }}
-        >
-          Save Notes
-        </Button>
-        <Button 
-          variant="outline" 
-          size="small"
-          onClick={onGetSolution}
-          disabled={isGeneratingSolution}
-        >
-          {isGeneratingSolution ? 'Generating...' : 'Get Full Solution'}
-        </Button>
-        <Button 
-          variant="outline" 
-          size="small"
-          onClick={onGetHints}
-          disabled={isGeneratingHints}
-        >
-          {isGeneratingHints ? 'Generating...' : 'Get Hints Instead'}
-        </Button>
-      </div>
+      {(onSave || onGetSolution || onGetHints) && (
+        <div className="concept-notes-actions">
+          {onSave && (
+            <Button 
+              variant="outline" 
+              size="small"
+              onClick={() => setShowSaveModal(true)}
+            >
+              Save Notes
+            </Button>
+          )}
+          {onGetSolution && (
+            <Button 
+              variant="outline" 
+              size="small"
+              onClick={onGetSolution}
+              disabled={isGeneratingSolution}
+            >
+              {isGeneratingSolution ? 'Generating...' : 'Get Full Solution'}
+            </Button>
+          )}
+          {onGetHints && (
+            <Button 
+              variant="outline" 
+              size="small"
+              onClick={onGetHints}
+              disabled={isGeneratingHints}
+            >
+              {isGeneratingHints ? 'Generating...' : 'Get Hints Instead'}
+            </Button>
+          )}
+        </div>
+      )}
+
+      <SaveNotesModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onSave={onSave}
+        itemType="CONCEPT_NOTE"
+        itemData={{
+          conceptNoteId: conceptNotes[0]?.id,
+          problemId: currentProblem?.id
+        }}
+        folders={folders}
+        defaultTitle={currentProblem?.title ? `${currentProblem.title} - Concept Notes` : 'Concept Notes'}
+        defaultTags={currentProblem?.subject ? [currentProblem.subject, 'concepts'] : ['concepts']}
+      />
     </Card>
   );
 };

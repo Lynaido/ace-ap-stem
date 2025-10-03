@@ -20,7 +20,10 @@ const SavedItemCard = ({ item, onOpen, onReview, onToggleStar, onDeleteItem, cla
 
   const handleReview = (evt) => {
     evt.stopPropagation();
-    if (onReview) {
+    // Open the item in view mode
+    if (onOpen) {
+      onOpen(item);
+    } else if (onReview) {
       onReview(item);
     }
   };

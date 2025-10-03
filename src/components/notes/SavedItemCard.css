@@ -65,9 +65,19 @@
   color: #1d4ed8;
 }
 
-.saved-item-card__badge--concept {
-  background: rgba(16, 185, 129, 0.15);
-  color: #047857;
+.saved-item-card__badge--concept_note {
+  background: rgba(251, 191, 36, 0.15);
+  color: #92400e;
+}
+
+.saved-item-card__badge--hint {
+  background: rgba(139, 92, 246, 0.15);
+  color: #5b21b6;
+}
+
+.saved-item-card__badge--problem {
+  background: rgba(236, 72, 153, 0.15);
+  color: #9f1239;
 }
 
 .saved-item-card__meta {

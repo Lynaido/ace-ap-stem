@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import FolderSidebar from '../components/notes/FolderSidebar';
 import SavedItemCard from '../components/notes/SavedItemCard';
+import ViewSavedItemModal from '../components/notes/ViewSavedItemModal';
 import ConfirmationModal from '../components/primitives/ConfirmationModal';
 import { useAppContext } from '../context/AppContext';
 import { savedItemsAPI } from '../utils/api';
@@ -27,6 +28,7 @@ const NotesHubPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [showSaveItemModal, setShowSaveItemModal] = useState(false);
+  const [viewingItem, setViewingItem] = useState(null);
   
   // Filter states
   const [activeFilters, setActiveFilters] = useState({
@@ -103,9 +105,20 @@ const NotesHubPage = () => {
   // Transform saved items for display
   const transformedItems = useMemo(() => {
     return savedItems.map(item => {
+      // Format date safely
+      let relativeUpdated = 'Recently';
+      try {
+        const date = new Date(item.updatedAt || item.createdAt);
+        if (!isNaN(date.getTime())) {
+          relativeUpdated = date.toLocaleDateString();
+        }
+      } catch (e) {
+        // Use default 'Recently'
+      }
+      
       const baseItem = {
         ...item,
-        relativeUpdated: new Date(item.updatedAt).toLocaleDateString()
+        relativeUpdated
       };
 
       // Extract data from nested objects based on type
@@ -126,22 +139,24 @@ const NotesHubPage = () => {
           }
           break;
         case 'SOLUTION':
-          if (item.solution) {
+          if (item.solution && item.problem) {
             return {
               ...baseItem,
-              title: item.solution.title || 'Solution',
-              excerpt: item.solution.content,
-              subject: item.solution.subject || 'Unknown'
+              title: item.problem.title || 'Solution',
+              excerpt: `Solution: ${item.solution.finalAnswer || item.solution.content?.substring(0, 150) || 'View full solution'}`,
+              subject: item.problem.subject || 'Unknown',
+              difficulty: item.problem.difficulty
             };
           }
           break;
         case 'HINT':
-          if (item.hint) {
+          if (item.hint && item.problem) {
             return {
               ...baseItem,
-              title: item.hint.title || 'Hint',
-              excerpt: item.hint.content,
-              subject: item.hint.subject || 'Unknown'
+              title: item.problem.title || 'Hint',
+              excerpt: item.hint.content?.substring(0, 150) || 'View hint',
+              subject: item.problem.subject || 'Unknown',
+              difficulty: item.problem.difficulty
             };
           }
           break;
@@ -149,9 +164,10 @@ const NotesHubPage = () => {
           if (item.conceptNote) {
             return {
               ...baseItem,
-              title: item.conceptNote.title,
-              excerpt: item.conceptNote.content,
-              subject: item.conceptNote.subject || 'Unknown'
+              title: item.conceptNote.title || (item.problem?.title ? `${item.problem.title} - Concepts` : 'Concept Notes'),
+              excerpt: item.conceptNote.content?.substring(0, 150) || 'View concept notes',
+              subject: item.problem?.subject || 'Unknown',
+              difficulty: item.problem?.difficulty
             };
           }
           break;
@@ -518,6 +534,7 @@ const NotesHubPage = () => {
                       <SavedItemCard
                         key={item.id}
                         item={item}
+                        onOpen={(item) => setViewingItem(item)}
                         onToggleStar={handleToggleStar}
                         onDeleteItem={handleDeleteItem}
                         className="compact"
@@ -533,6 +550,7 @@ const NotesHubPage = () => {
                     <SavedItemCard
                       key={item.id}
                       item={item}
+                      onOpen={(item) => setViewingItem(item)}
                       onToggleStar={handleToggleStar}
                       onDeleteItem={handleDeleteItem}
                     />
@@ -724,6 +742,14 @@ const NotesHubPage = () => {
             </div>
           </div>
         )}
+
+        {/* View Item Modal */}
+        <ViewSavedItemModal
+          isOpen={!!viewingItem}
+          onClose={() => setViewingItem(null)}
+          savedItem={viewingItem}
+          onDelete={handleDeleteItem}
+        />
 
         {/* Confirmation Modal */}
         <ConfirmationModal
