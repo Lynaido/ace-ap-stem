@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Button from '../primitives/Button';
+import Spinner from '../primitives/Spinner';
 import './StudyModeGenerator.css';
 
 const modeTimeEstimates = {
@@ -18,6 +19,7 @@ const StudyModeGenerator = ({
   variants = [],
   selectedMode,
   selectedProblem,
+  loading = false,
   onRegenerate,
   onChangeNote,
   onReset,
@@ -95,7 +97,17 @@ const StudyModeGenerator = ({
         </div>
       </div>
 
-      {hasVariants ? (
+      {loading ? (
+        <div className="variants-loading-container">
+          <div className="variants-loading-content">
+            <Spinner size="xl" color="primary" />
+            <div className="variants-loading-text">
+              <h3>Generating AI-Powered Variants</h3>
+              <p>Our AI is creating personalized practice problems based on your selected note and study mode...</p>
+            </div>
+          </div>
+        </div>
+      ) : hasVariants ? (
         <div className="session-variants">
           <div className="variants-heading">
             <div>

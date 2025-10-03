@@ -3,7 +3,7 @@ import Button from '../primitives/Button';
 import Card from '../primitives/Card';
 import './HintsDisplay.css';
 
-const HintsDisplay = ({ hints, problemText }) => {
+const HintsDisplay = ({ hints, problemText, onGetSolution, onViewConceptNotes, isGeneratingSolution, isGeneratingConceptNotes }) => {
   const [revealedHints, setRevealedHints] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
 
@@ -27,8 +27,9 @@ const HintsDisplay = ({ hints, problemText }) => {
   };
 
   const handleGetSolution = () => {
-    // This would trigger showing the full solution instead
-    console.log('Get full solution');
+    if (onGetSolution) {
+      onGetSolution();
+    }
   };
 
   const canRevealMore = revealedHints < hints.length;
@@ -116,8 +117,17 @@ const HintsDisplay = ({ hints, problemText }) => {
             variant="outline"
             size="small"
             onClick={handleGetSolution}
+            disabled={isGeneratingSolution}
           >
-            Get Full Solution
+            {isGeneratingSolution ? 'Generating...' : 'Get Full Solution'}
+          </Button>
+          <Button
+            variant="outline"
+            size="small"
+            onClick={onViewConceptNotes}
+            disabled={isGeneratingConceptNotes}
+          >
+            {isGeneratingConceptNotes ? 'Generating...' : 'View Concept Notes'}
           </Button>
         </div>
       </div>

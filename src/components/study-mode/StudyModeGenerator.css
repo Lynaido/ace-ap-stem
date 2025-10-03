@@ -337,3 +337,73 @@
     width: 100%;
   }
 }
+
+/* Variants Loading State */
+.variants-loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 3rem;
+  background: linear-gradient(145deg, rgba(249, 115, 22, 0.02) 0%, rgba(249, 115, 22, 0.05) 100%);
+  border-radius: 20px;
+  border: 2px dashed rgba(249, 115, 22, 0.15);
+}
+
+.variants-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  text-align: center;
+  animation: slideInFadeIn 0.7s ease-out;
+}
+
+.variants-loading-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 480px;
+}
+
+.variants-loading-text h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.variants-loading-text p {
+  font-size: 1rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.7;
+}
+
+@keyframes slideInFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Add subtle glow animation to the spinner */
+.variants-loading-container .spinner-primitive {
+  animation: slideInFadeIn 0.7s ease-out, glowPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.3));
+  }
+  50% {
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 16px rgba(249, 115, 22, 0.5));
+  }
+}

@@ -3,7 +3,7 @@ import Button from '../primitives/Button';
 import Card from '../primitives/Card';
 import './SolutionDisplay.css';
 
-const SolutionDisplay = ({ solution, problemText }) => {
+const SolutionDisplay = ({ solution, problemText, onGetHints, onViewConceptNotes, isGeneratingHints, isGeneratingConceptNotes }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [showAllSteps, setShowAllSteps] = useState(false);
 
@@ -141,14 +141,31 @@ const SolutionDisplay = ({ solution, problemText }) => {
       )}
 
       <div className="solution-actions">
-        <Button variant="outline" size="small">
+        <Button 
+          variant="outline" 
+          size="small"
+          onClick={() => {
+            // TODO: Implement save to notes functionality
+            alert('Solution saved! (This will be implemented to save to your notes)');
+          }}
+        >
           Save Solution
         </Button>
-        <Button variant="outline" size="small">
-          Get Hints Instead
+        <Button 
+          variant="outline" 
+          size="small"
+          onClick={onGetHints}
+          disabled={isGeneratingHints}
+        >
+          {isGeneratingHints ? 'Generating...' : 'Get Hints Instead'}
         </Button>
-        <Button variant="outline" size="small">
-          View Concept Notes
+        <Button 
+          variant="outline" 
+          size="small"
+          onClick={onViewConceptNotes}
+          disabled={isGeneratingConceptNotes}
+        >
+          {isGeneratingConceptNotes ? 'Generating...' : 'View Concept Notes'}
         </Button>
       </div>
     </Card>

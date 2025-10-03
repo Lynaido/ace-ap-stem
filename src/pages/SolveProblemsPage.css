@@ -308,6 +308,70 @@
   justify-content: center;
 }
 
+/* AI Content Tabs - for switching between solution, hints, concept notes */
+.ai-content-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f3f4f6;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.ai-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 2.5rem;
+  padding: 0 1rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ai-tab:hover {
+  color: #111827;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.ai-tab.active {
+  background: #ffffff;
+  color: #4f46e5;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
+}
+
+.ai-tab svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Generate More Actions - buttons to generate additional AI content */
+.generate-more-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.generate-more-actions button {
+  flex: 1;
+  min-width: 180px;
+}
+
 .tab-icon svg {
   width: 20px;
   height: 20px;

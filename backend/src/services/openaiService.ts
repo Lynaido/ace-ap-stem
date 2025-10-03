@@ -257,32 +257,32 @@ export const selectModel = (params: ModelSelectionParams): string => {
 
   // If escalation requested, use flagship model
   if (escalate) {
-    return 'gpt-5-flagship';
+    return 'gpt-4o'; // Using GPT-4o for complex tasks
   }
 
-  // Task-based routing with GPT-5 models
+  // Task-based routing with actual GPT models
   switch (taskType) {
     case 'variants':
-      return 'gpt-5-nano'; // Most cost-effective for variants
+      return 'gpt-4o-mini'; // Most cost-effective for variants
 
     case 'hints':
-      return 'gpt-5-mini'; // Mini for hints generation
+      return 'gpt-4o-mini'; // Mini for hints generation
 
     case 'concepts':
-      return 'gpt-5-mini'; // Mini handles concept extraction well
+      return 'gpt-4o-mini'; // Mini handles concept extraction well
 
     case 'chat':
-      return 'gpt-5-mini'; // Mini for conversational responses
+      return 'gpt-4o-mini'; // Mini for conversational responses
 
     case 'solution':
       // Difficulty-based routing for solutions
       if (difficulty === 'hard' || difficulty === 'very-hard') {
-        return 'gpt-5-flagship'; // Flagship for complex problems
+        return 'gpt-4o'; // GPT-4o for complex problems
       }
-      return 'gpt-5-mini'; // Mini for easy/medium problems
+      return 'gpt-4o-mini'; // Mini for easy/medium problems
 
     default:
-      return 'gpt-5-mini';
+      return 'gpt-4o-mini';
   }
 };
 

@@ -178,6 +178,9 @@ export const problemAPI = {
   create: (problemData) => apiClient.post('/api/problems', problemData),
   update: (id, problemData) => apiClient.put(`/api/problems/${id}`, problemData),
   delete: (id) => apiClient.delete(`/api/problems/${id}`),
+  generateSolution: (id, options = {}) => apiClient.post(`/api/problems/${id}/solutions`, options),
+  generateHints: (id, options = {}) => apiClient.post(`/api/problems/${id}/hints`, options),
+  generateConceptNotes: (id, options = {}) => apiClient.post(`/api/problems/${id}/concept-notes`, options),
 };
 
 export const foldersAPI = {

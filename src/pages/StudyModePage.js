@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import EmptyState from '../components/primitives/EmptyState';
 import Button from '../components/primitives/Button';
+import Spinner from '../components/primitives/Spinner';
 import StudyModeGenerator from '../components/study-mode/StudyModeGenerator';
 import { useAppContext } from '../context/AppContext';
 import { studySessionsAPI } from '../utils/api';
@@ -246,8 +247,14 @@ const StudyModePage = () => {
     return (
       <div className="study-mode-page">
         <div className="study-mode-shell">
-          <div className="loading-container">
-            <p>Loading saved items...</p>
+          <div className="elegant-loading-container">
+            <div className="loading-content">
+              <Spinner size="xl" color="primary" />
+              <div className="loading-text">
+                <h3>Loading Your Study Library</h3>
+                <p>Preparing your saved problems and study materials...</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -434,6 +441,7 @@ const StudyModePage = () => {
               variants={variants}
               selectedMode={selectedMode}
               selectedProblem={selectedProblem}
+              loading={loading}
               onChangeNote={handleChangeNote}
               onReset={handleResetSession}
               onRegenerate={handleGenerateSession}

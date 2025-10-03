@@ -4,7 +4,7 @@ import Card from '../primitives/Card';
 import Tabs from '../primitives/Tabs';
 import './ConceptNotesDisplay.css';
 
-const ConceptNotesDisplay = ({ conceptNotes, problemText }) => {
+const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHints, isGeneratingSolution, isGeneratingHints }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [expandedSections, setExpandedSections] = useState(new Set());
 
@@ -166,14 +166,30 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText }) => {
       </div>
 
       <div className="concept-notes-actions">
-        <Button variant="outline" size="small">
+        <Button 
+          variant="outline" 
+          size="small"
+          onClick={() => {
+            alert('Notes saved! (This will be implemented to save to your notes)');
+          }}
+        >
           Save Notes
         </Button>
-        <Button variant="outline" size="small">
-          Print Notes
+        <Button 
+          variant="outline" 
+          size="small"
+          onClick={onGetSolution}
+          disabled={isGeneratingSolution}
+        >
+          {isGeneratingSolution ? 'Generating...' : 'Get Full Solution'}
         </Button>
-        <Button variant="outline" size="small">
-          View Related Problems
+        <Button 
+          variant="outline" 
+          size="small"
+          onClick={onGetHints}
+          disabled={isGeneratingHints}
+        >
+          {isGeneratingHints ? 'Generating...' : 'Get Hints Instead'}
         </Button>
       </div>
     </Card>
