@@ -98,7 +98,7 @@ const SavedItemCard = ({ item, onOpen, onReview, onToggleStar, onDeleteItem, cla
       <footer className="saved-item-card__footer">
         <div className="saved-item-card__tags">
           {item.subject && <span>{item.subject}</span>}
-          {item.tags?.map((tag) => (
+          {item.tags?.filter(tag => tag !== item.subject).map((tag) => (
             <span key={tag}>{tag}</span>
           ))}
         </div>

@@ -145,7 +145,11 @@ const NotesHubPage = () => {
               title: item.problem.title || 'Solution',
               excerpt: `Solution: ${item.solution.finalAnswer || item.solution.content?.substring(0, 150) || 'View full solution'}`,
               subject: item.problem.subject || 'Unknown',
-              difficulty: item.problem.difficulty
+              difficulty: item.problem.difficulty,
+              // Remove subject/difficulty from tags to avoid duplication
+              tags: (item.tags || []).filter(tag => 
+                tag !== item.problem.subject && tag !== item.problem.difficulty
+              )
             };
           }
           break;
@@ -156,7 +160,11 @@ const NotesHubPage = () => {
               title: item.problem.title || 'Hint',
               excerpt: item.hint.content?.substring(0, 150) || 'View hint',
               subject: item.problem.subject || 'Unknown',
-              difficulty: item.problem.difficulty
+              difficulty: item.problem.difficulty,
+              // Remove subject/difficulty from tags to avoid duplication
+              tags: (item.tags || []).filter(tag => 
+                tag !== item.problem.subject && tag !== item.problem.difficulty
+              )
             };
           }
           break;
@@ -167,7 +175,11 @@ const NotesHubPage = () => {
               title: item.conceptNote.title || (item.problem?.title ? `${item.problem.title} - Concepts` : 'Concept Notes'),
               excerpt: item.conceptNote.content?.substring(0, 150) || 'View concept notes',
               subject: item.problem?.subject || 'Unknown',
-              difficulty: item.problem?.difficulty
+              difficulty: item.problem?.difficulty,
+              // Remove subject/difficulty from tags to avoid duplication
+              tags: (item.tags || []).filter(tag => 
+                tag !== item.problem?.subject && tag !== item.problem?.difficulty
+              )
             };
           }
           break;

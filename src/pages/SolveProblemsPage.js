@@ -43,6 +43,7 @@ const SolveProblemsPage = () => {
     setProblemViewVisible,
     saveItem,
     getFolders,
+    setActiveProblem,
   } = useAppContext();
   const [createdProblemId, setCreatedProblemId] = useState(null);
   const [error, setError] = useState(null);
@@ -335,6 +336,7 @@ const SolveProblemsPage = () => {
       const created = await createProblem(problemData);
       if (created?.id) {
         setCreatedProblemId(created.id);
+        setActiveProblem(created); // Store problem in context for later use
         const { problemAPI } = await import('../utils/api');
         const solutionRes = await problemAPI.generateSolution(created.id);
         if (solutionRes.data.solution) {
@@ -371,6 +373,7 @@ const SolveProblemsPage = () => {
       const created = await createProblem(problemData);
       if (created?.id) {
         setCreatedProblemId(created.id);
+        setActiveProblem(created); // Store problem in context for later use
         const { problemAPI } = await import('../utils/api');
         const hintsRes = await problemAPI.generateHints(created.id);
         if (hintsRes.data.hints) {
@@ -402,6 +405,7 @@ const SolveProblemsPage = () => {
       const created = await createProblem(problemData);
       if (created?.id) {
         setCreatedProblemId(created.id);
+        setActiveProblem(created); // Store problem in context for later use
         const { problemAPI } = await import('../utils/api');
         const notesRes = await problemAPI.generateConceptNotes(created.id);
         if (notesRes.data.conceptNotes && notesRes.data.conceptNoteIds) {
@@ -435,24 +439,32 @@ const SolveProblemsPage = () => {
       return;
     }
     
-    if (createdProblemId) {
-      setIsProblemLoading(true);
-      try {
-        const { problemAPI } = await import('../utils/api');
-        const res = await problemAPI.generateSolution(createdProblemId);
-        if (res.data.solution) {
-          // Attach the database ID to the solution object
-          const solutionWithId = {
-            ...res.data.solution,
-            id: res.data.solutionId
-          };
-          setProblemSolution(solutionWithId);
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsProblemLoading(false);
+    // Try to get problem ID from either local state or context
+    const problemId = createdProblemId || currentProblem?.id;
+    
+    if (!problemId) {
+      console.error('No problem ID found');
+      setError('Problem ID is missing. Please try creating the problem again.');
+      return;
+    }
+    
+    setIsProblemLoading(true);
+    try {
+      const { problemAPI } = await import('../utils/api');
+      const res = await problemAPI.generateSolution(problemId);
+      if (res.data.solution) {
+        // Attach the database ID to the solution object
+        const solutionWithId = {
+          ...res.data.solution,
+          id: res.data.solutionId
+        };
+        setProblemSolution(solutionWithId);
       }
+    } catch (err) {
+      console.error('Error generating solution:', err);
+      setError(err.message);
+    } finally {
+      setIsProblemLoading(false);
     }
   };
 
@@ -465,46 +477,64 @@ const SolveProblemsPage = () => {
       return;
     }
     
-    if (createdProblemId) {
-      setIsProblemLoading(true);
-      try {
-        const { problemAPI } = await import('../utils/api');
-        const res = await problemAPI.generateHints(createdProblemId);
-        if (res.data.hints) {
-          setProblemHints(res.data.hints);
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsProblemLoading(false);
+    // Try to get problem ID from either local state or context
+    const problemId = createdProblemId || currentProblem?.id;
+    
+    if (!problemId) {
+      console.error('No problem ID found');
+      setError('Problem ID is missing. Please try creating the problem again.');
+      return;
+    }
+    
+    setIsProblemLoading(true);
+    try {
+      const { problemAPI } = await import('../utils/api');
+      const res = await problemAPI.generateHints(problemId);
+      if (res.data.hints) {
+        setProblemHints(res.data.hints);
       }
+    } catch (err) {
+      console.error('Error generating hints:', err);
+      setError(err.message);
+    } finally {
+      setIsProblemLoading(false);
     }
   };
 
   const handleGetConceptNotes = async () => {
+    setProblemDisplayMode('concepts');
+    
     if (problemConceptNotes) {
-      setProblemDisplayMode('concepts');
+      // Concept notes already exist, just switch view
       return;
     }
-    if (createdProblemId) {
-      setIsProblemLoading(true);
-      setProblemDisplayMode('concepts');
-      try {
-        const { problemAPI } = await import('../utils/api');
-        const res = await problemAPI.generateConceptNotes(createdProblemId);
-        if (res.data.conceptNotes && res.data.conceptNoteIds) {
-          // Attach database IDs to each concept note
-          const notesWithIds = res.data.conceptNotes.map((note, index) => ({
-            ...note,
-            id: res.data.conceptNoteIds[index]
-          }));
-          setProblemConceptNotes(notesWithIds);
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsProblemLoading(false);
+    
+    // Try to get problem ID from either local state or context
+    const problemId = createdProblemId || currentProblem?.id;
+    
+    if (!problemId) {
+      console.error('No problem ID found', { createdProblemId, currentProblem });
+      setError('Problem ID is missing. Please try creating the problem again.');
+      return;
+    }
+    
+    setIsProblemLoading(true);
+    try {
+      const { problemAPI } = await import('../utils/api');
+      const res = await problemAPI.generateConceptNotes(problemId);
+      if (res.data.conceptNotes && res.data.conceptNoteIds) {
+        // Attach database IDs to each concept note
+        const notesWithIds = res.data.conceptNotes.map((note, index) => ({
+          ...note,
+          id: res.data.conceptNoteIds[index]
+        }));
+        setProblemConceptNotes(notesWithIds);
       }
+    } catch (err) {
+      console.error('Error generating concept notes:', err);
+      setError(err.message);
+    } finally {
+      setIsProblemLoading(false);
     }
   };
 

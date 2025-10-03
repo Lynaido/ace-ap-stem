@@ -234,4 +234,40 @@ export const studySessionsAPI = {
   generateVariants: (id, variantData) => apiClient.post(`/api/study-sessions/${id}/variants`, variantData),
 };
 
+export const chatAPI = {
+  // Create new thread
+  createThread: async (data = {}) => {
+    return apiClient.post('/api/chat/threads', data);
+  },
+
+  // Get all threads
+  getThreads: async () => {
+    return apiClient.get('/api/chat/threads');
+  },
+
+  // Get specific thread with messages
+  getThread: async (threadId) => {
+    return apiClient.get(`/api/chat/threads/${threadId}`);
+  },
+
+  // Send message
+  sendMessage: async (threadId, content, problemId = null) => {
+    return apiClient.post(`/api/chat/threads/${threadId}/messages`, {
+      content,
+      problemId,
+    });
+  },
+
+  // Delete thread
+  deleteThread: async (threadId) => {
+    return apiClient.delete(`/api/chat/threads/${threadId}`);
+  },
+
+  // Get SSE stream URL
+  getStreamUrl: (threadId) => {
+    const token = localStorage.getItem('accessToken');
+    return `${API_BASE_URL}/api/chat/threads/${threadId}/stream?token=${token}`;
+  },
+};
+
 export default apiClient;

@@ -26,8 +26,14 @@ declare global {
 // Authentication middleware
 export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Try to get token from Authorization header first
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+    let token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+    // If no header token, check query parameter (for SSE endpoints)
+    if (!token && req.query.token) {
+      token = req.query.token as string;
+    }
 
     if (!token) {
       return res.status(401).json({ error: 'Access token required' });
