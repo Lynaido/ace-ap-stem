@@ -1,8 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './HeroSection.css';
+import VideoSlideshow from './VideoSlideshow';
+
+const demoVideos = [
+  {
+    title: 'Discover Features',
+    url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+  },
+  {
+    title: 'Seamless Integration',
+    url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+  },
+  {
+    title: 'Boost Productivity',
+    url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+  },
+];
 
 const HeroSection = () => {
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const togglePlay = () => {
+    setIsPlaying(!isPlaying);
+  };
+
   return (
     <section className="hero-section">
       <div className="hero-container">
@@ -21,8 +43,24 @@ const HeroSection = () => {
             <span className="badge">AP Biology</span>
           </div>
         </div>
-        <div className="hero-mockup">
-          <img src="https://images.pexels.com/photos/33237526/pexels-photo-33237526.jpeg" alt="App Mockup" className="mockup-image" />
+        <div className="hero-mockup-wrapper">
+          <div className="hero-mockup">
+            <VideoSlideshow videos={demoVideos} isPlaying={isPlaying} onIsPlayingChange={setIsPlaying} />
+          </div>
+          <div className="watch-demo-container">
+            <button className="btn-play" onClick={togglePlay}>
+              {isPlaying ? (
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ marginRight: '8px' }}>
+                  <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ marginRight: '8px' }}>
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              )}
+              {isPlaying ? 'Pause Demo' : 'Watch Demo'}
+            </button>
+          </div>
         </div>
       </div>
     </section>
