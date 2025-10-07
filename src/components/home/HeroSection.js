@@ -5,21 +5,22 @@ import VideoSlideshow from './VideoSlideshow';
 
 const demoVideos = [
   {
-    title: 'Discover Features',
-    url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    title: 'Generate Solutions',
+    url: '/videos/getSolution.mp4',
   },
   {
-    title: 'Seamless Integration',
-    url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+    title: 'Generate Hints & Concept Notes',
+    url: '/videos/hintsAndConceptNotes.mp4',
   },
   {
-    title: 'Boost Productivity',
-    url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    title: 'NotesHub & Study Variants',
+    url: '/videos/notesVariant.mp4',
   },
 ];
 
 const HeroSection = () => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const togglePlay = () => {
     setIsPlaying(!isPlaying);
@@ -44,8 +45,14 @@ const HeroSection = () => {
           </div>
         </div>
         <div className="hero-mockup-wrapper">
+          <h2 className="video-section-title">{demoVideos[currentSlide].title}</h2>
           <div className="hero-mockup">
-            <VideoSlideshow videos={demoVideos} isPlaying={isPlaying} onIsPlayingChange={setIsPlaying} />
+            <VideoSlideshow 
+              videos={demoVideos} 
+              isPlaying={isPlaying} 
+              onIsPlayingChange={setIsPlaying} 
+              onSlideChange={setCurrentSlide}
+            />
           </div>
           <div className="watch-demo-container">
             <button className="btn-play" onClick={togglePlay}>

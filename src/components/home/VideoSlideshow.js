@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './VideoSlideshow.css';
 
-const VideoSlideshow = ({ videos, isPlaying, onIsPlayingChange }) => {
+const VideoSlideshow = ({ videos, isPlaying, onIsPlayingChange, onSlideChange }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const videoRefs = useRef([]);
   const autoPlayTimerRef = useRef(null);
@@ -31,6 +31,12 @@ const VideoSlideshow = ({ videos, isPlaying, onIsPlayingChange }) => {
       }
     }
   }, [isPlaying, currentSlide]);
+
+  useEffect(() => {
+    if (onSlideChange) {
+      onSlideChange(currentSlide);
+    }
+  }, [currentSlide, onSlideChange]);
 
   // Auto-advance slideshow
   useEffect(() => {
@@ -65,15 +71,13 @@ const VideoSlideshow = ({ videos, isPlaying, onIsPlayingChange }) => {
       >
         {videos.map((video, index) => (
           <div key={index} className="video-card">
-            <div className="video-wrapper">
+            <div className="video-wrapper" onClick={() => onIsPlayingChange(!isPlaying)}>
               <video
                 ref={(el) => (videoRefs.current[index] = el)}
                 src={video.url}
                 onEnded={nextSlide}
-                onClick={() => onIsPlayingChange(!isPlaying)}
               />
               <div className={`video-overlay ${isPlaying && index === currentSlide ? 'playing' : ''}`}>
-                <h3>{video.title}</h3>
               </div>
             </div>
           </div>
