@@ -524,11 +524,32 @@ export const generateSolution = async (req: Request, res: Response): Promise<voi
     });
 
     try {
+      // Prepare image data if assets exist
+      let imageData: { url?: string; base64?: string; mimeType?: string }[] | undefined;
+      if (problem.assets && problem.assets.length > 0) {
+        imageData = [];
+        for (const asset of problem.assets) {
+          // Only include image assets
+          if (asset.mimeType.startsWith('image/')) {
+            if (asset.fileData) {
+              // Convert Buffer to base64
+              const base64 = asset.fileData.toString('base64');
+              imageData.push({
+                base64,
+                mimeType: asset.mimeType
+              });
+              logger.info(`Added image asset to solution generation: ${asset.fileName}`);
+            }
+          }
+        }
+      }
+
       // Generate solution using OpenAI
       const solutionData = await openaiService.generateSolution({
         problemText: problem.description,
         subject: problem.subject,
-        difficulty: problem.difficulty || 'medium'
+        difficulty: problem.difficulty || 'medium',
+        imageData: imageData && imageData.length > 0 ? imageData : undefined
       });
 
       // Save solution to database
@@ -552,10 +573,20 @@ export const generateSolution = async (req: Request, res: Response): Promise<voi
         }
       });
 
-      // Update problem status to solved
+      // If this was an image-only problem and we extracted text, update the problem description
+      const updateData: any = { status: 'SOLVED' };
+      if (solutionData.extractedProblemText && problem.description === 'Problem from uploaded image') {
+        updateData.description = solutionData.extractedProblemText;
+        updateData.title = `${solutionData.extractedProblemText.substring(0, 50)}${solutionData.extractedProblemText.length > 50 ? '...' : ''}`;
+        logger.info(`Updated problem ${id} with extracted text from image`, {
+          extractedLength: solutionData.extractedProblemText.length
+        });
+      }
+
+      // Update problem status to solved (and description if extracted from image)
       await prisma.problem.update({
         where: { id },
-        data: { status: 'SOLVED' }
+        data: updateData
       });
 
       logger.info(`Solution generated successfully for problem ${id}`, { 
@@ -625,7 +656,10 @@ export const generateHints = async (req: Request, res: Response): Promise<void> 
 
     // Fetch the problem
     const problem = await prisma.problem.findFirst({
-      where: { id, userId }
+      where: { id, userId },
+      include: {
+        assets: true
+      }
     });
 
     if (!problem) {
@@ -654,12 +688,33 @@ export const generateHints = async (req: Request, res: Response): Promise<void> 
     });
 
     try {
+      // Prepare image data if assets exist
+      let imageData: { url?: string; base64?: string; mimeType?: string }[] | undefined;
+      if (problem.assets && problem.assets.length > 0) {
+        imageData = [];
+        for (const asset of problem.assets) {
+          // Only include image assets
+          if (asset.mimeType.startsWith('image/')) {
+            if (asset.fileData) {
+              // Convert Buffer to base64
+              const base64 = asset.fileData.toString('base64');
+              imageData.push({
+                base64,
+                mimeType: asset.mimeType
+              });
+              logger.info(`Added image asset to hints generation: ${asset.fileName}`);
+            }
+          }
+        }
+      }
+
       // Generate hints using OpenAI
       const hintsData = await openaiService.generateHints({
         problemText: problem.description,
         subject: problem.subject,
         difficulty: problem.difficulty || 'medium',
-        options
+        options,
+        imageData: imageData && imageData.length > 0 ? imageData : undefined
       });
 
       // Validate hints structure before saving
@@ -688,6 +743,20 @@ export const generateHints = async (req: Request, res: Response): Promise<void> 
           output: hintsData as any
         }
       });
+
+      // If this was an image-only problem and we extracted text, update the problem description
+      if (hintsData.extractedProblemText && problem.description === 'Problem from uploaded image') {
+        await prisma.problem.update({
+          where: { id },
+          data: {
+            description: hintsData.extractedProblemText,
+            title: `${hintsData.extractedProblemText.substring(0, 50)}${hintsData.extractedProblemText.length > 50 ? '...' : ''}`
+          }
+        });
+        logger.info(`Updated problem ${id} with extracted text from image (hints generation)`, {
+          extractedLength: hintsData.extractedProblemText.length
+        });
+      }
 
       logger.info(`Hints generated successfully for problem ${id}`, { 
         jobId: aiJob.id,
@@ -753,7 +822,10 @@ export const generateConceptNotes = async (req: Request, res: Response): Promise
 
     // Fetch the problem
     const problem = await prisma.problem.findFirst({
-      where: { id, userId }
+      where: { id, userId },
+      include: {
+        assets: true
+      }
     });
 
     if (!problem) {
@@ -782,12 +854,33 @@ export const generateConceptNotes = async (req: Request, res: Response): Promise
     });
 
     try {
+      // Prepare image data if assets exist
+      let imageData: { url?: string; base64?: string; mimeType?: string }[] | undefined;
+      if (problem.assets && problem.assets.length > 0) {
+        imageData = [];
+        for (const asset of problem.assets) {
+          // Only include image assets
+          if (asset.mimeType.startsWith('image/')) {
+            if (asset.fileData) {
+              // Convert Buffer to base64
+              const base64 = asset.fileData.toString('base64');
+              imageData.push({
+                base64,
+                mimeType: asset.mimeType
+              });
+              logger.info(`Added image asset to concept notes generation: ${asset.fileName}`);
+            }
+          }
+        }
+      }
+
       // Generate concept notes using OpenAI
       const conceptNotesData = await openaiService.generateConceptNotes({
         problemText: problem.description,
         subject: problem.subject,
         difficulty: problem.difficulty || 'medium',
-        options
+        options,
+        imageData: imageData && imageData.length > 0 ? imageData : undefined
       });
 
       // Validate and save concept notes to the database
@@ -816,6 +909,20 @@ export const generateConceptNotes = async (req: Request, res: Response): Promise
           output: conceptNotesData as any
         }
       });
+
+      // If this was an image-only problem and we extracted text, update the problem description
+      if (conceptNotesData.extractedProblemText && problem.description === 'Problem from uploaded image') {
+        await prisma.problem.update({
+          where: { id },
+          data: {
+            description: conceptNotesData.extractedProblemText,
+            title: `${conceptNotesData.extractedProblemText.substring(0, 50)}${conceptNotesData.extractedProblemText.length > 50 ? '...' : ''}`
+          }
+        });
+        logger.info(`Updated problem ${id} with extracted text from image (concept notes generation)`, {
+          extractedLength: conceptNotesData.extractedProblemText.length
+        });
+      }
 
       logger.info(`Concept notes generated successfully for problem ${id}`, { 
         jobId: aiJob.id,

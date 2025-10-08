@@ -254,7 +254,8 @@ const SolveProblemsPage = () => {
 
   const trimmedProblem = problemText.trim();
   const subjectLabel = subjects.find((subject) => subject.value === selectedSubject)?.label || 'this AP subject';
-  const formIncomplete = !trimmedProblem || !selectedSubject;
+  // Form is complete if we have a subject AND (either text OR an uploaded image)
+  const formIncomplete = !selectedSubject || (!trimmedProblem && !uploadedAsset);
   const isBusy = isUploading || isProblemLoading;
 
   const handleImageUpload = () => {
@@ -326,9 +327,11 @@ const SolveProblemsPage = () => {
     setProblemViewVisible(true);
 
     try {
+      // Use provided text or default description for image-only problems
+      const problemDescription = trimmedProblem || 'Problem from uploaded image';
       const problemData = {
-        title: `${trimmedProblem.substring(0, 50)}${trimmedProblem.length > 50 ? '...' : ''}`,
-        description: trimmedProblem,
+        title: `${problemDescription.substring(0, 50)}${problemDescription.length > 50 ? '...' : ''}`,
+        description: problemDescription,
         subject: selectedSubject,
         difficulty: 'medium',
         imageUrl: uploadedAsset ? uploadedAsset.url : null,
@@ -337,6 +340,13 @@ const SolveProblemsPage = () => {
       if (created?.id) {
         setCreatedProblemId(created.id);
         setActiveProblem(created); // Store problem in context for later use
+        
+        // Associate uploaded asset with the problem if it exists
+        if (uploadedAsset?.id) {
+          const { problemAPI } = await import('../utils/api');
+          await problemAPI.associateAssets(created.id, [uploadedAsset.id]);
+        }
+        
         const { problemAPI } = await import('../utils/api');
         const solutionRes = await problemAPI.generateSolution(created.id);
         if (solutionRes.data.solution) {
@@ -363,9 +373,11 @@ const SolveProblemsPage = () => {
     setProblemViewVisible(true);
 
     try {
+      // Use provided text or default description for image-only problems
+      const problemDescription = trimmedProblem || 'Problem from uploaded image';
       const problemData = {
-        title: `${trimmedProblem.substring(0, 50)}${trimmedProblem.length > 50 ? '...' : ''}`,
-        description: trimmedProblem,
+        title: `${problemDescription.substring(0, 50)}${problemDescription.length > 50 ? '...' : ''}`,
+        description: problemDescription,
         subject: selectedSubject,
         difficulty: 'medium',
         imageUrl: uploadedAsset ? uploadedAsset.url : null,
@@ -374,6 +386,13 @@ const SolveProblemsPage = () => {
       if (created?.id) {
         setCreatedProblemId(created.id);
         setActiveProblem(created); // Store problem in context for later use
+        
+        // Associate uploaded asset with the problem if it exists
+        if (uploadedAsset?.id) {
+          const { problemAPI } = await import('../utils/api');
+          await problemAPI.associateAssets(created.id, [uploadedAsset.id]);
+        }
+        
         const { problemAPI } = await import('../utils/api');
         const hintsRes = await problemAPI.generateHints(created.id);
         if (hintsRes.data.hints) {
@@ -395,9 +414,11 @@ const SolveProblemsPage = () => {
     setProblemViewVisible(true);
 
     try {
+      // Use provided text or default description for image-only problems
+      const problemDescription = trimmedProblem || 'Problem from uploaded image';
       const problemData = {
-        title: `${trimmedProblem.substring(0, 50)}${trimmedProblem.length > 50 ? '...' : ''}`,
-        description: trimmedProblem,
+        title: `${problemDescription.substring(0, 50)}${problemDescription.length > 50 ? '...' : ''}`,
+        description: problemDescription,
         subject: selectedSubject,
         difficulty: 'medium',
         imageUrl: uploadedAsset ? uploadedAsset.url : null,
@@ -406,6 +427,13 @@ const SolveProblemsPage = () => {
       if (created?.id) {
         setCreatedProblemId(created.id);
         setActiveProblem(created); // Store problem in context for later use
+        
+        // Associate uploaded asset with the problem if it exists
+        if (uploadedAsset?.id) {
+          const { problemAPI } = await import('../utils/api');
+          await problemAPI.associateAssets(created.id, [uploadedAsset.id]);
+        }
+        
         const { problemAPI } = await import('../utils/api');
         const notesRes = await problemAPI.generateConceptNotes(created.id);
         if (notesRes.data.conceptNotes && notesRes.data.conceptNoteIds) {

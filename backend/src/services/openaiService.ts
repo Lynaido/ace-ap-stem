@@ -67,6 +67,7 @@ export interface SolutionResponse {
   methodology: string;
   assumptions?: string[];
   verificationSteps?: string[];
+  extractedProblemText?: string; // For image-only problems, extracted text from the image
 }
 
 // Hint interfaces
@@ -81,6 +82,7 @@ export interface Hint {
 export interface HintsResponse {
   hints: Hint[];
   progressionStrategy: string;
+  extractedProblemText?: string; // For image-only problems, extracted text from the image
 }
 
 // Concept Note interfaces
@@ -100,6 +102,7 @@ export interface ConceptNotesResponse {
   conceptNotes: ConceptNote[];
   subject: string;
   difficulty: string;
+  extractedProblemText?: string; // For image-only problems, extracted text from the image
 }
 
 // Model selection types
@@ -435,8 +438,9 @@ export const generateSolution = async (params: {
   subject: string;
   difficulty?: string;
   imageContext?: string;
+  imageData?: { url?: string; base64?: string; mimeType?: string }[];
 }): Promise<SolutionResponse> => {
-  const { problemText, subject, difficulty = 'medium', imageContext } = params;
+  const { problemText, subject, difficulty = 'medium', imageContext, imageData } = params;
 
   try {
     if (!config.openaiApiKey) {
@@ -444,23 +448,52 @@ export const generateSolution = async (params: {
       throw new Error('OpenAI API key is not configured');
     }
 
-    logger.info('Generating solution with OpenAI', { subject, difficulty });
+    logger.info('Generating solution with OpenAI', { subject, difficulty, hasImages: !!imageData?.length });
 
     const model = selectModel({ difficulty, subject, taskType: 'solution' });
     
+    // If we have images, use vision-capable model
+    const hasImages = imageData && imageData.length > 0;
+    const visionModel = hasImages ? 'gpt-4o' : model;
+    
     const prompt = createSolutionPrompt(problemText, subject, difficulty, imageContext);
 
+    // Build messages with image support
+    const userMessage: any = hasImages ? {
+      role: 'user',
+      content: [
+        {
+          type: 'text',
+          text: prompt
+        },
+        ...(imageData || []).map(img => {
+          if (img.url) {
+            return {
+              type: 'image_url',
+              image_url: { url: img.url }
+            };
+          } else if (img.base64) {
+            return {
+              type: 'image_url',
+              image_url: { url: `data:${img.mimeType || 'image/jpeg'};base64,${img.base64}` }
+            };
+          }
+          return null;
+        }).filter(Boolean)
+      ]
+    } : {
+      role: 'user',
+      content: prompt
+    };
+
     const completion = await openai.chat.completions.create({
-      model,
+      model: visionModel,
       messages: [
         {
           role: 'system',
-          content: `You are an expert ${subject} tutor who provides clear, step-by-step solutions to AP-level problems. Break down complex problems into manageable steps with detailed explanations. You must respond with valid JSON only.`
+          content: `You are an expert ${subject} tutor who provides clear, step-by-step solutions to AP-level problems. Break down complex problems into manageable steps with detailed explanations. ${hasImages ? 'Analyze any images provided carefully and extract all relevant information from them.' : ''} You must respond with valid JSON only.`
         },
-        {
-          role: 'user',
-          content: prompt
-        }
+        userMessage
       ],
       max_completion_tokens: 3000,
       response_format: { type: "json_object" },
@@ -486,10 +519,16 @@ export const generateSolution = async (params: {
 };
 
 const createSolutionPrompt = (problemText: string, subject: string, difficulty: string, imageContext?: string): string => {
+  // If problem text is generic (indicating image-only), adjust the prompt
+  const isImageOnly = problemText === 'Problem from uploaded image';
+  const problemDescription = isImageOnly 
+    ? 'Analyze the image(s) provided and solve the problem shown.'
+    : problemText;
+  
   return `Solve this ${subject} problem step-by-step:
 
 **Problem:**
-${problemText}
+${problemDescription}
 
 ${imageContext ? `**Visual Context:**\n${imageContext}\n` : ''}
 
@@ -497,31 +536,31 @@ ${imageContext ? `**Visual Context:**\n${imageContext}\n` : ''}
 **Difficulty:** ${difficulty}
 
 **Requirements:**
-1. Break the solution into clear, numbered steps (4-8 steps typically)
-2. Each step should have:
+1. ${isImageOnly ? 'IMPORTANT: Extract and include the complete problem statement from the image as "extractedProblemText" in your response.\n2. ' : ''}Break the solution into clear, numbered steps (4-8 steps typically)
+${isImageOnly ? '3' : '2'}. Each step should have:
    - A descriptive title
-   - The main content/action
-   - A clear explanation of WHY this step is needed
-   - Formulas used (if applicable)
-   - Calculations (if applicable)
-3. Provide the final answer clearly
-4. Include your confidence level (0.0-1.0) based on problem clarity and solution certainty
-5. State your methodology (e.g., "kinematic equations", "stoichiometry", "logarithmic differentiation")
+   - The main content/action. Wrap all mathematical expressions, formulas, and symbols in $ for inline math and $$ for block math.
+   - A clear explanation of WHY this step is needed. Wrap all mathematical expressions, formulas, and symbols in $ for inline math and $$ for block math.
+   - Formulas used (if applicable). Wrap all mathematical expressions, formulas, and symbols in $ for inline math and $$ for block math.
+   - Calculations (if applicable). Wrap all mathematical expressions, formulas, and symbols in $ for inline math and $$ for block math.
+${isImageOnly ? '4' : '3'}. Provide the final answer clearly. Wrap all mathematical expressions, formulas, and symbols in $ for inline math and $$ for block math.
+${isImageOnly ? '5' : '4'}. Include your confidence level (0.0-1.0) based on problem clarity and solution certainty
+${isImageOnly ? '6' : '5'}. State your methodology (e.g., "kinematic equations", "stoichiometry", "logarithmic differentiation")
 
 **Response Format (JSON):**
 \`\`\`json
-{
+{${isImageOnly ? '\n  "extractedProblemText": "Complete problem statement from the image",' : ''}
   "steps": [
     {
       "stepNumber": 1,
       "title": "Identify Given Information",
-      "content": "Extract and list all given values...",
-      "explanation": "We need to organize the known values before proceeding...",
-      "formula": "v = u + at (if applicable)",
-      "calculation": "calculation details (if applicable)"
+      "content": "Extract and list all given values, for example, the initial velocity is $v_0 = 0$ m/s.",
+      "explanation": "We need to organize the known values before proceeding. This helps in applying the formula $v = u + at$.",
+      "formula": "$$v = u + at$$",
+      "calculation": "$$v = 0 + (9.8)(2) = 19.6$$ m/s"
     }
   ],
-  "finalAnswer": "The final answer with units",
+  "finalAnswer": "The final answer is $19.6$ m/s.",
   "confidence": 0.95,
   "methodology": "Brief description of approach used",
   "assumptions": ["List any assumptions made"],
@@ -586,7 +625,8 @@ const parseSolutionResponse = (response: string): SolutionResponse => {
       confidence: parsed.confidence || 0.85,
       methodology: parsed.methodology || 'Standard problem-solving approach',
       assumptions: parsed.assumptions || [],
-      verificationSteps: parsed.verificationSteps || []
+      verificationSteps: parsed.verificationSteps || [],
+      extractedProblemText: parsed.extractedProblemText
     };
   } catch (error) {
     logger.error('Error parsing solution JSON:', { 
@@ -613,8 +653,9 @@ export const generateHints = async (params: {
   subject: string;
   difficulty?: string;
   options?: any;
+  imageData?: { url?: string; base64?: string; mimeType?: string }[];
 }): Promise<HintsResponse> => {
-  const { problemText, subject, difficulty = 'medium', options } = params;
+  const { problemText, subject, difficulty = 'medium', options, imageData } = params;
 
   try {
     if (!config.openaiApiKey) {
@@ -622,23 +663,52 @@ export const generateHints = async (params: {
       throw new Error('OpenAI API key is not configured');
     }
 
-    logger.info('Generating hints with OpenAI', { subject, difficulty });
+    logger.info('Generating hints with OpenAI', { subject, difficulty, hasImages: !!imageData?.length });
 
     const model = selectModel({ difficulty, subject, taskType: 'hints' });
     
+    // If we have images, use vision-capable model
+    const hasImages = imageData && imageData.length > 0;
+    const visionModel = hasImages ? 'gpt-4o' : model;
+    
     const prompt = createHintsPrompt(problemText, subject, difficulty, options);
 
+    // Build messages with image support
+    const userMessage: any = hasImages ? {
+      role: 'user',
+      content: [
+        {
+          type: 'text',
+          text: prompt
+        },
+        ...(imageData || []).map(img => {
+          if (img.url) {
+            return {
+              type: 'image_url',
+              image_url: { url: img.url }
+            };
+          } else if (img.base64) {
+            return {
+              type: 'image_url',
+              image_url: { url: `data:${img.mimeType || 'image/jpeg'};base64,${img.base64}` }
+            };
+          }
+          return null;
+        }).filter(Boolean)
+      ]
+    } : {
+      role: 'user',
+      content: prompt
+    };
+
     const completion = await openai.chat.completions.create({
-      model,
+      model: visionModel,
       messages: [
         {
           role: 'system',
-          content: `You are a patient ${subject} tutor who provides progressive hints that guide students to discover solutions themselves. Each hint should reveal just enough to help without giving away the complete answer. You must respond with valid JSON only.`
+          content: `You are a patient ${subject} tutor who provides progressive hints that guide students to discover solutions themselves. Each hint should reveal just enough to help without giving away the complete answer. ${hasImages ? 'Analyze any images provided carefully and extract all relevant information from them.' : ''} You must respond with valid JSON only.`
         },
-        {
-          role: 'user',
-          content: prompt
-        }
+        userMessage
       ],
       max_completion_tokens: 2000,
       response_format: { type: "json_object" },
@@ -670,39 +740,45 @@ const createHintsPrompt = (problemText: string, subject: string, difficulty: str
     }
   }
 
+  // If problem text is generic (indicating image-only), adjust the prompt
+  const isImageOnly = problemText === 'Problem from uploaded image';
+  const problemDescription = isImageOnly 
+    ? 'Analyze the image(s) provided and identify the problem to solve.'
+    : problemText;
+
   return `Create a progressive hint sequence for this ${subject} problem:
 
 **Problem:**
-${problemText}
+${problemDescription}
 
 **Subject:** ${subject}
 **Difficulty:** ${difficulty}
 
 **Requirements:**
-1. Create ${numberOfHints} hints that progressively reveal the solution path
-2. First hints should be conceptual (what concepts/principles apply?)
-3. Middle hints should be procedural (what steps/approach to take?)
-4. Later hints can be more specific (calculations, formulas)
-5. Final hint should reveal the complete answer
-6. Each hint needs:
+1. ${isImageOnly ? 'IMPORTANT: Extract and include the complete problem statement from the image as "extractedProblemText" in your response.\n2. ' : ''}Create ${numberOfHints} hints that progressively reveal the solution path
+${isImageOnly ? '3' : '2'}. First hints should be conceptual (what concepts/principles apply?)
+${isImageOnly ? '4' : '3'}. Middle hints should be procedural (what steps/approach to take?)
+${isImageOnly ? '5' : '4'}. Later hints can be more specific (calculations, formulas)
+${isImageOnly ? '6' : '5'}. Final hint should reveal the complete answer
+${isImageOnly ? '7' : '6'}. Each hint needs:
    - Type: conceptual, procedural, diagnostic, or answer
-   - Text: The hint itself
-   - Explanation: Why this hint is helpful
+   - Text: The hint itself. Wrap all mathematical expressions, formulas, and symbols in $ for inline math and $$ for block math.
+   - Explanation: Why this hint is helpful. Wrap all mathematical expressions, formulas, and symbols in $ for inline math and $$ for block math.
    - Related concepts (optional)
 
 **Response Format (JSON):**
 \`\`\`json
-{
+{${isImageOnly ? '\n  "extractedProblemText": "Complete problem statement from the image",' : ''}
   "hints": [
     {
       "type": "conceptual",
-      "text": "Consider which fundamental principle applies here...",
-      "explanation": "This hint directs attention to the core concept",
+      "text": "Consider which fundamental principle applies here, like the conservation of energy: $E_i = E_f$",
+      "explanation": "This hint directs attention to the core concept. The equation for conservation of energy is $E_i = E_f$.",
       "relatedConcepts": ["Newton's Laws", "Conservation of Energy"]
     },
     {
       "type": "answer",
-      "text": "The complete solution is...",
+      "text": "The complete solution is $v = \\sqrt{2gh}$.",
       "explanation": "Full answer for students who need it",
       "isAnswer": true
     }
@@ -750,7 +826,8 @@ const parseHintsResponse = (response: string): HintsResponse => {
     
     return {
       hints: parsed.hints || [],
-      progressionStrategy: parsed.progressionStrategy || 'Progressive scaffolding from concepts to procedures'
+      progressionStrategy: parsed.progressionStrategy || 'Progressive scaffolding from concepts to procedures',
+      extractedProblemText: parsed.extractedProblemText
     };
   } catch (error) {
     logger.error('Error parsing hints JSON:', {
@@ -770,8 +847,9 @@ export const generateConceptNotes = async (params: {
   subject: string;
   difficulty?: string;
   options?: any;
+  imageData?: { url?: string; base64?: string; mimeType?: string }[];
 }): Promise<ConceptNotesResponse> => {
-  const { problemText, subject, difficulty = 'medium', options } = params;
+  const { problemText, subject, difficulty = 'medium', options, imageData } = params;
 
   try {
     if (!config.openaiApiKey) {
@@ -779,25 +857,54 @@ export const generateConceptNotes = async (params: {
       throw new Error('OpenAI API key is not configured');
     }
 
-    logger.info('Generating concept notes with OpenAI', { subject, difficulty });
+    logger.info('Generating concept notes with OpenAI', { subject, difficulty, hasImages: !!imageData?.length });
 
     // Use flagship model for concept notes to ensure quality
     const model = selectModel({ difficulty, subject, taskType: 'concepts' });
+    
+    // If we have images, use vision-capable model
+    const hasImages = imageData && imageData.length > 0;
+    const visionModel = hasImages ? 'gpt-4o' : model;
 
     const prompt = createConceptNotesPrompt(problemText, subject, difficulty, options);
 
+    // Build messages with image support
+    const userMessage: any = hasImages ? {
+      role: 'user',
+      content: [
+        {
+          type: 'text',
+          text: prompt
+        },
+        ...(imageData || []).map(img => {
+          if (img.url) {
+            return {
+              type: 'image_url',
+              image_url: { url: img.url }
+            };
+          } else if (img.base64) {
+            return {
+              type: 'image_url',
+              image_url: { url: `data:${img.mimeType || 'image/jpeg'};base64,${img.base64}` }
+            };
+          }
+          return null;
+        }).filter(Boolean)
+      ]
+    } : {
+      role: 'user',
+      content: prompt
+    };
+
     const completion = await openai.chat.completions.create(
       {
-        model,
+        model: visionModel,
         messages: [
           {
             role: 'system',
-            content: `You are an expert ${subject} educator creating comprehensive, educational concept notes. Your goal is to provide students with deep understanding of the concepts needed to solve problems independently. Focus on clarity, practical applications, and building strong foundational knowledge. You must respond with valid JSON only.`
+            content: `You are an expert ${subject} educator creating comprehensive, educational concept notes. Your goal is to provide students with deep understanding of the concepts needed to solve problems independently. Focus on clarity, practical applications, and building strong foundational knowledge. ${hasImages ? 'Analyze any images provided carefully and extract all relevant information from them.' : ''} You must respond with valid JSON only.`
           },
-          {
-            role: 'user',
-            content: prompt
-          }
+          userMessage
         ],
         max_completion_tokens: 4000, // Increased for comprehensive 5-7 notes with detailed content
         response_format: { type: "json_object" }, // Ensure valid JSON response
@@ -859,8 +966,9 @@ const generateConceptNotesFallback = async (params: {
   subject: string;
   difficulty?: string;
   options?: any;
+  imageData?: { url?: string; base64?: string; mimeType?: string }[];
 }): Promise<ConceptNotesResponse> => {
-  const { problemText, subject, difficulty = 'medium' } = params;
+  const { problemText, subject, difficulty = 'medium', imageData } = params;
 
   try {
     logger.info('Generating fallback concept notes with OpenAI', { subject, difficulty });
@@ -943,18 +1051,25 @@ const createConceptNotesPrompt = (problemText: string, subject: string, difficul
     }
   }
 
+  // If problem text is generic (indicating image-only), adjust the prompt
+  const isImageOnly = problemText === 'Problem from uploaded image';
+  const problemDescription = isImageOnly 
+    ? 'Analyze the image(s) provided and identify the concepts needed to solve the problem shown.'
+    : problemText;
+
   return `Create comprehensive educational concept notes for this ${subject} problem:
 
-**Problem:** ${problemText}
+**Problem:** ${problemDescription}
 
-**Task:** Generate exactly 5-7 detailed, unique concept notes covering all essential theories, formulas, and concepts needed to understand and solve this problem independently.${optionsPrompt}
+**Task:** ${isImageOnly ? '1. FIRST: Extract and include the complete problem statement from the image as "extractedProblemText"\n2. THEN: ' : ''}Generate exactly 5-7 detailed, unique concept notes covering all essential theories, formulas, and concepts needed to understand and solve this problem independently.${optionsPrompt}
 
 **CRITICAL REQUIREMENTS:**
-1. **Generate AT LEAST 5 NOTES** with diverse types (definitions, formulas, examples, tips, applications)
+1. ${isImageOnly ? '**Extract the complete problem text from the image**\n2. ' : ''}**Generate AT LEAST 5 NOTES** with diverse types (definitions, formulas, examples, tips, applications)
 2. **Each note must be SUBSTANTIVE** with 200-400 words of detailed explanation
 3. **Include MULTIPLE notes per type** - Don't limit to just one formula or one example
 4. **Progressive complexity** - Start with fundamentals, build to advanced applications
 5. **Problem-specific guidance** - Directly connect each concept to solving THIS specific problem
+6. Wrap all mathematical expressions, formulas, and symbols in $ for inline math and $$ for block math.
 
 **Note Type Distribution (aim for this mix):**
 - 1-2 definition notes (core concepts and principles)
@@ -978,14 +1093,14 @@ const createConceptNotesPrompt = (problemText: string, subject: string, difficul
   * Connection to related concepts
 
 **For formula notes, ALWAYS include:**
-- **formula**: The mathematical formula as a clear string (e.g., "v = v₀ + at")
+- **formula**: The mathematical formula as a clear string (e.g., "$$v = v₀ + at$$")
 - **variables**: Array of ALL variables with meanings [{"symbol": "v", "meaning": "Final velocity in m/s"}, ...]
 - **examples**: Array of 2-3 concrete example calculations
 
 **IMPORTANT: Return ONLY a JSON object (no markdown, no code fences, no explanation text).**
 
 **JSON Structure:**
-{
+{${isImageOnly ? '\n  "extractedProblemText": "Complete problem statement from the image",' : ''}
   "conceptNotes": [
     {
       "id": "concept-1-id",
@@ -1001,12 +1116,12 @@ const createConceptNotesPrompt = (problemText: string, subject: string, difficul
       "title": "First Formula Title",
       "description": "How this formula applies to this problem...",
       "content": "Detailed explanation of the formula, its derivation, when to use it, common mistakes...",
-      "formula": "mathematical formula here",
+      "formula": "$$v = v₀ + at$$",
       "variables": [
-        {"symbol": "variable1", "meaning": "Clear description with units"},
-        {"symbol": "variable2", "meaning": "Clear description with units"}
+        {"symbol": "v", "meaning": "Final velocity in m/s"},
+        {"symbol": "a", "meaning": "Acceleration in $m/s^2$"}
       ],
-      "examples": ["Example 1: numerical calculation", "Example 2: different scenario"]
+      "examples": ["Example 1: A car accelerates from rest at $2 m/s^2$ for 5 seconds. What is its final velocity?", "Example 2: a ball is thrown upwards with an initial velocity of $10$ m/s. What is its velocity after 1 second?"]
     },
     (continue with 3-5 more unique, detailed notes of various types)
   ],
@@ -1095,7 +1210,8 @@ const parseConceptNotesResponse = (response: string, subject: string, difficulty
     return {
       conceptNotes: parsed.conceptNotes,
       subject: parsed.subject || subject,
-      difficulty: parsed.difficulty || difficulty
+      difficulty: parsed.difficulty || difficulty,
+      extractedProblemText: parsed.extractedProblemText
     };
   } catch (error) {
     logger.error('Error parsing concept notes JSON:', {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, memo } from 'react';
+import LatexRenderer from '../primitives/LatexRenderer';
 import Button from '../primitives/Button';
 import Card from '../primitives/Card';
 import SaveNotesModal from '../notes/SaveNotesModal';
@@ -91,13 +92,13 @@ const SolutionDisplay = ({ solution, problemText, onGetHints, onViewConceptNotes
     >
       <div className="step-header">
         <div className="step-number">{index + 1}</div>
-        <h3 className="step-title">{step.title}</h3>
+        <h3 className="step-title"><LatexRenderer content={step.title} /></h3>
       </div>
       <div className="step-content">
-        <p className="step-main-content">{step.content}</p>
+        <div className="step-main-content"><LatexRenderer content={step.content} /></div>
         {step.explanation && (
           <div className="step-explanation">
-            <strong>Why this step:</strong> {step.explanation}
+            <strong>Why this step:</strong> <LatexRenderer content={step.explanation} />
           </div>
         )}
       </div>
@@ -142,7 +143,7 @@ const SolutionDisplay = ({ solution, problemText, onGetHints, onViewConceptNotes
             <h3>Final Answer</h3>
           </div>
           <div className="final-answer-content">
-            <p>{finalAnswer}</p>
+            <LatexRenderer content={finalAnswer} />
           </div>
         </div>
       )}

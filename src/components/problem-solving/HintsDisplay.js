@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import LatexRenderer from '../primitives/LatexRenderer';
 import Button from '../primitives/Button';
 import Card from '../primitives/Card';
 import './HintsDisplay.css';
@@ -64,10 +65,10 @@ const HintsDisplay = ({ hints, problemText, onGetSolution, onViewConceptNotes, i
               <div className="hint-type">{hint.type || 'Hint'}</div>
             </div>
             <div className="hint-content">
-              <p className="hint-text">{hint.text}</p>
+              <div className="hint-text"><LatexRenderer content={hint.text} /></div>
               {hint.explanation && (
                 <div className="hint-explanation">
-                  <strong>Why this helps:</strong> {hint.explanation}
+                  <strong>Why this helps:</strong> <LatexRenderer content={hint.explanation} />
                 </div>
               )}
             </div>
@@ -138,10 +139,10 @@ const HintsDisplay = ({ hints, problemText, onGetSolution, onViewConceptNotes, i
             <h3>Final Answer</h3>
           </div>
           <div className="final-answer-content">
-            <p>{hints.find(h => h.isAnswer).text}</p>
+            <LatexRenderer content={hints.find(h => h.isAnswer).text} />
             {hints.find(h => h.isAnswer).explanation && (
               <div className="answer-explanation">
-                <strong>Solution Summary:</strong> {hints.find(h => h.isAnswer).explanation}
+                <strong>Solution Summary:</strong> <LatexRenderer content={hints.find(h => h.isAnswer).explanation} />
               </div>
             )}
           </div>

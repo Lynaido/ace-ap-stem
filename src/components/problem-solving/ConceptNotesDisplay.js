@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import LatexRenderer from '../primitives/LatexRenderer';
 import Button from '../primitives/Button';
 import Card from '../primitives/Card';
 import Tabs from '../primitives/Tabs';
@@ -87,7 +88,7 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHi
             <div className="note-icon">
               {getIconForType(note.type)}
             </div>
-            <h3 className="note-title">{note.title}</h3>
+            <h3 className="note-title"><LatexRenderer content={note.title} /></h3>
             {note.difficulty && (
               <span className={`difficulty-badge ${note.difficulty}`}>
                 {note.difficulty}
@@ -102,12 +103,12 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHi
         </div>
 
         <div className="note-content">
-          <p className="note-description">{note.description}</p>
+          <div className="note-description"><LatexRenderer content={note.description} /></div>
           
           {note.formula && (
             <div className="formula-section">
               <strong>Formula:</strong>
-              <div className="formula-display">{note.formula}</div>
+              <div className="formula-display"><LatexRenderer content={note.formula} /></div>
             </div>
           )}
 
@@ -117,7 +118,7 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHi
               <ul className="variables-list">
                 {note.variables.map((variable, idx) => (
                   <li key={idx}>
-                    <strong>{variable.symbol}:</strong> {variable.meaning}
+                    <strong><LatexRenderer content={variable.symbol} />:</strong> <LatexRenderer content={variable.meaning} />
                   </li>
                 ))}
               </ul>
@@ -129,21 +130,21 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHi
               {note.content && (
                 <div className="content-section">
                   <strong>Detailed Explanation:</strong>
-                  <p style={{ whiteSpace: 'pre-wrap' }}>{note.content}</p>
+                  <div style={{ whiteSpace: 'pre-wrap' }}><LatexRenderer content={note.content} /></div>
                 </div>
               )}
 
               {note.details && (
                 <div className="details-section">
                   <strong>Details:</strong>
-                  <p>{note.details}</p>
+                  <div><LatexRenderer content={note.details} /></div>
                 </div>
               )}
 
               {note.derivation && (
                 <div className="derivation-section">
                   <strong>Derivation:</strong>
-                  <p>{note.derivation}</p>
+                  <div><LatexRenderer content={note.derivation} /></div>
                 </div>
               )}
 
@@ -152,7 +153,7 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHi
                   <strong>Examples:</strong>
                   <ul>
                     {note.examples.map((example, idx) => (
-                      <li key={idx}>{example}</li>
+                      <li key={idx}><LatexRenderer content={example} /></li>
                     ))}
                   </ul>
                 </div>
@@ -163,7 +164,7 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHi
                   <strong>Common Applications:</strong>
                   <ul>
                     {note.applications.map((app, idx) => (
-                      <li key={idx}>{app}</li>
+                      <li key={idx}><LatexRenderer content={app} /></li>
                     ))}
                   </ul>
                 </div>

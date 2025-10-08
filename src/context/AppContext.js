@@ -728,6 +728,10 @@ export const AppProvider = ({ children }) => {
 
       return data.data;
     } catch (error) {
+      console.error('Upload error:', error);
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
       dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
       throw error;

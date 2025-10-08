@@ -1,0 +1,38 @@
+> react-scripts start
+
+
+> aas-app@0.1.0 backend:dev
+> npm --prefix backend run dev
+
+
+> aas-backend@1.0.0 dev
+> ts-node-dev --respawn --transpile-only src/server.ts
+
+[INFO] 09:25:07 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.9.2)
+Compilation error in C:\Projects\aas_v2\aas-app\backend\src\services\openaiService.ts
+[ERROR] 09:25:09 ⨯ Unable to compile TypeScript:
+src/services/openaiService.ts(1225,1): error TS1005: '}' expected.
+
+(node:32420) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:32420) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+Starting the development server...
+Compiled successfully!
+
+You can now view aas-app in the browser.
+
+  Local:            http://localhost:3000
+  On Your Network:  http://172.26.96.1:3000
+
+Note that the development build is not optimized.
+To create a production build, use npm run build.
+
+webpack compiled successfully
+[INFO] 09:28:14 Restarting: C:\Projects\aas_v2\aas-app\backend\src\middleware\security.ts has been modified
+
+
+webpack compiled successfully
+[INFO] 09:28:14 Restarting: C:\Projects\aas_v2\aas-app\backend\src\middleware\security.ts has been modified
+[ERROR] 09:28:15 ⨯ Unable to compile TypeScript:
+src/services/openaiService.ts(1225,1): error TS1005: '}' expected.
+

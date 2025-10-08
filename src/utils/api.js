@@ -181,6 +181,7 @@ export const problemAPI = {
   generateSolution: (id, options = {}) => apiClient.post(`/api/problems/${id}/solutions`, options),
   generateHints: (id, options = {}) => apiClient.post(`/api/problems/${id}/hints`, options),
   generateConceptNotes: (id, options = {}) => apiClient.post(`/api/problems/${id}/concept-notes`, options),
+  associateAssets: (id, assetIds) => apiClient.post(`/api/problems/${id}/assets`, { assetIds }),
 };
 
 export const foldersAPI = {
