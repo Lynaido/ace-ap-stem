@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir)",
+      "Read(//c/Users/kk/**)",
+      "Bash(npx supabase status)",
+      "WebSearch",
+      "Bash(npx prisma db push:*)",
+      "Bash(npx prisma db pull:*)",
+      "Bash(npx prisma studio:*)",
+      "Bash(ping:*)",
+      "Bash(curl:*)",
+      "WebFetch(domain:statuspage.hostinger.com)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
