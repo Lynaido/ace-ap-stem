@@ -1,9 +1,8 @@
-import { PrismaClient, MessageRole } from '@prisma/client';
+import { MessageRole } from '@prisma/client';
 import OpenAI from 'openai';
 import config from '../config/environment';
 import logger from '../config/logger';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma';
 
 // Initialize OpenAI client
 const openai = new OpenAI({

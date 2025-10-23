@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
-import { PrismaClient, SavedItemType } from '@prisma/client';
+import { SavedItemType } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { z } from 'zod';
 import logger from '../config/logger';
 
-const prisma = new PrismaClient();
+
 
 // Validation schemas
 const createSavedItemSchema = z.object({

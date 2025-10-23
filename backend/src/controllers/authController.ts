@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt, { SignOptions } from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { z } from 'zod';
 import logger from '../config/logger';
 import config from '../config/environment';
@@ -19,10 +19,6 @@ declare global {
     }
   }
 }
-
-const prisma = new PrismaClient({
-  log: ['error', 'warn'],
-});
 
 // Validation schemas
 const registerSchema = z.object({

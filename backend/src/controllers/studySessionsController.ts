@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { z } from 'zod';
 import logger from '../config/logger';
 import { generateProblemVariants } from '../services/openaiService';
 
-const prisma = new PrismaClient();
+
 
 // Validation schemas
 const createStudySessionSchema = z.object({
