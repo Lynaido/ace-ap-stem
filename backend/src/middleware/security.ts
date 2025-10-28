@@ -11,8 +11,13 @@ export const corsOptions: cors.CorsOptions = {
       // Allow requests with no origin (mobile apps, etc.)
       if (!origin) return callback(null, true);
 
-      // Allow requests from the frontend URL
+      // Allow requests from the frontend URL (with or without www)
       if (origin === config.frontendUrl) {
+        return callback(null, true);
+      }
+
+      // Allow www subdomain of frontend URL
+      if (origin === `https://www.${config.frontendUrl.replace('https://', '')}`) {
         return callback(null, true);
       }
 
