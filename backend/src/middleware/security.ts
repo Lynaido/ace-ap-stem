@@ -16,6 +16,11 @@ export const corsOptions: cors.CorsOptions = {
         return callback(null, true);
       }
 
+      // Allow Vercel preview/deployment URLs
+      if (origin && origin.includes('.vercel.app')) {
+        return callback(null, true);
+      }
+
       // Allow localhost for development
       if (config.nodeEnv === 'development' && origin.includes('localhost')) {
         return callback(null, true);
