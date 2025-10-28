@@ -3,18 +3,20 @@ import { Link } from 'react-router-dom';
 import './HeroSection.css';
 import VideoSlideshow from './VideoSlideshow';
 
+const CACHE_BUST = Date.now();
+
 const demoVideos = [
   {
     title: 'Upload Problem',
-    url: '/videos/uploadProblem.mp4',
+    url: `/videos/uploadProblem.mp4?v=${CACHE_BUST}`,
   },
   {
     title: 'Hint & Concept Note',
-    url: '/videos/hintAndConceptNote.mp4',
+    url: `/videos/hintAndConceptNote.mp4?v=${CACHE_BUST}`,
   },
   {
     title: 'Study Mode',
-    url: '/videos/studyMode.mp4',
+    url: `/videos/studyMode.mp4?v=${CACHE_BUST}`,
   },
 ];
 
