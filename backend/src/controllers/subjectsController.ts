@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
+import { } from '@prisma/client';
+import prisma from '../lib/prisma';
 import logger from '../config/logger';
-import prisma from '../config/database';
+
+
 
 // Define AP subjects with their categories
 const SUBJECTS = [

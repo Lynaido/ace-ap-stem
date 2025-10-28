@@ -1,8 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { } from '@prisma/client';
+import prisma from '../lib/prisma';
 import logger from '../config/logger';
 import config from '../config/environment';
-import prisma from '../config/database';
+
+
 
 // JWT configuration
 const JWT_SECRET = config.jwtSecret;

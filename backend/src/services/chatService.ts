@@ -2,7 +2,7 @@ import { MessageRole } from '@prisma/client';
 import OpenAI from 'openai';
 import config from '../config/environment';
 import logger from '../config/logger';
-import prisma from '../config/database';
+import prisma from '../lib/prisma';
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -257,7 +257,7 @@ export const streamAIResponse = async (
       messages: contextMessages,
       stream: true,
       temperature: 0.6,
-      max_tokens: 800, // Increased from 150 to allow for more comprehensive responses
+      max_tokens: 150,
     });
 
     // Process stream chunks

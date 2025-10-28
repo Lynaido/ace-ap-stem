@@ -1,8 +1,11 @@
 import { Request, Response } from 'express';
+import { } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { storageService } from '../services/storageService';
 import * as openaiService from '../services/openaiService';
 import logger from '../config/logger';
-import prisma from '../config/database';
+
+
 
 /**
  * GET /api/problems

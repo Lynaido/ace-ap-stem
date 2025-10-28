@@ -1,8 +1,11 @@
 import { Request, Response } from 'express';
 import multer from 'multer';
+import { } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { storageService, FileUploadData } from '../services/storageService';
 import logger from '../config/logger';
-import prisma from '../config/database';
+
+
 
 // Configure multer for memory storage (we'll handle the actual storage)
 const upload = multer({

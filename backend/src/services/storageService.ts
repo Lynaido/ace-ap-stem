@@ -1,5 +1,8 @@
+import { } from '@prisma/client';
+import prisma from '../lib/prisma';
 import logger from '../config/logger';
-import prisma from '../config/database';
+
+
 
 export interface UploadResult {
   id: string;

@@ -1,7 +1,10 @@
 import { Request, Response } from 'express';
+import { } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { z } from 'zod';
 import logger from '../config/logger';
-import prisma from '../config/database';
+
+
 
 // Validation schemas
 const createNoteSchema = z.object({

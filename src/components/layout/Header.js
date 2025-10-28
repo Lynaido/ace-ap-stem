@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { FaBrain, FaUser, FaSignOutAlt } from 'react-icons/fa';
+import { FaUser, FaSignOutAlt } from 'react-icons/fa';
 import { useAppContext } from '../../context/AppContext';
 import './Header.css';
 
@@ -22,8 +22,18 @@ const Header = () => {
       <div className="header-container">
         <Link to="/" className="logo">
           <div className="logo-container">
-            <div className="logo-icon">
-              <FaBrain />
+            <div className="logo-icon" aria-label="ACE AP STEM">
+              <img
+                src="/logo.jpg"
+                alt="ACE AP STEM logo"
+                width="36"
+                height="36"
+                loading="eager"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/logo192.png';
+                }}
+              />
             </div>
             <span className="logo-text">ACE AP STEM</span>
           </div>
