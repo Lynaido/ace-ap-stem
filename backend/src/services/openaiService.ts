@@ -973,7 +973,7 @@ const generateConceptNotesFallback = async (params: {
   try {
     logger.info('Generating fallback concept notes with OpenAI', { subject, difficulty });
 
-    const model = 'gpt-5-mini'; // Use mini model for fallback
+    const model = 'gpt-4o-mini'; // Use mini model for fallback
 
     const fallbackPrompt = `Create 2-3 basic concept notes for this ${subject} problem:
 

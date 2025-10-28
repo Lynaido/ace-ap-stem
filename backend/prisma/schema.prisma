@@ -43,6 +43,7 @@ model Session {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("sessions")
 }
 
@@ -67,6 +68,11 @@ model Problem {
   savedItems  SavedItem[]
   studySessions StudySession[]
 
+  @@index([userId])
+  @@index([status])
+  @@index([subject])
+  @@index([userId, status])
+  @@index([createdAt])
   @@map("problems")
 }
 
@@ -84,6 +90,7 @@ model ProblemAsset {
 
   problem Problem? @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
+  @@index([problemId])
   @@map("problem_assets")
 }
 
@@ -100,6 +107,7 @@ model Solution {
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
   savedItems SavedItem[]
 
+  @@index([problemId])
   @@map("solutions")
 }
 
@@ -112,6 +120,7 @@ model Hint {
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
   savedItems SavedItem[]
 
+  @@index([problemId])
   @@map("hints")
 }
 
@@ -125,6 +134,7 @@ model ConceptNote {
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
   savedItems SavedItem[]
 
+  @@index([problemId])
   @@map("concept_notes")
 }
 
@@ -140,6 +150,7 @@ model Folder {
   notes Note[]
   savedItems SavedItem[]
 
+  @@index([userId])
   @@map("folders")
 }
 
@@ -155,6 +166,8 @@ model Note {
   folder Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([folderId])
   @@map("notes")
 }
 
@@ -179,6 +192,10 @@ model SavedItem {
   folder     Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
   tagLinks   TagLink[]
 
+  @@index([userId])
+  @@index([problemId])
+  @@index([folderId])
+  @@index([starred])
   @@map("saved_items")
 }
 
@@ -193,6 +210,8 @@ model StudySession {
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([problemId])
   @@map("study_sessions")
 }
 
@@ -206,6 +225,8 @@ model ChatThread {
   user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages Message[]
 
+  @@index([userId])
+  @@index([updatedAt])
   @@map("chat_threads")
 }
 
@@ -219,6 +240,8 @@ model Message {
 
   thread ChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
 
+  @@index([threadId])
+  @@index([createdAt])
   @@map("messages")
 }
 
@@ -232,6 +255,9 @@ model AiJob {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
   @@map("ai_jobs")
 }
 
@@ -265,6 +291,9 @@ model Event {
   data      Json
   createdAt DateTime @default(now())
 
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
   @@map("events")
 }
 

@@ -1,9 +1,7 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import logger from '../config/logger';
-
-const prisma = new PrismaClient();
+import prisma from '../config/database';
 
 // Validation schemas
 const createTagSchema = z.object({

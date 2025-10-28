@@ -5,16 +5,16 @@ import VideoSlideshow from './VideoSlideshow';
 
 const demoVideos = [
   {
-    title: 'Generate Solutions',
-    url: '/videos/getSolution.mp4',
+    title: 'Upload Problem',
+    url: '/videos/uploadProblem.mp4',
   },
   {
-    title: 'Generate Hints & Concept Notes',
-    url: '/videos/hintsAndConceptNotes.mp4',
+    title: 'Hint & Concept Note',
+    url: '/videos/hintAndConceptNote.mp4',
   },
   {
-    title: 'NotesHub & Study Variants',
-    url: '/videos/notesVariant.mp4',
+    title: 'Study Mode',
+    url: '/videos/studyMode.mp4',
   },
 ];
 

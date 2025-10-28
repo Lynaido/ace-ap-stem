@@ -10,7 +10,8 @@
       "Bash(npx prisma studio:*)",
       "Bash(ping:*)",
       "Bash(curl:*)",
-      "WebFetch(domain:statuspage.hostinger.com)"
+      "WebFetch(domain:statuspage.hostinger.com)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []
