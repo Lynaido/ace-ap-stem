@@ -57,8 +57,8 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
       return res.status(400).json({ error: 'User already exists with this email' });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
+    // Hash password (10 rounds = ~100ms, good balance of security and speed)
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
     const user = await prisma.user.create({
@@ -79,24 +79,26 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(user.id);
 
-    // Create session
+    // Run database operations in parallel for better performance
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-    await prisma.session.create({
-      data: {
-        userId: user.id,
-        refreshToken,
-        expiresAt,
-      },
-    });
-
-    // Log event
-    await prisma.event.create({
-      data: {
-        type: 'AUTH_REGISTER',
-        userId: user.id,
-        data: { email: user.email },
-      },
-    });
+    await Promise.all([
+      // Create session
+      prisma.session.create({
+        data: {
+          userId: user.id,
+          refreshToken,
+          expiresAt,
+        },
+      }),
+      // Log event (non-blocking)
+      prisma.event.create({
+        data: {
+          type: 'AUTH_REGISTER',
+          userId: user.id,
+          data: { email: user.email },
+        },
+      }),
+    ]);
 
     // Set refresh token as httpOnly cookie
     res.cookie('refreshToken', refreshToken, {
@@ -126,10 +128,9 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
   try {
     const { email, password } = loginSchema.parse(req.body);
 
-    // Find user
+    // Find user (removed sessions include for faster query)
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { sessions: true },
     });
 
     if (!user || !user.password) {
@@ -145,29 +146,30 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(user.id);
 
-    // Delete existing sessions for this user
-    await prisma.session.deleteMany({
-      where: { userId: user.id },
-    });
-
-    // Create new session
+    // Run database operations in parallel for better performance
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-    await prisma.session.create({
-      data: {
-        userId: user.id,
-        refreshToken,
-        expiresAt,
-      },
-    });
-
-    // Log event
-    await prisma.event.create({
-      data: {
-        type: 'AUTH_LOGIN',
-        userId: user.id,
-        data: { email: user.email },
-      },
-    });
+    await Promise.all([
+      // Delete existing sessions
+      prisma.session.deleteMany({
+        where: { userId: user.id },
+      }),
+      // Create new session
+      prisma.session.create({
+        data: {
+          userId: user.id,
+          refreshToken,
+          expiresAt,
+        },
+      }),
+      // Log event (non-blocking)
+      prisma.event.create({
+        data: {
+          type: 'AUTH_LOGIN',
+          userId: user.id,
+          data: { email: user.email },
+        },
+      }),
+    ]);
 
     // Set refresh token as httpOnly cookie
     res.cookie('refreshToken', refreshToken, {
