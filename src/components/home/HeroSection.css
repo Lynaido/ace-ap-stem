@@ -31,8 +31,9 @@
   font-weight: 800;
   color: #1a1a1a;
   width: 100%;
-  white-space: nowrap;
+  white-space: normal;
   overflow: visible;
+  word-wrap: break-word;
 }
 
 .hero-tagline {
@@ -216,22 +217,76 @@
 @media (max-width: 900px) {
   .hero-container { gap: 3rem; padding: 0 0.5rem; }
   .hero-mockup { border-radius: 1.75rem; }
-  .hero-title { 
-    font-size: clamp(2rem, 8vw, 3.5rem); 
-    white-space: nowrap;
+  .hero-title {
+    font-size: clamp(2rem, 8vw, 3.5rem);
+    white-space: normal;
+    word-wrap: break-word;
+  }
+}
+
+/* Tablet and mobile adjustments for buttons */
+@media (max-width: 768px) {
+  .hero-buttons {
+    flex-direction: column;
+    width: 100%;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-buttons .btn-primary,
+  .hero-buttons .btn-secondary {
+    width: 100%;
+    padding: 1rem 2rem;
+    font-size: 1rem;
+  }
+
+  .video-section-title {
+    font-size: 2rem;
   }
 }
 
 /* Small screens */
 @media (max-width: 640px) {
   .hero-section { padding: 2rem 0 3.5rem; }
-  .hero-container { padding: 0 0.25rem; }
-  .hero-buttons { margin-bottom: 2rem; }
+  .hero-container { padding: 0 0.75rem; }
+  .hero-buttons {
+    margin-bottom: 2rem;
+    max-width: 100%;
+  }
   .hero-mockup { aspect-ratio: 4 / 3; border-radius: 1.4rem; }
-  .hero-tagline { margin: 1.2rem auto 2.2rem; }
+  .hero-tagline {
+    margin: 1.2rem auto 2.2rem;
+    font-size: 0.95rem;
+  }
   .badge { font-size: 0.72rem; padding: 0.45rem 0.9rem; }
-  .hero-title { 
-    font-size: clamp(1.8rem, 10vw, 3rem); 
-    white-space: nowrap;
+  .hero-title {
+    font-size: clamp(1.8rem, 10vw, 3rem);
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .video-section-title {
+    font-size: 1.75rem;
+  }
+
+  .hero-buttons .btn-primary,
+  .hero-buttons .btn-secondary {
+    padding: 0.9rem 1.75rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section { padding: 1.5rem 0 3rem; }
+  .hero-container { padding: 0 1rem; }
+  .hero-title {
+    font-size: clamp(1.5rem, 9vw, 2.5rem);
+  }
+  .hero-tagline {
+    font-size: 0.9rem;
+  }
+  .video-section-title {
+    font-size: 1.5rem;
   }
 }

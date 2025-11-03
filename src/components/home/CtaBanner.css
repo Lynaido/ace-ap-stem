@@ -24,3 +24,36 @@
   margin-bottom: 2rem;
   color: var(--color-cool-gray);
 }
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  .cta-banner-section {
+    padding: 4rem 1rem;
+    margin-top: 3rem;
+  }
+
+  .cta-banner-container h2 {
+    font-size: 2rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .cta-banner-container p {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cta-banner-section {
+    padding: 3rem 1rem;
+    margin-top: 2rem;
+  }
+
+  .cta-banner-container h2 {
+    font-size: 1.75rem;
+  }
+
+  .cta-banner-container p {
+    font-size: 0.95rem;
+  }
+}

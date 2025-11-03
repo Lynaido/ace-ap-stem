@@ -137,13 +137,26 @@ const SolutionDisplay = ({ solution, problemText, onGetHints, onViewConceptNotes
         )}
       </div>
 
-      {(showAllSteps || currentStep === totalSteps - 1) && (
+      {(showAllSteps || currentStep === totalSteps - 1) && finalAnswer && (
         <div className="final-answer">
           <div className="final-answer-header">
             <h3>Final Answer</h3>
           </div>
           <div className="final-answer-content">
-            <LatexRenderer content={finalAnswer} />
+            {typeof finalAnswer === 'string' ? (
+              <LatexRenderer content={finalAnswer} />
+            ) : typeof finalAnswer === 'object' ? (
+              <div className="final-answer-structured">
+                {Object.entries(finalAnswer).map(([key, value]) => (
+                  <div key={key} className="answer-field">
+                    <strong>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</strong>{' '}
+                    <LatexRenderer content={String(value)} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <LatexRenderer content={String(finalAnswer)} />
+            )}
           </div>
         </div>
       )}

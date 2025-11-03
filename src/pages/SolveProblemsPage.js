@@ -44,6 +44,7 @@ const SolveProblemsPage = () => {
     saveItem,
     getFolders,
     setActiveProblem,
+    activeThreadId,
   } = useAppContext();
   const [createdProblemId, setCreatedProblemId] = useState(null);
   const [error, setError] = useState(null);
@@ -918,7 +919,11 @@ const SolveProblemsPage = () => {
           )}
         </div>
         <div className="chat-sidebar">
-          <ChatPanel initialMessages={chatInitialMessages} className="chat-panel-elevated" />
+          <ChatPanel
+            threadId={activeThreadId}
+            initialMessages={chatInitialMessages}
+            className="chat-panel-elevated"
+          />
         </div>
       </div>
     </div>

@@ -1,8 +1,11 @@
 import React from 'react';
 import ChatPanel from '../components/chat/ChatPanel';
+import { useAppContext } from '../context/AppContext';
 import './TutorPage.css';
 
 const TutorPage = () => {
+  const { activeThreadId } = useAppContext();
+
   const initialMessages = [
     {
       id: 1,
@@ -14,7 +17,7 @@ const TutorPage = () => {
 
   return (
     <div className="tutor-page">
-      <ChatPanel initialMessages={initialMessages} />
+      <ChatPanel threadId={activeThreadId} initialMessages={initialMessages} />
     </div>
   );
 };

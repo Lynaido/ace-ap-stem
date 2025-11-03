@@ -138,12 +138,8 @@ const SignInPage = () => {
               {errors.password && <span className="error-message">{errors.password}</span>}
             </div>
 
-            <div className="signin-forgot">
-              <Link to="/forgot-password">Forgot your password?</Link>
-            </div>
-            
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn-signin"
               disabled={isSubmitting}
             >

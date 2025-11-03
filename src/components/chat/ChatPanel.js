@@ -6,10 +6,22 @@ import { useAppContext } from '../../context/AppContext';
 import './ChatPanel.css';
 
 const ChatPanel = ({ threadId = null, problemId = null, initialMessages, className = '' }) => {
-  const { user } = useAppContext();
-  const [messages, setMessages] = useState(initialMessages || []);
+  const {
+    user,
+    activeThreadId,
+    activeThreadMessages,
+    setActiveThread,
+    clearActiveThread
+  } = useAppContext();
+
+  // Use global state if available, otherwise use props or local state
+  const [messages, setMessages] = useState(
+    activeThreadId === threadId && activeThreadMessages.length > 0
+      ? activeThreadMessages
+      : initialMessages || []
+  );
   const [inputValue, setInputValue] = useState('');
-  const [currentThreadId, setCurrentThreadId] = useState(threadId);
+  const [currentThreadId, setCurrentThreadId] = useState(activeThreadId || threadId);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
@@ -17,6 +29,7 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
   const messagesEndRef = useRef(null);
   const eventSourceRef = useRef(null);
   const pendingUserMessageIdRef = useRef(null);
+  const isSendingRef = useRef(false); // Guard against double message submission
 
   const panelClassName = ['chat-panel', className].filter(Boolean).join(' ');
 
@@ -45,8 +58,9 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
       eventSourceRef.current = null;
     }
     setIsStreaming(false);
-setStreamingMessage('');
-    pendingUserMessageIdRef.current = null;
+    setStreamingMessage('');
+    // DON'T reset pendingUserMessageIdRef here - it prevents duplicate streaming
+    // It will be reset in loadThread when we confirm the AI response is in the database
   }, []);
 
   const startStream = useCallback(
@@ -72,8 +86,25 @@ setStreamingMessage('');
 
       eventSource.onmessage = (event) => {
         if (event.data === '[DONE]') {
+          // Save the streamed content to messages array so it doesn't disappear from UI
+          setStreamingMessage((currentStreamContent) => {
+            if (currentStreamContent) {
+              const tempAiMessage = {
+                id: `temp-ai-${Date.now()}`, // Temporary ID
+                role: 'assistant',
+                content: currentStreamContent,
+                createdAt: new Date(),
+              };
+              setMessages((prev) => [...prev, tempAiMessage]);
+            }
+            return currentStreamContent;
+          });
           teardownStream();
-          setNeedsReload((c) => c + 1);
+          // Trigger a single reload after a short delay to fetch the database version
+          // This replaces the temporary message with the properly saved one
+          setTimeout(() => {
+            setNeedsReload((c) => c + 1);
+          }, 500); // Small delay to ensure backend has saved
           return;
         }
 
@@ -100,7 +131,7 @@ setStreamingMessage('');
         pendingUserMessageIdRef.current = null;
       };
     },
-    [teardownStream, user]
+    [teardownStream, user, setMessages, setActiveThread]
   );
 
   const loadThread = useCallback(async () => {
@@ -115,9 +146,12 @@ setStreamingMessage('');
         createdAt: msg.createdAt,
       }));
       setMessages(loadedMessages);
+      // Update global state to persist across pages
+      setActiveThread(currentThreadId, loadedMessages);
 
       const lastMessage = loadedMessages[loadedMessages.length - 1];
       if (lastMessage && lastMessage.role === 'user') {
+        // Only start streaming if we haven't already processed this message
         if (
           !eventSourceRef.current &&
           pendingUserMessageIdRef.current !== lastMessage.id
@@ -128,6 +162,8 @@ setStreamingMessage('');
           });
         }
       } else {
+        // Last message is from assistant, so we're done streaming
+        // Reset the pending ref to allow future messages
         pendingUserMessageIdRef.current = null;
       }
     } catch (error) {
@@ -135,17 +171,35 @@ setStreamingMessage('');
     }
   }, [currentThreadId, user, startStream]);
 
-  // Load thread messages on mount
+  // Load thread messages on mount, when thread changes, or when reload is triggered
   useEffect(() => {
     loadThread();
-  }, [loadThread, needsReload]);
+  }, [loadThread, needsReload]); // needsReload triggers fetch after streaming completes
+
+  // Sync local messages with global state (only when thread changes, not on every message)
+  // Messages are synced in loadThread and handleSendMessage instead
+  useEffect(() => {
+    if (currentThreadId && messages.length > 0) {
+      setActiveThread(currentThreadId, messages);
+    }
+  }, [currentThreadId, setActiveThread]); // Removed 'messages' to prevent infinite loop
 
   // Clean up SSE on unmount
   useEffect(() => () => teardownStream(), [teardownStream]);
 
-  const handleSendMessage = async (e) => {
+  const handleSendMessage = useCallback(async (e) => {
     e.preventDefault();
+
+    // Guard against double submission with ref-based check
+    if (isSendingRef.current) {
+      console.warn('Message already being sent, ignoring duplicate submission');
+      return;
+    }
+
     if (inputValue.trim() === '' || isLoading || !user) return;
+
+    // Set guard immediately (synchronous)
+    isSendingRef.current = true;
 
     const userMessage = {
       id: Date.now().toString(),
@@ -160,17 +214,19 @@ setStreamingMessage('');
 
     try {
       // Create thread if needed
-      let activeThreadId = currentThreadId;
-      if (!activeThreadId) {
+      let activeThreadIdLocal = currentThreadId;
+      if (!activeThreadIdLocal) {
         const threadPayload = problemId ? { problemId } : {};
         const threadResponse = await chatAPI.createThread(threadPayload);
-        activeThreadId = threadResponse.data.id;
-        setCurrentThreadId(activeThreadId);
+        activeThreadIdLocal = threadResponse.data.id;
+        setCurrentThreadId(activeThreadIdLocal);
+        // Update global state with new thread
+        setActiveThread(activeThreadIdLocal, messages);
       }
 
       // Send message
       const sentMessage = await chatAPI.sendMessage(
-        activeThreadId,
+        activeThreadIdLocal,
         userMessage.content,
         problemId || undefined
       );
@@ -192,7 +248,7 @@ setStreamingMessage('');
       }
 
       // Start streaming AI response after the user message is saved
-      startStream(activeThreadId, {
+      startStream(activeThreadIdLocal, {
         force: true,
         userMessageId: serverMessageId || userMessage.id,
       });
@@ -212,8 +268,9 @@ setStreamingMessage('');
       ]);
     } finally {
       setIsLoading(false);
+      isSendingRef.current = false; // Reset guard after completion
     }
-  };
+  }, [inputValue, isLoading, user, currentThreadId, problemId, messages, setActiveThread, startStream]);
 
   return (
     <div className={panelClassName}>

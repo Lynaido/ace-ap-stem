@@ -135,11 +135,15 @@ export const streamResponse = async (req: Request, res: Response) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
   res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
+  res.setHeader('Transfer-Encoding', 'chunked'); // Ensure proper streaming in production
   res.flushHeaders();
 
   const sendSse = (data: object) => {
     if (!res.writableEnded) {
       res.write(`data: ${JSON.stringify(data)}\n\n`);
+      // Explicit flush to prevent buffering in production proxies
+      // @ts-ignore - flush() exists on Node.js ServerResponse
+      if (res.flush) res.flush();
     }
   };
 

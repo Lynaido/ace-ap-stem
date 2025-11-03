@@ -7,7 +7,7 @@ import prisma from '../lib/prisma';
 // Initialize OpenAI client
 const openai = new OpenAI({
   apiKey: config.openaiApiKey,
-  timeout: 60000,
+  timeout: config.openaiTimeoutMs, // Use environment config for production flexibility
   maxRetries: 2,
 });
 
@@ -257,7 +257,7 @@ export const streamAIResponse = async (
       messages: contextMessages,
       stream: true,
       temperature: 0.6,
-      max_tokens: 150,
+      max_tokens: 800, // Increased from 150 for better tutoring responses
     });
 
     // Process stream chunks

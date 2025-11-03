@@ -176,6 +176,45 @@
   box-shadow: 0 22px 36px -20px rgba(249, 115, 22, 0.65);
 }
 
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  .chat-header {
+    padding: 1.25rem 1.5rem 1rem;
+  }
+
+  .chat-header h3 {
+    font-size: 1.2rem;
+  }
+
+  .chat-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .chat-messages {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .chat-input-area {
+    padding: 1rem 1.5rem 1.25rem;
+  }
+
+  .message-content {
+    max-width: 85%;
+    font-size: 0.9rem;
+    padding: 0.75rem 0.9rem;
+  }
+
+  .chat-input-shell .input-primitive {
+    font-size: 0.9rem;
+    height: 40px;
+  }
+
+  .send-button {
+    padding: 0.6rem 1.4rem !important;
+    font-size: 0.9rem;
+  }
+}
+
 @media (max-width: 640px) {
   .chat-header,
   .chat-messages,
@@ -186,5 +225,32 @@
 
   .message-content {
     max-width: 90%;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-header,
+  .chat-messages,
+  .chat-input-area {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .chat-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .message-content {
+    font-size: 0.85rem;
+    padding: 0.65rem 0.8rem;
+  }
+
+  .chat-input-shell {
+    padding: 0.3rem 0.4rem 0.3rem 0.9rem;
+  }
+
+  .send-button {
+    padding: 0.55rem 1.2rem !important;
+    font-size: 0.85rem;
   }
 }

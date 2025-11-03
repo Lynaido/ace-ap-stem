@@ -28,6 +28,8 @@ const initialState = {
   // Chat state
   chatHistory: [],
   isChatOpen: false,
+  activeThreadId: null, // Persist active chat thread across pages
+  activeThreadMessages: [], // Persist messages for active thread
 
   // Notes Hub
   savedItems: [],
@@ -80,6 +82,8 @@ const ActionTypes = {
   ADD_CHAT_MESSAGE: 'ADD_CHAT_MESSAGE',
   CLEAR_CHAT: 'CLEAR_CHAT',
   TOGGLE_CHAT: 'TOGGLE_CHAT',
+  SET_ACTIVE_THREAD: 'SET_ACTIVE_THREAD',
+  CLEAR_ACTIVE_THREAD: 'CLEAR_ACTIVE_THREAD',
 
   // Notes Hub actions
   SAVE_ITEM: 'SAVE_ITEM',
@@ -235,6 +239,20 @@ function appReducer(state, action) {
       return {
         ...state,
         isChatOpen: !state.isChatOpen
+      };
+
+    case ActionTypes.SET_ACTIVE_THREAD:
+      return {
+        ...state,
+        activeThreadId: action.payload.threadId,
+        activeThreadMessages: action.payload.messages || []
+      };
+
+    case ActionTypes.CLEAR_ACTIVE_THREAD:
+      return {
+        ...state,
+        activeThreadId: null,
+        activeThreadMessages: []
       };
 
     case ActionTypes.SAVE_ITEM:
@@ -956,6 +974,18 @@ export const AppProvider = ({ children }) => {
     }
   }, []);
 
+  // Chat action functions (memoized to prevent infinite loops)
+  const setActiveThread = useCallback((threadId, messages) => {
+    dispatch({
+      type: ActionTypes.SET_ACTIVE_THREAD,
+      payload: { threadId, messages }
+    });
+  }, []);
+
+  const clearActiveThread = useCallback(() => {
+    dispatch({ type: ActionTypes.CLEAR_ACTIVE_THREAD });
+  }, []);
+
   // Action creators
   const actions = {
     // Auth actions
@@ -1011,6 +1041,8 @@ export const AppProvider = ({ children }) => {
     addChatMessage: (message) => dispatch({ type: ActionTypes.ADD_CHAT_MESSAGE, payload: message }),
     clearChat: () => dispatch({ type: ActionTypes.CLEAR_CHAT }),
     toggleChat: () => dispatch({ type: ActionTypes.TOGGLE_CHAT }),
+    setActiveThread, // Use memoized version to prevent infinite loops
+    clearActiveThread, // Use memoized version to prevent infinite loops
 
     // Notes Hub actions
     deleteItem: (itemId) => dispatch({ type: ActionTypes.DELETE_ITEM, payload: itemId }),
