@@ -18,18 +18,20 @@ backend/build/
 # Environment variables (actual files with secrets)
 .env
 .env.local
+.env.development
 .env.development.local
 .env.test.local
 .env.production
 .env.production.local
 backend/.env
 backend/.env.local
+backend/.env.development
 backend/.env.development.local
 backend/.env.test.local
 backend/.env.production
 backend/.env.production.local
 
-# Environment example files (safe to commit)
+# Environment example files (safe to commit - these should be tracked)
 !.env.example
 !.env.production.example
 !backend/.env.example
