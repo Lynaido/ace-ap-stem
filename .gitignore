@@ -31,6 +31,10 @@ backend/.env.test.local
 backend/.env.production
 backend/.env.production.local
 
+# Docker local override (optional - if you want to keep API key private)
+# Uncomment the line below if you don't want to commit your OpenAI key
+# .env.docker
+
 # Environment example files (safe to commit - these should be tracked)
 !.env.example
 !.env.production.example

@@ -1,0 +1,136 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║  ██╗    ██╗███████╗██╗      ██████╗ ██████╗ ███╗   ███╗███████╗
+║  ██║    ██║██╔════╝██║     ██╔════╝██╔═══██╗████╗ ████║██╔════╝
+║  ██║ █╗ ██║█████╗  ██║     ██║     ██║   ██║██╔████╔██║█████╗
+║  ██║███╗██║██╔══╝  ██║     ██║     ██║   ██║██║╚██╔╝██║██╔══╝
+║  ╚███╔███╔╝███████╗███████╗╚██████╗╚██████╔╝██║ ╚═╝ ██║███████╗
+║   ╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝
+║                                                               ║
+║              AAS - ACE AP STEM APPLICATION                    ║
+║              Mac Setup Instructions                           ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+
+📚 QUICK START (3 SIMPLE STEPS):
+═══════════════════════════════════════════════════════════════
+
+1️⃣  INSTALL DOCKER DESKTOP (ONE-TIME SETUP)
+
+    🌐 Visit: https://www.docker.com/products/docker-desktop/
+
+    📥 Download the right version for your Mac:
+       • "Mac with Apple chip" → for M1/M2/M3 Macs
+       • "Mac with Intel chip" → for older Macs
+
+    💿 Install:
+       • Open the downloaded .dmg file
+       • Drag Docker icon to Applications folder
+       • Open Docker Desktop from Applications
+       • Wait for the whale icon (🐳) to appear in menu bar
+
+
+2️⃣  START THE APPLICATION
+
+    📁 In this folder, find the file named:
+       "start-mac.command"
+
+    🖱️  Double-click it!
+
+    ⏱️  Wait 2-3 minutes (first time only)
+
+    🌐 Your browser will open automatically to the app
+
+    ⚠️  If you see a security warning:
+       → System Preferences → Security & Privacy
+       → Click "Open Anyway"
+
+
+3️⃣  LOGIN & EXPLORE
+
+    👤 Demo User (recommended for testing):
+       Email:    demo@aas.com
+       Password: demo123
+
+       This account has sample problems and solutions!
+
+    👨‍💼 Admin User (full access):
+       Email:    admin@aas.com
+       Password: admin123
+
+    ⚠️  IMPORTANT: Change these passwords after first login!
+
+
+🛑 WHEN YOU'RE DONE:
+═══════════════════════════════════════════════════════════════
+
+    📁 Double-click "stop-mac.command"
+
+    💾 Your data is automatically saved!
+
+
+📖 NEED DETAILED HELP?
+═══════════════════════════════════════════════════════════════
+
+    📘 For step-by-step guide:
+       → Open "MAC_SETUP.md"
+
+    🔧 For developer documentation:
+       → Open "DOCKER_README.md"
+
+    ❓ Troubleshooting:
+       → See MAC_SETUP.md → Troubleshooting section
+
+
+🌐 APPLICATION URLS:
+═══════════════════════════════════════════════════════════════
+
+    🏠 Main App:     http://localhost:3000
+    🔌 Backend API:  http://localhost:3001
+    📚 API Docs:     http://localhost:3001/api-docs
+
+
+⚙️  WHAT'S INSIDE THE APP?
+═══════════════════════════════════════════════════════════════
+
+    ✅ AI-Powered Problem Solver
+    ✅ Step-by-Step Solutions
+    ✅ Smart Hints System
+    ✅ Concept Notes Generator
+    ✅ Study Mode with Variants
+    ✅ Notes Hub with Folders
+    ✅ AI Tutor Chatbot
+
+
+🔒 YOUR DATA IS SAFE:
+═══════════════════════════════════════════════════════════════
+
+    ✓ Everything runs locally on YOUR Mac
+    ✓ No internet required (except for AI features)
+    ✓ Your data never leaves your computer
+    ✓ Stored securely in Docker containers
+
+
+💡 TIPS:
+═══════════════════════════════════════════════════════════════
+
+    • Always ensure Docker Desktop is running (whale icon in menu bar)
+    • Don't delete this folder - it contains all configurations
+    • Bookmark http://localhost:3000 for easy access
+    • Keep Docker Desktop open while using the app
+    • Your data persists even when you stop the app
+
+
+🆘 NEED HELP?
+═══════════════════════════════════════════════════════════════
+
+    1. Check MAC_SETUP.md → Troubleshooting section
+    2. Make sure Docker Desktop is running
+    3. Try restarting Docker Desktop
+    4. Contact your developer for support
+
+
+═══════════════════════════════════════════════════════════════
+             ENJOY USING THE AAS APPLICATION! 🎓
+═══════════════════════════════════════════════════════════════
