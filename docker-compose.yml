@@ -84,6 +84,7 @@ services:
     container_name: aas-frontend
     working_dir: /app
     environment:
+      NODE_ENV: development
       REACT_APP_API_URL: http://localhost:3001
       REACT_APP_ENV: development
       REACT_APP_VERSION: 1.0.0
@@ -99,7 +100,7 @@ services:
       - /app/backend
     depends_on:
       - backend
-    command: npm start
+    command: sh -c "npm install && npx react-scripts start"
     networks:
       - aas-network
     stdin_open: true

@@ -26,6 +26,9 @@
   ],
   "author": "AAS Team",
   "license": "MIT",
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "axios": "^1.6.2",

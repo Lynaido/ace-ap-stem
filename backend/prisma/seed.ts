@@ -63,23 +63,16 @@ async function main() {
 
   // Create sample folders for demo user
   const foldersData = [
-    { name: 'AP Physics', color: '#3B82F6', userId: demoUser.id },
-    { name: 'AP Chemistry', color: '#F59E0B', userId: demoUser.id },
-    { name: 'AP Calculus', color: '#10B981', userId: demoUser.id },
-    { name: 'Practice Problems', color: '#EC4899', userId: demoUser.id },
+    { name: 'AP Physics', description: 'Physics problems and notes', userId: demoUser.id },
+    { name: 'AP Chemistry', description: 'Chemistry problems and notes', userId: demoUser.id },
+    { name: 'AP Calculus', description: 'Calculus problems and notes', userId: demoUser.id },
+    { name: 'Practice Problems', description: 'General practice problems', userId: demoUser.id },
   ];
 
   const folders = [];
   for (const folderData of foldersData) {
-    const folder = await prisma.folder.upsert({
-      where: {
-        name_userId: {
-          name: folderData.name,
-          userId: folderData.userId,
-        },
-      },
-      update: {},
-      create: folderData,
+    const folder = await prisma.folder.create({
+      data: folderData,
     });
     folders.push(folder);
   }
@@ -126,6 +119,8 @@ async function main() {
     const solution = await prisma.solution.create({
       data: {
         problemId: problems[0].id,
+        content: 'Complete step-by-step solution for projectile motion problem',
+        sources: ['Physics 101', 'Kinematics Equations'],
         steps: [
           {
             id: 1,
@@ -152,7 +147,7 @@ async function main() {
             explanation: 'Use range formula for projectile motion',
           },
         ],
-        finalAnswer: 'Maximum height: 22.9 m, Range: 91.8 m',
+        finalAnswer: { answer: 'Maximum height: 22.9 m, Range: 91.8 m' },
         confidence: 0.95,
       },
     });
@@ -166,8 +161,6 @@ async function main() {
       data: {
         title: 'Projectile Motion Key Concepts',
         content: 'Important formulas:\n\n1. v₀y = v₀·sin(θ)\n2. v₀x = v₀·cos(θ)\n3. h_max = (v₀y)²/(2g)\n4. Range = (v₀²·sin(2θ))/g\n5. Time of flight = 2v₀y/g',
-        type: 'CONCEPT',
-        subject: 'ap_physics_1_2',
         folderId: folders[0].id,
         userId: demoUser.id,
       },
