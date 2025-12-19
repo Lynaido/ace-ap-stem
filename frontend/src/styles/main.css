@@ -223,12 +223,12 @@ a:hover {
 /* Sign In Page - Matching Landing Page Style */
 .signin-section {
   position: relative;
-  padding: 1.5rem 0;
+  padding: 6rem 0 2rem 0;
   background: #ffffff;
   color: #1a1a1a;
-  min-height: calc(100vh - 120px);
+  min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
 }
 
@@ -452,7 +452,7 @@ a:hover {
 /* Responsive adjustments */
 @media (max-width: 640px) {
   .signin-section {
-    padding: 1rem 0;
+    padding: 5rem 0 1.5rem 0;
   }
   
   .signin-container {
