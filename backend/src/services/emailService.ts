@@ -1,47 +1,14 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import config from '../config/environment';
 import logger from '../config/logger';
 
-// Initialize Nodemailer transporter
-// Use Gmail service if host is gmail, otherwise use custom SMTP
-const isGmail = config.smtpHost.includes('gmail');
+// Initialize Resend client
+const resend = config.resendApiKey ? new Resend(config.resendApiKey) : null;
 
-const transporterConfig = isGmail
-  ? {
-      service: 'gmail',
-      auth: {
-        user: config.smtpUser,
-        pass: config.smtpPassword,
-      },
-    }
-  : {
-      host: config.smtpHost,
-      port: config.smtpPort,
-      secure: config.smtpSecure,
-      auth: {
-        user: config.smtpUser,
-        pass: config.smtpPassword,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    };
-
-const transporter = nodemailer.createTransport(transporterConfig);
-
-// Verify transporter on startup (only if credentials are configured)
-if (config.smtpUser && config.smtpPassword) {
-  transporter.verify((error: Error | null) => {
-    if (error) {
-      logger.warn(`Email service configuration error: ${error.message}`);
-      logger.warn(`SMTP Config: host=${config.smtpHost}, port=${config.smtpPort}, user=${config.smtpUser}, isGmail=${isGmail}`);
-      logger.warn(`Full error: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
-    } else {
-      logger.info('Email service is ready');
-    }
-  });
+if (resend) {
+  logger.info('Email service (Resend) is configured');
 } else {
-  logger.warn('Email service not configured: SMTP credentials missing');
+  logger.warn('Email service not configured: RESEND_API_KEY missing');
 }
 
 export interface SendPasswordResetEmailParams {
@@ -55,10 +22,15 @@ export const sendPasswordResetEmail = async ({
   userName,
   resetLink,
 }: SendPasswordResetEmailParams): Promise<boolean> => {
+  if (!resend) {
+    logger.error('Cannot send email: Resend not configured');
+    return false;
+  }
+
   try {
-    const mailOptions = {
-      from: `"${config.smtpFromName}" <${config.smtpFromEmail}>`,
-      to,
+    const { data, error } = await resend.emails.send({
+      from: `${config.smtpFromName} <${config.resendFromEmail}>`,
+      to: [to],
       subject: 'Reset Your AAS Password',
       html: `
         <!DOCTYPE html>
@@ -69,12 +41,12 @@ export const sendPasswordResetEmail = async ({
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #f97316, #ea580c); padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: white; margin: 0;">AAS</h1>
+            <h1 style="color: white; margin: 0;">ACE AP STEM</h1>
           </div>
           <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
             <h2 style="color: #1f2937; margin-top: 0;">Password Reset Request</h2>
             <p>Hi ${userName || 'there'},</p>
-            <p>We received a request to reset your password for your AAS account. Click the button below to create a new password:</p>
+            <p>We received a request to reset your password for your ACE AP STEM account. Click the button below to create a new password:</p>
             <div style="text-align: center; margin: 30px 0;">
               <a href="${resetLink}" style="background: #f97316; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Reset Password</a>
             </div>
@@ -94,7 +66,7 @@ Password Reset Request
 
 Hi ${userName || 'there'},
 
-We received a request to reset your password for your AAS account.
+We received a request to reset your password for your ACE AP STEM account.
 
 Click the link below to create a new password:
 ${resetLink}
@@ -103,15 +75,18 @@ This link will expire in ${config.passwordResetTokenExpiresHours} hour${config.p
 
 If you didn't request this password reset, you can safely ignore this email.
       `,
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-    logger.info(`Password reset email sent to ${to}`);
+    if (error) {
+      logger.error(`Failed to send password reset email: ${error.message}`);
+      return false;
+    }
+
+    logger.info(`Password reset email sent to ${to}, id: ${data?.id}`);
     return true;
   } catch (error) {
     const err = error as Error;
     logger.error(`Failed to send password reset email: ${err.message}`);
-    logger.error(`Full error: ${JSON.stringify(error, Object.getOwnPropertyNames(err))}`);
     return false;
   }
 };
