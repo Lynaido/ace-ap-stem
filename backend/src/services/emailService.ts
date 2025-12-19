@@ -3,21 +3,43 @@ import config from '../config/environment';
 import logger from '../config/logger';
 
 // Initialize Nodemailer transporter
-const transporter = nodemailer.createTransport({
-  host: config.smtpHost,
-  port: config.smtpPort,
-  secure: config.smtpSecure,
-  auth: {
-    user: config.smtpUser,
-    pass: config.smtpPassword,
-  },
-});
+// Use Gmail service if host is gmail, otherwise use custom SMTP
+const isGmail = config.smtpHost.includes('gmail');
+
+const transporterConfig = isGmail
+  ? {
+      service: 'gmail',
+      auth: {
+        user: config.smtpUser,
+        pass: config.smtpPassword,
+      },
+    }
+  : {
+      host: config.smtpHost,
+      port: config.smtpPort,
+      secure: config.smtpSecure,
+      auth: {
+        user: config.smtpUser,
+        pass: config.smtpPassword,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    };
+
+const transporter = nodemailer.createTransport(transporterConfig);
 
 // Verify transporter on startup (only if credentials are configured)
 if (config.smtpUser && config.smtpPassword) {
   transporter.verify((error: Error | null) => {
     if (error) {
       logger.warn('Email service configuration error:', error.message);
+      logger.warn('SMTP Config:', {
+        host: config.smtpHost,
+        port: config.smtpPort,
+        user: config.smtpUser ? '***configured***' : 'missing',
+        isGmail
+      });
     } else {
       logger.info('Email service is ready');
     }
