@@ -4,7 +4,8 @@
   "description": "Ace AP STEM - Full Stack Application",
   "private": true,
   "scripts": {
-    "build": "npm run build:frontend && npm run build:backend",
+    "postinstall": "npm --prefix frontend install",
+    "build": "npm run build:frontend",
     "build:frontend": "npm --prefix frontend run build",
     "build:backend": "npm --prefix backend run build",
     "dev": "npm run build && npx npm-run-all --parallel dev:frontend dev:backend",
