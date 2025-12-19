@@ -379,14 +379,16 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
       // Generate reset link
       const resetLink = `${config.frontendUrl}/reset-password?token=${token}`;
 
-      // Send email (non-blocking, don't wait for result to respond)
-      sendPasswordResetEmail({
+      // Send email and log result
+      const emailSent = await sendPasswordResetEmail({
         to: user.email,
         userName: user.name || undefined,
         resetLink,
-      }).catch((err) => {
-        logger.error('Failed to send password reset email:', err);
       });
+
+      if (!emailSent) {
+        logger.error(`Password reset email failed to send to ${user.email}`);
+      }
 
       // Log event
       await prisma.event.create({

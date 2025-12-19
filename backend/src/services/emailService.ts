@@ -28,8 +28,11 @@ export const sendPasswordResetEmail = async ({
   }
 
   try {
+    const fromEmail = `${config.smtpFromName} <${config.resendFromEmail}>`;
+    logger.info(`Sending password reset email to ${to} from ${fromEmail}`);
+
     const { data, error } = await resend.emails.send({
-      from: `${config.smtpFromName} <${config.resendFromEmail}>`,
+      from: fromEmail,
       to: [to],
       subject: 'Reset Your AAS Password',
       html: `
@@ -78,7 +81,7 @@ If you didn't request this password reset, you can safely ignore this email.
     });
 
     if (error) {
-      logger.error(`Failed to send password reset email: ${error.message}`);
+      logger.error(`Resend API error: ${error.name} - ${error.message}`, { error });
       return false;
     }
 

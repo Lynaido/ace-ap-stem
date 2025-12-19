@@ -138,7 +138,7 @@ const ResetPasswordPage = () => {
               <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
                 Redirecting you to sign in...
               </p>
-              <Link to="/sign-in" className="btn-signin" style={{ textAlign: 'center', display: 'block' }}>
+              <Link to="/sign-in" className="btn-signin" style={{ textAlign: 'center', display: 'block', width: '100%', boxSizing: 'border-box' }}>
                 Sign In Now
               </Link>
             </div>
