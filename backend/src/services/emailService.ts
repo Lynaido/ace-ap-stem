@@ -33,13 +33,9 @@ const transporter = nodemailer.createTransport(transporterConfig);
 if (config.smtpUser && config.smtpPassword) {
   transporter.verify((error: Error | null) => {
     if (error) {
-      logger.warn('Email service configuration error:', error.message);
-      logger.warn('SMTP Config:', {
-        host: config.smtpHost,
-        port: config.smtpPort,
-        user: config.smtpUser ? '***configured***' : 'missing',
-        isGmail
-      });
+      logger.warn(`Email service configuration error: ${error.message}`);
+      logger.warn(`SMTP Config: host=${config.smtpHost}, port=${config.smtpPort}, user=${config.smtpUser}, isGmail=${isGmail}`);
+      logger.warn(`Full error: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
     } else {
       logger.info('Email service is ready');
     }
@@ -113,7 +109,9 @@ If you didn't request this password reset, you can safely ignore this email.
     logger.info(`Password reset email sent to ${to}`);
     return true;
   } catch (error) {
-    logger.error('Failed to send password reset email:', error);
+    const err = error as Error;
+    logger.error(`Failed to send password reset email: ${err.message}`);
+    logger.error(`Full error: ${JSON.stringify(error, Object.getOwnPropertyNames(err))}`);
     return false;
   }
 };
