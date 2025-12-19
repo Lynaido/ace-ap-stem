@@ -4,7 +4,7 @@
   "description": "Ace AP STEM Backend API Server",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc",
+    "build": "prisma generate && tsc",
     "start": "cross-env NODE_ENV=production node dist/server.js",
     "start:prod": "cross-env NODE_ENV=production node dist/server.js",
     "dev": "cross-env NODE_ENV=development ts-node-dev --respawn --transpile-only src/server.ts",

@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
 
 // Verify transporter on startup (only if credentials are configured)
 if (config.smtpUser && config.smtpPassword) {
-  transporter.verify((error) => {
+  transporter.verify((error: Error | null) => {
     if (error) {
       logger.warn('Email service configuration error:', error.message);
     } else {
