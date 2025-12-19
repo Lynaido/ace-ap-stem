@@ -72,7 +72,7 @@ const ForgotPasswordPage = () => {
             <p>We've sent a password reset link to <strong>{email}</strong></p>
           </div>
 
-          <div className="signin-card">
+          <div className="signin-card" style={{ minHeight: 'auto' }}>
             <div style={{ textAlign: 'center', padding: '1rem 0' }}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -98,19 +98,19 @@ const ForgotPasswordPage = () => {
                   setEmail('');
                 }}
                 className="btn-signup"
-                style={{ marginBottom: '1rem' }}
+                style={{ marginBottom: '1rem', width: '100%' }}
               >
                 Send Another Link
               </button>
-            </div>
 
-            <div className="signin-divider">
-              <span>Or</span>
-            </div>
+              <div className="signin-divider">
+                <span>Or</span>
+              </div>
 
-            <Link to="/sign-in" className="btn-signin" style={{ textAlign: 'center', display: 'block' }}>
-              Back to Sign In
-            </Link>
+              <Link to="/sign-in" className="btn-signin" style={{ textAlign: 'center', display: 'block', width: '100%', boxSizing: 'border-box' }}>
+                Back to Sign In
+              </Link>
+            </div>
           </div>
         </div>
       </section>
