@@ -23,6 +23,16 @@ interface EnvironmentConfig {
   maxFileSize: number;
   uploadPath: string;
   logLevel: string;
+  // SMTP Email Configuration
+  smtpHost: string;
+  smtpPort: number;
+  smtpSecure: boolean;
+  smtpUser: string;
+  smtpPassword: string;
+  smtpFromName: string;
+  smtpFromEmail: string;
+  // Password Reset Configuration
+  passwordResetTokenExpiresHours: number;
 }
 
 const validateEnvironmentVariable = (key: string, value: string | undefined): string => {
@@ -56,6 +66,16 @@ export const config: EnvironmentConfig = {
   maxFileSize: parseInt(process.env.MAX_FILE_SIZE || '10485760', 10), // 10MB default
   uploadPath: process.env.UPLOAD_PATH || 'uploads/',
   logLevel: process.env.LOG_LEVEL || 'info',
+  // SMTP Email Configuration
+  smtpHost: process.env.SMTP_HOST || 'smtp.gmail.com',
+  smtpPort: parseInt(process.env.SMTP_PORT || '587', 10),
+  smtpSecure: process.env.SMTP_SECURE === 'true',
+  smtpUser: process.env.SMTP_USER || '',
+  smtpPassword: process.env.SMTP_PASSWORD || '',
+  smtpFromName: process.env.SMTP_FROM_NAME || 'AAS Support',
+  smtpFromEmail: process.env.SMTP_FROM_EMAIL || 'noreply@aas-app.com',
+  // Password Reset Configuration
+  passwordResetTokenExpiresHours: parseInt(process.env.PASSWORD_RESET_TOKEN_EXPIRES_HOURS || '1', 10),
 };
 
 export default config;

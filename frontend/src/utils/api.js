@@ -170,6 +170,40 @@ export const authAPI = {
   register: (userData) => apiClient.register(userData),
   logout: () => apiClient.logout(),
   getCurrentUser: () => apiClient.getCurrentUser(),
+  forgotPassword: async (email) => {
+    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to send password reset email');
+    }
+
+    return data;
+  },
+  resetPassword: async (token, password) => {
+    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to reset password');
+    }
+
+    return data;
+  },
 };
 
 export const problemAPI = {

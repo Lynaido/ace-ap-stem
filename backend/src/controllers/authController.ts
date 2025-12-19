@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt, { SignOptions } from 'jsonwebtoken';
+import crypto from 'crypto';
 import prisma from '../lib/prisma';
 import { z } from 'zod';
 import logger from '../config/logger';
 import config from '../config/environment';
+import { sendPasswordResetEmail } from '../services/emailService';
 
 // Extend Request type to include user
 declare global {
@@ -32,6 +34,15 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email format'),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
 // JWT configuration
 const JWT_SECRET = config.jwtSecret;
 const JWT_REFRESH_SECRET = config.jwtRefreshSecret;
@@ -44,6 +55,16 @@ const generateTokens = (userId: string) => {
   const refreshToken = jwt.sign({ userId }, JWT_REFRESH_SECRET, { expiresIn: JWT_REFRESH_EXPIRES_IN } as SignOptions);
 
   return { accessToken, refreshToken };
+};
+
+// Generate secure random token for password reset
+const generateSecureToken = (): string => {
+  return crypto.randomBytes(32).toString('hex');
+};
+
+// Hash token for secure storage
+const hashToken = (token: string): string => {
+  return crypto.createHash('sha256').update(token).digest('hex');
 };
 
 // Register user
@@ -318,6 +339,141 @@ export const me = async (req: Request, res: Response, next: NextFunction) => {
     return; // Ensure all code paths return a value
   } catch (error) {
     logger.error('Get user error:', error);
+    return next(error);
+  }
+};
+
+// Forgot Password - Request password reset
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { email } = forgotPasswordSchema.parse(req.body);
+
+    // Always return success to prevent email enumeration
+    // Even if user doesn't exist, we return the same response
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, name: true, email: true, password: true },
+    });
+
+    // Only proceed if user exists AND has a password (not OAuth-only user)
+    if (user && user.password) {
+      // Delete any existing tokens for this user
+      await prisma.passwordResetToken.deleteMany({
+        where: { userId: user.id },
+      });
+
+      // Generate new token
+      const token = generateSecureToken();
+      const tokenHash = hashToken(token);
+      const expiresAt = new Date(Date.now() + config.passwordResetTokenExpiresHours * 60 * 60 * 1000);
+
+      // Store hashed token
+      await prisma.passwordResetToken.create({
+        data: {
+          userId: user.id,
+          tokenHash,
+          expiresAt,
+        },
+      });
+
+      // Generate reset link
+      const resetLink = `${config.frontendUrl}/reset-password?token=${token}`;
+
+      // Send email (non-blocking, don't wait for result to respond)
+      sendPasswordResetEmail({
+        to: user.email,
+        userName: user.name || undefined,
+        resetLink,
+      }).catch((err) => {
+        logger.error('Failed to send password reset email:', err);
+      });
+
+      // Log event
+      await prisma.event.create({
+        data: {
+          type: 'PASSWORD_RESET_REQUESTED',
+          userId: user.id,
+          data: { email: user.email },
+        },
+      });
+    }
+
+    // Same response regardless of whether user exists (security)
+    res.json({
+      message: 'If an account with that email exists, a password reset link has been sent.',
+    });
+    return;
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: error.errors });
+    }
+    logger.error('Forgot password error:', error);
+    return next(error);
+  }
+};
+
+// Reset Password - Set new password with token
+export const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { token, password } = resetPasswordSchema.parse(req.body);
+
+    // Hash the provided token to compare with stored hash
+    const tokenHash = hashToken(token);
+
+    // Find valid token
+    const resetToken = await prisma.passwordResetToken.findFirst({
+      where: {
+        tokenHash,
+        expiresAt: { gt: new Date() },
+        usedAt: null, // Token hasn't been used
+      },
+      include: { user: true },
+    });
+
+    if (!resetToken) {
+      return res.status(400).json({
+        error: 'Invalid or expired reset token. Please request a new password reset.',
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Update user password and mark token as used in a transaction
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: resetToken.userId },
+        data: { password: hashedPassword },
+      }),
+      prisma.passwordResetToken.update({
+        where: { id: resetToken.id },
+        data: { usedAt: new Date() },
+      }),
+      // Invalidate all existing sessions for security
+      prisma.session.deleteMany({
+        where: { userId: resetToken.userId },
+      }),
+      // Log event
+      prisma.event.create({
+        data: {
+          type: 'PASSWORD_RESET_COMPLETED',
+          userId: resetToken.userId,
+          data: {},
+        },
+      }),
+    ]);
+
+    logger.info(`Password reset completed for user ${resetToken.userId}`);
+
+    res.json({
+      message: 'Password has been reset successfully. Please sign in with your new password.',
+    });
+    return;
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: error.errors });
+    }
+    logger.error('Reset password error:', error);
     return next(error);
   }
 };

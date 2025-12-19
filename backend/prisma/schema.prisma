@@ -23,13 +23,14 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  sessions      Session[]
-  problems      Problem[]
-  notes         Note[]
-  folders       Folder[]
-  studySessions StudySession[]
-  chatThreads   ChatThread[]
-  savedItems    SavedItem[]
+  sessions            Session[]
+  problems            Problem[]
+  notes               Note[]
+  folders             Folder[]
+  studySessions       StudySession[]
+  chatThreads         ChatThread[]
+  savedItems          SavedItem[]
+  passwordResetTokens PasswordResetToken[]
 
   @@map("users")
 }
@@ -45,6 +46,21 @@ model Session {
 
   @@index([userId])
   @@map("sessions")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  usedAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
 }
 
 model Problem {
@@ -340,6 +356,8 @@ enum EventType {
   AUTH_LOGIN
   AUTH_LOGOUT
   AUTH_REGISTER
+  PASSWORD_RESET_REQUESTED
+  PASSWORD_RESET_COMPLETED
   PROBLEM_CREATED
   PROBLEM_SOLVED
   CONTENT_SAVED

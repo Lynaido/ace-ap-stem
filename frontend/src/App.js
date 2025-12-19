@@ -15,6 +15,8 @@ import AboutUsPage from './pages/AboutUsPage';
 import ConceptNotesPage from './pages/ConceptNotesPage';
 import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import ContactPage from './pages/ContactPage';
 import FAQPage from './pages/FAQPage';
 import PrivacyPage from './pages/PrivacyPage';
@@ -51,6 +53,8 @@ function App() {
             <Route path="/about-us" element={<AboutUsPage />} />
             <Route path="/sign-in" element={<SignInPage />} />
             <Route path="/sign-up" element={<SignUpPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
