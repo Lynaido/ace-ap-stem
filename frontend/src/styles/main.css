@@ -366,6 +366,7 @@ a:hover {
   transition: all 0.2s ease;
   cursor: pointer;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .btn-signin:hover:not(:disabled) {
