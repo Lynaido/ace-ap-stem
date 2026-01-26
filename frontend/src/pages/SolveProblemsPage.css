@@ -957,3 +957,497 @@
     align-items: flex-start;
   }
 }
+
+/* ===============================================
+   FORCE LIGHT MODE - Override dark mode styles
+   This ensures the solve-problems page always
+   displays in light mode regardless of system preference
+   =============================================== */
+@media (prefers-color-scheme: dark) {
+  /* Page background */
+  .solve-problems-page {
+    background: linear-gradient(180deg, #f5f7fb 0%, #f8f9fb 45%, #ffffff 100%);
+  }
+
+  /* Card overrides */
+  .solve-problems-page .card-primitive,
+  .solve-problems-page .upload-card,
+  .solve-problems-page .chat-panel-elevated {
+    background-color: #ffffff;
+    border-color: rgba(15, 23, 42, 0.06);
+    color: #1f2937;
+  }
+
+  .solve-problems-page .card-title {
+    color: #0f172a;
+  }
+
+  /* Solution display overrides */
+  .solve-problems-page .solution-display,
+  .solve-problems-page .concept-notes-display,
+  .solve-problems-page .hints-display {
+    background-color: #ffffff;
+    color: #1f2937;
+  }
+
+  .solve-problems-page .solution-header h2,
+  .solve-problems-page .concept-notes-header h2,
+  .solve-problems-page .step-title,
+  .solve-problems-page .note-title {
+    color: #0f172a;
+  }
+
+  .solve-problems-page .solution-header p,
+  .solve-problems-page .concept-notes-header p,
+  .solve-problems-page .step-main-content,
+  .solve-problems-page .note-description {
+    color: #1f2937;
+  }
+
+  .solve-problems-page .step-explanation,
+  .solve-problems-page .step-navigation {
+    background-color: #f9fafb;
+    color: #4b5563;
+  }
+
+  .solve-problems-page .step-explanation strong {
+    color: #1f2937;
+  }
+
+  .solve-problems-page .step-counter {
+    color: #1f2937;
+  }
+
+  .solve-problems-page .confidence-label {
+    color: #6b7280;
+  }
+
+  .solve-problems-page .confidence-value {
+    color: #1f2937;
+  }
+
+  .solve-problems-page .confidence-bar {
+    background-color: #e5e7eb;
+  }
+
+  /* Solution steps */
+  .solve-problems-page .solution-step {
+    background-color: #ffffff;
+    border-color: #e5e7eb;
+  }
+
+  /* Final answer */
+  .solve-problems-page .final-answer {
+    background-color: rgba(16, 185, 129, 0.08);
+    border-color: #10b981;
+  }
+
+  .solve-problems-page .final-answer-content,
+  .solve-problems-page .final-answer-content p {
+    color: #1f2937;
+  }
+
+  /* Concept notes */
+  .solve-problems-page .concept-note {
+    background-color: #ffffff;
+    border-color: #e5e7eb;
+  }
+
+  .solve-problems-page .note-details {
+    border-top-color: #e5e7eb;
+  }
+
+  .solve-problems-page .formula-display {
+    background-color: #f9fafb;
+    border-color: #e5e7eb;
+    color: #1f2937;
+  }
+
+  .solve-problems-page .topic-tag {
+    background-color: #f3f4f6;
+    color: #6b7280;
+    border-color: #e5e7eb;
+  }
+
+  /* Button overrides */
+  .solve-problems-page .btn-outline {
+    color: #1f2937;
+    border-color: #d1d5db;
+    background-color: #ffffff;
+  }
+
+  .solve-problems-page .btn-outline:hover:not(.btn-disabled) {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+    color: #111827;
+  }
+
+  .solve-problems-page .btn-ghost {
+    color: #1f2937;
+    background-color: transparent;
+  }
+
+  .solve-problems-page .btn-ghost:hover:not(.btn-disabled) {
+    background-color: #f3f4f6;
+    color: #111827;
+  }
+
+  /* Tabs overrides */
+  .solve-problems-page .tabs-default {
+    border-bottom-color: #e5e7eb;
+  }
+
+  .solve-problems-page .tabs-pills {
+    background-color: #f3f4f6;
+  }
+
+  .solve-problems-page .tab-btn {
+    color: #6b7280;
+  }
+
+  .solve-problems-page .tab-btn:hover:not(.tab-active) {
+    color: #111827;
+    background-color: rgba(255, 255, 255, 0.7);
+  }
+
+  .solve-problems-page .tab-btn.tab-active {
+    color: #4f46e5;
+    background-color: #ffffff;
+  }
+
+  /* AI content tabs */
+  .solve-problems-page .ai-content-tabs {
+    background-color: #f3f4f6;
+    border-color: #e5e7eb;
+  }
+
+  .solve-problems-page .ai-tab {
+    color: #6b7280;
+  }
+
+  .solve-problems-page .ai-tab:hover {
+    color: #111827;
+    background-color: rgba(255, 255, 255, 0.7);
+  }
+
+  .solve-problems-page .ai-tab.active {
+    background-color: #ffffff;
+    color: #4f46e5;
+  }
+
+  /* Upload tabs */
+  .solve-problems-page .upload-tabs {
+    background-color: #f3f4f6;
+    border-color: #e5e7eb;
+  }
+
+  .solve-problems-page .tab-button {
+    color: #6b7280;
+  }
+
+  .solve-problems-page .tab-button:hover {
+    color: #111827;
+    background-color: rgba(255, 255, 255, 0.85);
+  }
+
+  .solve-problems-page .tab-button.active {
+    background-color: #ffffff;
+    color: #0f172a;
+  }
+
+  /* Form elements */
+  .solve-problems-page .styled-select {
+    background-color: #ffffff;
+    color: #1f2937;
+    border-color: #d1d5db;
+  }
+
+  .solve-problems-page .text-input {
+    background-color: #f9fafb;
+    color: #1f2937;
+    border-color: #d1d5db;
+  }
+
+  .solve-problems-page .text-input:focus {
+    background-color: #ffffff;
+    border-color: #f97316;
+  }
+
+  .solve-problems-page .text-input::placeholder {
+    color: #9ca3af;
+  }
+
+  /* Image drop area */
+  .solve-problems-page .image-drop-area {
+    background: linear-gradient(135deg, rgba(249, 250, 255, 0.92) 0%, #ffffff 100%);
+    border-color: #d0d7e6;
+  }
+
+  .solve-problems-page .drop-title {
+    color: #1f2937;
+  }
+
+  .solve-problems-page .drop-hint {
+    color: #6b7280;
+  }
+
+  /* Labels and text */
+  .solve-problems-page .field-label {
+    color: #1f2937;
+  }
+
+  .solve-problems-page .card-heading h1 {
+    color: #0f172a;
+  }
+
+  .solve-problems-page .card-subtitle {
+    color: #6b7280;
+  }
+
+  /* View pill and meta */
+  .solve-problems-page .view-pill {
+    background-color: rgba(79, 70, 229, 0.12);
+    color: #4338ca;
+  }
+
+  .solve-problems-page .solution-view-meta p {
+    color: #4b5563;
+  }
+
+  /* Loading panel */
+  .solve-problems-page .solution-loading-panel {
+    background: linear-gradient(135deg, rgba(224, 231, 255, 0.4), rgba(255, 255, 255, 0.9));
+    border-color: rgba(99, 102, 241, 0.15);
+  }
+
+  .solve-problems-page .loading-title {
+    color: #312e81;
+  }
+
+  .solve-problems-page .loading-message {
+    color: #4b5563;
+  }
+
+  /* Notes link */
+  .solve-problems-page .notes-link {
+    background: linear-gradient(135deg, #f3f4f6 0%, #ffffff 100%);
+    border-color: #e5e7eb;
+    color: #374151;
+  }
+
+  .solve-problems-page .notes-link:hover {
+    background-color: #ffffff;
+    color: #111827;
+    border-color: #d1d5db;
+  }
+
+  /* Concept callout */
+  .solve-problems-page .concept-callout {
+    background: linear-gradient(135deg, rgba(237, 233, 254, 0.65), rgba(219, 234, 254, 0.65));
+    border-color: rgba(124, 58, 237, 0.2);
+  }
+
+  .solve-problems-page .concept-callout-content h3 {
+    color: #111827;
+  }
+
+  .solve-problems-page .concept-callout-content p {
+    color: #4b5563;
+  }
+
+  /* Variant banner */
+  .solve-problems-page .variant-banner {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(251, 146, 60, 0.12) 100%);
+    border-color: rgba(249, 115, 22, 0.2);
+  }
+
+  .solve-problems-page .variant-banner-content strong {
+    color: #0f172a;
+  }
+
+  .solve-problems-page .variant-banner-content p {
+    color: rgba(15, 23, 42, 0.7);
+  }
+
+  /* Expand button in notes */
+  .solve-problems-page .expand-button {
+    color: #6b7280;
+  }
+
+  .solve-problems-page .expand-button:hover {
+    background-color: #f3f4f6;
+    color: #1f2937;
+  }
+
+  /* Section borders */
+  .solve-problems-page .solution-header,
+  .solve-problems-page .concept-notes-header,
+  .solve-problems-page .solution-actions,
+  .solve-problems-page .concept-notes-actions {
+    border-color: #e5e7eb;
+  }
+
+  /* Chat Panel overrides */
+  .solve-problems-page .chat-panel {
+    background: transparent;
+  }
+
+  .solve-problems-page .chat-header {
+    background: linear-gradient(180deg, rgba(249, 250, 255, 0.8) 0%, #ffffff 90%);
+    border-bottom-color: rgba(226, 232, 240, 0.8);
+  }
+
+  .solve-problems-page .chat-header h3 {
+    color: #0f172a;
+  }
+
+  .solve-problems-page .chat-subtitle {
+    color: #6b7280;
+  }
+
+  .solve-problems-page .chat-messages {
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.75) 0%, #ffffff 65%);
+  }
+
+  .solve-problems-page .message.ai .message-content {
+    background: #ffffff;
+    color: #1f2937;
+    border-color: rgba(226, 232, 240, 0.9);
+  }
+
+  .solve-problems-page .chat-input-area {
+    background: #ffffff;
+    border-top-color: rgba(226, 232, 240, 0.85);
+  }
+
+  .solve-problems-page .chat-input-shell {
+    background: linear-gradient(135deg, rgba(248, 250, 252, 0.95) 0%, #ffffff 100%);
+    border-color: rgba(203, 213, 225, 0.7);
+  }
+
+  .solve-problems-page .chat-input-shell .input-primitive {
+    background: transparent;
+    color: #1f2937;
+  }
+
+  .solve-problems-page .chat-input-shell .input-primitive::placeholder {
+    color: #94a3b8;
+  }
+
+  /* Input overrides (for any inputs on the page) */
+  .solve-problems-page .input-primitive {
+    background-color: #ffffff;
+    color: #1f2937;
+    border-color: #d1d5db;
+  }
+
+  .solve-problems-page .input-primitive::placeholder {
+    color: #9ca3af;
+  }
+
+  .solve-problems-page .input-primitive:focus {
+    background-color: #ffffff;
+    border-color: #f97316;
+  }
+
+  .solve-problems-page .input-label {
+    color: #374151;
+  }
+
+  /* Hints Display overrides */
+  .solve-problems-page .hints-display {
+    background-color: #ffffff;
+    color: #1f2937;
+  }
+
+  .solve-problems-page .hints-header h2 {
+    color: #0f172a;
+  }
+
+  .solve-problems-page .hints-header {
+    border-bottom-color: #e5e7eb;
+  }
+
+  .solve-problems-page .hints-counter {
+    color: #6b7280;
+  }
+
+  .solve-problems-page .hints-progress-bar {
+    background-color: #e5e7eb;
+  }
+
+  .solve-problems-page .hints-description {
+    background-color: rgba(59, 130, 246, 0.08);
+    border-left-color: #3b82f6;
+  }
+
+  .solve-problems-page .hints-description p {
+    color: #1f2937;
+  }
+
+  .solve-problems-page .hint-item {
+    background-color: #ffffff;
+    border-color: #e5e7eb;
+  }
+
+  .solve-problems-page .hint-type {
+    color: #3b82f6;
+  }
+
+  .solve-problems-page .hint-text {
+    color: #1f2937;
+  }
+
+  .solve-problems-page .hint-explanation {
+    background-color: #f9fafb;
+    color: #6b7280;
+    border-left-color: #3b82f6;
+  }
+
+  .solve-problems-page .hint-explanation strong {
+    color: #1f2937;
+  }
+
+  .solve-problems-page .final-answer-section {
+    background-color: rgba(16, 185, 129, 0.08);
+    border-color: #10b981;
+  }
+
+  .solve-problems-page .final-answer-section .final-answer-header h3 {
+    color: #10b981;
+  }
+
+  .solve-problems-page .final-answer-section .final-answer-content p {
+    color: #1f2937;
+  }
+
+  .solve-problems-page .answer-explanation {
+    background-color: rgba(255, 255, 255, 0.7);
+    color: #6b7280;
+    border-left-color: #10b981;
+  }
+
+  .solve-problems-page .answer-explanation strong {
+    color: #1f2937;
+  }
+
+  .solve-problems-page .hints-tips {
+    background-color: #f9fafb;
+  }
+
+  .solve-problems-page .tips-header h4 {
+    color: #1f2937;
+  }
+
+  .solve-problems-page .tips-list li {
+    color: #6b7280;
+  }
+
+  .solve-problems-page .hints-actions {
+    border-top-color: #e5e7eb;
+  }
+
+  .solve-problems-page .no-hints-message {
+    color: #6b7280;
+  }
+}
