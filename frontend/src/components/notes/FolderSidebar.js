@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import './FolderSidebar.css';
 
 const FolderSidebar = ({ folders = [], activeFolderId, onSelect, onDeleteFolder, onItemDrop, className = '' }) => {

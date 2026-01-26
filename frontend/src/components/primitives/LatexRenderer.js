@@ -19,7 +19,7 @@ const LatexRenderer = ({ content }) => {
         }
 
         // It's a text part, so we need to check for inline math
-        const inlineParts = part.split(/(\$[^\$]+?\$)/);
+        const inlineParts = part.split(/(\$[^$]+?\$)/);
 
         return (
           <React.Fragment key={index}>

@@ -56,7 +56,7 @@ const StudyModePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const incomingProblem = location.state?.problem;
-  const { getSavedItems, createStudySession, getStudySessions } = useAppContext();
+  const { getSavedItems, createStudySession } = useAppContext();
 
   const [savedItems, setSavedItems] = useState([]);
   const [loading, setLoading] = useState(true);

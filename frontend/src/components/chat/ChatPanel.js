@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Button from '../primitives/Button';
 import Input from '../primitives/Input';
 import { chatAPI } from '../../utils/api';
@@ -10,8 +10,7 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
     user,
     activeThreadId,
     activeThreadMessages,
-    setActiveThread,
-    clearActiveThread
+    setActiveThread
   } = useAppContext();
 
   // Use global state if available, otherwise use props or local state
@@ -131,7 +130,7 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
         pendingUserMessageIdRef.current = null;
       };
     },
-    [teardownStream, user, setMessages, setActiveThread]
+    [teardownStream, user, setMessages]
   );
 
   const loadThread = useCallback(async () => {
@@ -169,7 +168,7 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
     } catch (error) {
       console.error('Error loading thread:', error);
     }
-  }, [currentThreadId, user, startStream]);
+  }, [currentThreadId, user, startStream, setActiveThread]);
 
   // Load thread messages on mount, when thread changes, or when reload is triggered
   useEffect(() => {
@@ -182,6 +181,7 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
     if (currentThreadId && messages.length > 0) {
       setActiveThread(currentThreadId, messages);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentThreadId, setActiveThread]); // Removed 'messages' to prevent infinite loop
 
   // Clean up SSE on unmount

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './VideoSlideshow.css';
 
 const VideoSlideshow = ({ videos, isPlaying, onIsPlayingChange, onSlideChange }) => {
@@ -6,10 +6,10 @@ const VideoSlideshow = ({ videos, isPlaying, onIsPlayingChange, onSlideChange })
   const videoRefs = useRef([]);
   const autoPlayTimerRef = useRef(null);
 
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % videos.length);
     onIsPlayingChange(false);
-  };
+  }, [videos.length, onIsPlayingChange]);
 
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + videos.length) % videos.length);
@@ -51,7 +51,7 @@ const VideoSlideshow = ({ videos, isPlaying, onIsPlayingChange, onSlideChange })
         clearInterval(autoPlayTimerRef.current);
       }
     };
-  }, [currentSlide, isPlaying, nextSlide]);
+  }, [isPlaying, nextSlide]);
 
   // Pause other videos when switching slides
   useEffect(() => {

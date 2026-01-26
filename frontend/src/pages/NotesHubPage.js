@@ -15,7 +15,6 @@ const NotesHubPage = () => {
   const {
     getSavedItems,
     getFolders,
-    saveItem,
     createFolder,
     deleteSavedItem,
     deleteFolder

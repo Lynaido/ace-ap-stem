@@ -1,24 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Button from '../primitives/Button';
 import SolutionDisplay from '../problem-solving/SolutionDisplay';
-import ConceptNotesDisplay from '../problem-solving/ConceptNotesDisplay';
-import HintsDisplay from '../problem-solving/HintsDisplay';
 import './ViewSavedItemModal.css';
 
-const ViewSavedItemModal = ({ 
-  isOpen, 
-  onClose, 
+const ViewSavedItemModal = ({
+  isOpen,
+  onClose,
   savedItem,
   onDelete
 }) => {
-  const [viewMode, setViewMode] = useState('content');
-
-  useEffect(() => {
-    if (isOpen) {
-      setViewMode('content');
-    }
-  }, [isOpen]);
-
   if (!isOpen || !savedItem) return null;
 
   const renderContent = () => {

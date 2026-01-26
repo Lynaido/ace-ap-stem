@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { FaBolt, FaEye, FaRegLightbulb } from 'react-icons/fa';
 import Button from '../components/primitives/Button';
 import Card from '../components/primitives/Card';
@@ -22,10 +22,8 @@ const LoadingPanel = ({ title, message }) => (
 
 const SolveProblemsPage = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const {
     currentProblem,
-    loading,
     createProblem,
     uploadFile,
     problemSolution,
@@ -54,10 +52,10 @@ const SolveProblemsPage = () => {
   const [uploadedImage, setUploadedImage] = useState(null);
   const [uploadedAsset, setUploadedAsset] = useState(null);
   const [inputMode, setInputMode] = useState('upload');
-  const [isSolving, setIsSolving] = useState(false);
-  const [isGeneratingHints, setIsGeneratingHints] = useState(false);
-  const [isGeneratingConceptNotes, setIsGeneratingConceptNotes] = useState(false);
-  const [activeView, setActiveView] = useState(null);
+  const [, setIsSolving] = useState(false);
+  const [, setIsGeneratingHints] = useState(false);
+  const [, setIsGeneratingConceptNotes] = useState(false);
+  const [, setActiveView] = useState(null);
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [loadedVariant, setLoadedVariant] = useState(null);
   const [folders, setFolders] = useState([]);
@@ -114,7 +112,7 @@ const SolveProblemsPage = () => {
       // Clear the state to prevent re-filling on subsequent renders
       window.history.replaceState({}, document.title);
     }
-  }, [location.state, loadedVariant]);
+  }, [location.state, loadedVariant, setProblemViewVisible, setActiveView]);
 
   useEffect(() => {
     if (isProblemViewVisible) {
@@ -135,101 +133,6 @@ const SolveProblemsPage = () => {
     { value: 'ap_calculus_ab', label: 'AP Calculus AB' },
     { value: 'ap_statistics', label: 'AP Statistics' }
   ];
-
-  const RESPONSE_DELAY = 450;
-
-  const createMockSolution = () => ({
-    steps: [
-      {
-        id: 1,
-        title: 'Understand the Problem',
-        content: 'Carefully read the prompt and restate the question in your own words.',
-        explanation: 'This ensures you know exactly what is being asked before diving into calculations.'
-      },
-      {
-        id: 2,
-        title: 'Identify Key Information',
-        content: 'Collect the givens, unknowns, and constraints that frame the problem.',
-        explanation: 'Setting up a clear list of knowns keeps later algebra focused on the goal.'
-      },
-      {
-        id: 3,
-        title: 'Plan Your Approach',
-        content: 'Match the situation to the governing concept or formula that fits best.',
-        explanation: 'A deliberate plan prevents guesswork and keeps each step purposeful.'
-      },
-      {
-        id: 4,
-        title: 'Execute Systematically',
-        content: 'Apply your plan symbolically first, then substitute values and compute.',
-        explanation: 'Working symbolically exposes cancellations and guards against algebra slips.'
-      },
-      {
-        id: 5,
-        title: 'Check and Reflect',
-        content: 'Verify units, directionality, and the realism of the result.',
-        explanation: 'A quick sense check confirms the answer aligns with the scenario.'
-      },
-    ],
-    finalAnswer: 'The structured solution confirms the result and the reasoning behind it.',
-    confidence: 0.95,
-  });
-
-  const createMockHints = (subjectLabel) => ([
-    {
-      type: 'Problem Scan',
-      text: 'Highlight the quantities and conditions the prompt gives you.',
-      explanation: 'Capturing the knowns and unknowns keeps the work focused on the target of the question.'
-    },
-    {
-      type: 'Strategy Hint',
-      text: `Decide which core concept from ${subjectLabel} should guide your approach.`,
-      explanation: 'Choose the governing law or definition first so every algebraic step has purpose.'
-    },
-    {
-      type: 'Step Hint',
-      text: 'Write the key relationship symbolically before substituting numbers.',
-      explanation: 'Staying symbolic exposes cancellations and avoids committing arithmetic too early.'
-    },
-    {
-      isAnswer: true,
-      text: 'Once finished, verify that your result matches the expected units and scenario.',
-      explanation: 'Consistency checks are the quickest way to catch slips before finalizing an answer.'
-    }
-  ]);
-
-  const createMockConceptNotes = (subjectLabel) => ([
-    {
-      id: 'concept-1',
-      type: 'concept',
-      title: 'Essential Theories',
-      description: `Summarize the fundamental ideas from ${subjectLabel} that govern this question.`,
-      details: 'List the core definitions or conservation laws that should hold so you can check each step against them.',
-      relatedTopics: ['Problem decomposition', 'Checking assumptions']
-    },
-    {
-      id: 'concept-2',
-      type: 'formula',
-      title: 'Anchor Relationships',
-      description: 'Record the symbolic relationships you will rely on before inserting values.',
-      formula: 'Focus on the algebraic structure first, then plug in numbers after simplifying.',
-      applications: ['Sanity-check each term', 'Track units explicitly']
-    },
-    {
-      id: 'concept-3',
-      type: 'example',
-      title: 'Worked Analogy',
-      description: `Compare with a simpler ${subjectLabel} example that shares the same core structure.`,
-      details: 'Map each element of the current prompt to the simpler example to avoid misapplying the principle.'
-    },
-    {
-      id: 'concept-4',
-      type: 'tip',
-      title: 'Learning Tip',
-      description: 'After solving, explain the story of the solution aloud to reinforce the reasoning chain.',
-      applications: ['Summarize the why behind each major step', 'Note any approximations you used']
-    }
-  ]);
 
   const chatInitialMessages = [
     {
@@ -254,7 +157,6 @@ const SolveProblemsPage = () => {
   };
 
   const trimmedProblem = problemText.trim();
-  const subjectLabel = subjects.find((subject) => subject.value === selectedSubject)?.label || 'this AP subject';
   // Form is complete if we have a subject AND (either text OR an uploaded image)
   const formIncomplete = !selectedSubject || (!trimmedProblem && !uploadedAsset);
   const isBusy = isUploading || isProblemLoading;
@@ -695,7 +597,6 @@ const SolveProblemsPage = () => {
                         e.preventDefault();
                         e.stopPropagation();
                         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                          const files = Array.from(e.dataTransfer.files);
                           // Create a synthetic event object for the file input
                           const syntheticEvent = {
                             target: { files: e.dataTransfer.files }

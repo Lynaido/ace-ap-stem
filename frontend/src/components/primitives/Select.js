@@ -190,6 +190,7 @@ const Select = ({
           role="combobox"
           aria-expanded={isOpen}
           aria-haspopup="listbox"
+          aria-controls={`${selectId}-listbox`}
           aria-labelledby={label ? `${selectId}-label` : undefined}
           aria-describedby={error ? `${selectId}-error` : undefined}
           aria-invalid={error ? 'true' : 'false'}
@@ -233,9 +234,10 @@ const Select = ({
               </div>
             )}
             
-            <ul 
-              className="select-options" 
+            <ul
+              className="select-options"
               role="listbox"
+              id={`${selectId}-listbox`}
               aria-multiselectable={multiple}
               ref={listRef}
             >

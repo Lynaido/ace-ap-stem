@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Card from '../components/primitives/Card';
 import Select from '../components/primitives/Select';
 import Button from '../components/primitives/Button';
