@@ -193,6 +193,9 @@
 }
 
 .saved-item-card__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   border-radius: 20px;
   background: rgba(249, 115, 22, 0.1);
@@ -205,6 +208,9 @@
   white-space: nowrap;
   min-width: 70px;
   text-align: center;
+  text-decoration: none;
+  line-height: 1.25;
+  box-sizing: border-box;
 }
 
 .saved-item-card__action:hover {
@@ -216,10 +222,6 @@
 .study-action {
   background: rgba(59, 130, 246, 0.1);
   color: #1d4ed8;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .study-action:hover {

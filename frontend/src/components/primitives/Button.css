@@ -184,14 +184,45 @@
     padding: 0.875rem 1.75rem;
     font-size: 1rem;
   }
-  
+
   .btn-medium {
     padding: 0.625rem 1.25rem;
     font-size: 0.9375rem;
   }
-  
+
   .btn-small {
     padding: 0.4375rem 0.875rem;
     font-size: 0.8125rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .btn-outline {
+    color: var(--color-off-white);
+    border-color: var(--color-gray-500);
+  }
+
+  .btn-outline:hover:not(.btn-disabled) {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--color-off-white);
+    color: var(--color-off-white);
+  }
+
+  .btn-outline:active:not(.btn-disabled) {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .btn-ghost {
+    color: var(--color-off-white);
+  }
+
+  .btn-ghost:hover:not(.btn-disabled) {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-off-white);
+  }
+
+  .btn-ghost:active:not(.btn-disabled) {
+    background-color: rgba(255, 255, 255, 0.15);
   }
 }
