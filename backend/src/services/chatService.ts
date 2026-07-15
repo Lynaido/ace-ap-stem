@@ -22,6 +22,134 @@ interface AddMessageData {
   metadata?: any;
 }
 
+const stringifyContextValue = (value: unknown): string => {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
+  return JSON.stringify(value, null, 2);
+};
+
+const buildProblemSystemPrompt = async (userId: string, problemId: string) => {
+  const problem = await prisma.problem.findFirst({
+    where: { id: problemId, userId },
+    include: {
+      solutions: { orderBy: { createdAt: 'desc' } },
+      hints: { orderBy: { createdAt: 'desc' } },
+      conceptNotes: { orderBy: { createdAt: 'desc' } },
+      assets: true,
+    },
+  });
+
+  if (!problem) return null;
+
+  let systemPrompt = `This conversation is about the following AP STEM problem:
+Title: ${problem.title}
+Subject: ${problem.subject}
+Difficulty: ${problem.difficulty}
+Description: ${problem.description}
+`;
+
+  if (problem.imageUrl || problem.assets.length > 0) {
+    systemPrompt += `\n--- ATTACHED PROBLEM ASSETS ---\n`;
+    if (problem.imageUrl) {
+      systemPrompt += `Problem image URL: ${problem.imageUrl}\n`;
+    }
+    problem.assets.forEach((asset, idx) => {
+      systemPrompt += `Asset #${idx + 1}: ${asset.fileName} (${asset.mimeType}) ${asset.externalUrl || asset.storageLocation}\n`;
+    });
+  }
+
+  if (problem.solutions.length > 0) {
+    systemPrompt += `\n--- GENERATED SOLUTIONS CURRENTLY AVAILABLE ---\n`;
+    problem.solutions.forEach((sol, idx) => {
+      systemPrompt += `Solution #${idx + 1}:\n${sol.content}\n`;
+      const steps = stringifyContextValue(sol.steps);
+      if (steps) systemPrompt += `Steps:\n${steps}\n`;
+      const finalAnswer = stringifyContextValue(sol.finalAnswer);
+      if (finalAnswer) systemPrompt += `Final answer:\n${finalAnswer}\n`;
+      if (sol.sources?.length) {
+        systemPrompt += `Sources: ${sol.sources.join(', ')}\n`;
+      }
+    });
+  }
+
+  if (problem.hints.length > 0) {
+    systemPrompt += `\n--- HINTS PROVIDED TO STUDENT ---\n`;
+    problem.hints.forEach((hint, idx) => {
+      systemPrompt += `Hint #${idx + 1}:\n${hint.content}\n`;
+    });
+  }
+
+  if (problem.conceptNotes.length > 0) {
+    systemPrompt += `\n--- CONCEPT NOTES PROVIDED TO STUDENT ---\n`;
+    problem.conceptNotes.forEach((note, idx) => {
+      systemPrompt += `Concept Note #${idx + 1}: ${note.title}\n${note.content}\n`;
+    });
+  }
+
+  systemPrompt += `\nAs an AI tutor, help the user with this exact problem and the currently available solution, hints, and concept notes. If the user asks about a visible step, formula, or hint, ground your answer in the context above. Explain without fabricating missing details, and ask for clarification if the visible context is not enough. Keep responses concise, encouraging, and educational.`;
+
+  return systemPrompt;
+};
+
+export const syncProblemContextMessage = async (
+  threadId: string,
+  userId: string,
+  problemId?: string | null
+) => {
+  if (!problemId) return;
+
+  const thread = await prisma.chatThread.findFirst({
+    where: { id: threadId, userId },
+  });
+
+  if (!thread) {
+    throw new Error('Thread not found or access denied');
+  }
+
+  const systemPrompt = await buildProblemSystemPrompt(userId, problemId);
+  if (!systemPrompt) return;
+
+  const existingSystemMessage = await prisma.message.findFirst({
+    where: {
+      threadId,
+      role: 'SYSTEM',
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  if (existingSystemMessage) {
+    await prisma.message.update({
+      where: { id: existingSystemMessage.id },
+      data: {
+        content: systemPrompt,
+        metadata: {
+          problemId,
+          refreshedAt: new Date().toISOString(),
+          source: 'problem-context',
+        },
+      },
+    });
+  } else {
+    await prisma.message.create({
+      data: {
+        threadId,
+        role: 'SYSTEM',
+        content: systemPrompt,
+        metadata: {
+          problemId,
+          refreshedAt: new Date().toISOString(),
+          source: 'problem-context',
+        },
+      },
+    });
+  }
+
+  await prisma.chatThread.update({
+    where: { id: threadId },
+    data: { updatedAt: new Date() },
+  });
+};
+
 /**
  * Create new chat thread
  */
@@ -36,17 +164,7 @@ export const createThread = async (userId: string, data: CreateThreadData) => {
   // If linked to problem, add system message with context
   if (data.problemId) {
     try {
-      const problem = await prisma.problem.findUnique({
-        where: { id: data.problemId },
-      });
-
-      if (problem) {
-        await addMessage(thread.id, userId, {
-          role: 'SYSTEM',
-          content: `This conversation is about: ${problem.title}\n${problem.description}`,
-          metadata: { problemId: data.problemId },
-        });
-      }
+      await syncProblemContextMessage(thread.id, userId, data.problemId);
     } catch (error) {
       console.error('Error adding system message:', error);
       // Continue even if system message fails

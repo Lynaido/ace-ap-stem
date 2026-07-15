@@ -65,13 +65,16 @@ const VideoSlideshow = ({ videos, isPlaying, onIsPlayingChange, onSlideChange })
 
   return (
     <div className="video-slideshow-container">
-      <div 
+      <div
         className="video-slides-wrapper"
         style={{ transform: `translateX(-${currentSlide * 100}%)` }}
       >
         {videos.map((video, index) => (
           <div key={index} className="video-card">
-            <div className="video-wrapper" onClick={() => onIsPlayingChange(!isPlaying)}>
+            <div
+              className="video-wrapper"
+              onClick={() => onIsPlayingChange(!isPlaying)}
+            >
               <video
                 ref={(el) => (videoRefs.current[index] = el)}
                 onEnded={nextSlide}
@@ -83,6 +86,7 @@ const VideoSlideshow = ({ videos, isPlaying, onIsPlayingChange, onSlideChange })
               </video>
               <div className={`video-overlay ${isPlaying && index === currentSlide ? 'playing' : ''}`}>
               </div>
+              <div className="video-top-mask" aria-hidden="true" />
             </div>
           </div>
         ))}

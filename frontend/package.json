@@ -26,7 +26,7 @@
     "build:prod": "cross-env REACT_APP_ENV=production react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "postbuild": "cp .htaccess build/"
+    "postbuild": "node -e \"require('fs').copyFileSync('.htaccess', 'build/.htaccess')\""
   },
   "devDependencies": {
     "cross-env": "^7.0.3",

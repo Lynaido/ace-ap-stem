@@ -24,6 +24,7 @@ import savedItemsRoutes from './routes/savedItemsRoutes';
 import tagsRoutes from './routes/tagsRoutes';
 import studySessionsRoutes from './routes/studySessionsRoutes';
 import chatRoutes from './routes/chatRoutes';
+import contactRoutes from './routes/contactRoutes';
 
 // Create Express application
 const app = express();
@@ -73,6 +74,7 @@ app.use('/api/saved-items', savedItemsRoutes);
 app.use('/api/tags', tagsRoutes);
 app.use('/api/study-sessions', studySessionsRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/contact', contactRoutes);
 
 // API documentation
 try {

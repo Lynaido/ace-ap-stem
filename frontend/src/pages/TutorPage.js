@@ -9,9 +9,9 @@ const TutorPage = () => {
   const initialMessages = [
     {
       id: 1,
-      text: 'Hello! I am your AI Tutor. Ask me anything about your problem.',
-      sender: 'ai',
-      timestamp: new Date(),
+      role: 'assistant',
+      content: 'Hello! I am your AI Tutor. Ask me anything about your problem.',
+      createdAt: new Date(),
     },
   ];
 

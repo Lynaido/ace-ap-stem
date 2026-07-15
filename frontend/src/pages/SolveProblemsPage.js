@@ -137,9 +137,9 @@ const SolveProblemsPage = () => {
   const chatInitialMessages = [
     {
       id: 1,
-      text: 'Welcome to the AI Tutor! Upload or type your problem, and I will help you solve it.',
-      sender: 'ai',
-      timestamp: new Date(),
+      role: 'assistant',
+      content: 'Welcome to the AI Tutor! Upload or type your problem, and I will help you solve it.',
+      createdAt: new Date(),
     },
   ];
 
@@ -822,6 +822,7 @@ const SolveProblemsPage = () => {
         <div className="chat-sidebar">
           <ChatPanel
             threadId={activeThreadId}
+            problemId={currentProblem?.id}
             initialMessages={chatInitialMessages}
             className="chat-panel-elevated"
           />

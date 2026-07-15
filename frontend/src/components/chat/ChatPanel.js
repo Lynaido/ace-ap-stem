@@ -10,7 +10,8 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
     user,
     activeThreadId,
     activeThreadMessages,
-    setActiveThread
+    setActiveThread,
+    clearActiveThread
   } = useAppContext();
 
   // Use global state if available, otherwise use props or local state
@@ -21,6 +22,14 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
   );
   const [inputValue, setInputValue] = useState('');
   const [currentThreadId, setCurrentThreadId] = useState(activeThreadId || threadId);
+
+  // Reset thread when the problemId changes to start a fresh contextual conversation
+  useEffect(() => {
+    setCurrentThreadId(null);
+    setMessages(initialMessages || []);
+    clearActiveThread();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [problemId]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
@@ -138,12 +147,14 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
 
     try {
       const response = await chatAPI.getThread(currentThreadId);
-      const loadedMessages = response.data.messages.map((msg) => ({
-        id: msg.id,
-        content: msg.content,
-        role: msg.role.toLowerCase(),
-        createdAt: msg.createdAt,
-      }));
+      const loadedMessages = response.data.messages
+        .filter((msg) => msg.role !== 'SYSTEM')
+        .map((msg) => ({
+          id: msg.id,
+          content: msg.content,
+          role: msg.role.toLowerCase(),
+          createdAt: msg.createdAt,
+        }));
       setMessages(loadedMessages);
       // Update global state to persist across pages
       setActiveThread(currentThreadId, loadedMessages);
@@ -284,7 +295,7 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
         {messages.map((msg) => (
           <div key={msg.id} className={`message ${msg.role}`}>
             <div className="message-content">
-              <p>{msg.content}</p>
+              <p>{msg.content || msg.text}</p>
             </div>
           </div>
         ))}

@@ -100,6 +100,12 @@ export const sendMessage = async (req: Request, res: Response) => {
     const { id: threadId } = req.params;
     const data = sendMessageSchema.parse(req.body);
 
+    // Refresh the hidden system context right before each answer so the tutor
+    // sees the latest solution, hints, and concept notes for the active problem.
+    if (data.problemId) {
+      await chatService.syncProblemContextMessage(threadId, userId, data.problemId);
+    }
+
     // Save user message
     const message = await chatService.addMessage(threadId, userId, {
       role: 'USER',

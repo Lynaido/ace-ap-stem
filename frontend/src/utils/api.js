@@ -305,4 +305,8 @@ export const chatAPI = {
   },
 };
 
+export const contactAPI = {
+  submitMessage: (contactData) => apiClient.post('/api/contact', contactData),
+};
+
 export default apiClient;

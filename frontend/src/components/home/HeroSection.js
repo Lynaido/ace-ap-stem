@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAppContext } from '../../context/AppContext';
 import './HeroSection.css';
 import VideoSlideshow from './VideoSlideshow';
 
@@ -21,6 +22,7 @@ const demoVideos = [
 ];
 
 const HeroSection = () => {
+  const { isAuthenticated } = useAppContext();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -37,7 +39,11 @@ const HeroSection = () => {
             Solve, explain, and organize AP STEM problems with ease. Learn smarter, stay organized, and strengthen your understanding with ACE AP STEM.
           </p>
           <div className="hero-buttons">
-            <Link to="/sign-up" className="btn btn-primary">Sign Up Now</Link>
+            {isAuthenticated ? (
+              <Link to="/solve-problems" className="btn btn-primary">Go to Problem Upload</Link>
+            ) : (
+              <Link to="/sign-up" className="btn btn-primary">Sign Up Now</Link>
+            )}
           </div>
         </div>
         <div className="hero-mockup-wrapper">

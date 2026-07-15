@@ -48,7 +48,7 @@ const Header = () => {
           <div className="logo-container">
             <div className="logo-icon" aria-label="ACE AP STEM">
               <img
-                src="/logo.jpg"
+                src="/logo.png"
                 alt="ACE AP STEM logo"
                 width="36"
                 height="36"

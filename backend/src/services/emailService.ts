@@ -94,6 +94,88 @@ If you didn't request this password reset, you can safely ignore this email.
   }
 };
 
+export interface SendContactEmailParams {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+export const sendContactEmail = async ({
+  name,
+  email,
+  subject,
+  message,
+}: SendContactEmailParams): Promise<boolean> => {
+  // If in development/test and Resend API key is missing, mock success
+  if (!resend) {
+    if (config.nodeEnv === 'development' || config.nodeEnv === 'test') {
+      logger.info('--- MOCK EMAIL SENT (Resend not configured in development) ---');
+      logger.info(`To: aceapstem@gmail.com`);
+      logger.info(`From: ${name} <${email}>`);
+      logger.info(`Subject: [Contact Form] ${subject}`);
+      logger.info(`Message: ${message}`);
+      logger.info('------------------------------------------------------------');
+      return true;
+    }
+    logger.error('Cannot send email: Resend not configured');
+    return false;
+  }
+
+  try {
+    const fromEmail = `${config.smtpFromName} <${config.resendFromEmail}>`;
+    logger.info(`Sending contact form email from ${name} <${email}> to aceapstem@gmail.com`);
+
+    const { data, error } = await resend.emails.send({
+      from: fromEmail,
+      to: ['aceapstem@gmail.com'],
+      replyTo: email,
+      subject: `[Contact Form] ${subject || 'No Subject'}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #f97316, #ea580c); padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+            <h1 style="color: white; margin: 0;">ACE AP STEM</h1>
+          </div>
+          <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+            <h2 style="color: #1f2937; margin-top: 0; border-bottom: 2px solid #f3f4f6; padding-bottom: 10px;">New Contact Message</h2>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> <a href="mailto:${email}" style="color: #f97316;">${email}</a></p>
+            <p><strong>Subject:</strong> ${subject || 'No Subject'}</p>
+            <div style="margin-top: 20px; padding: 15px; background-color: #f9fafb; border-radius: 6px; border-left: 4px solid #f97316;">
+              <p style="margin: 0; white-space: pre-wrap;">${message}</p>
+            </div>
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+            <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+              This email was sent via the ACE AP STEM Contact Form.
+            </p>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `New Contact Form Message\n\nName: ${name}\nEmail: ${email}\nSubject: ${subject || 'No Subject'}\n\nMessage:\n${message}`,
+    });
+
+    if (error) {
+      logger.error(`Resend API error: ${error.name} - ${error.message}`, { error });
+      return false;
+    }
+
+    logger.info(`Contact email sent successfully, id: ${data?.id}`);
+    return true;
+  } catch (error) {
+    const err = error as Error;
+    logger.error(`Failed to send contact email: ${err.message}`);
+    return false;
+  }
+};
+
 export default {
   sendPasswordResetEmail,
+  sendContactEmail,
 };
