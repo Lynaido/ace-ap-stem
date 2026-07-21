@@ -6,6 +6,7 @@ import Card from '../components/primitives/Card';
 import SolutionDisplay from '../components/problem-solving/SolutionDisplay';
 import HintsDisplay from '../components/problem-solving/HintsDisplay';
 import ConceptNotesDisplay from '../components/problem-solving/ConceptNotesDisplay';
+import ProblemPartSelector from '../components/problem-solving/ProblemPartSelector';
 import ChatPanel from '../components/chat/ChatPanel';
 import { useAppContext } from '../context/AppContext';
 import './SolveProblemsPage.css';
@@ -59,6 +60,12 @@ const SolveProblemsPage = () => {
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [loadedVariant, setLoadedVariant] = useState(null);
   const [folders, setFolders] = useState([]);
+  // Multi-part problem handling
+  const [problemStructure, setProblemStructure] = useState(null); // detected questions/parts
+  const [solveFocus, setSolveFocus] = useState(null); // chosen SolveFocus object
+  const [pendingAction, setPendingAction] = useState(null); // action to run after a focus is picked
+  const [showPartSelector, setShowPartSelector] = useState(false);
+  const [isDetecting, setIsDetecting] = useState(false);
 
   // Load folders on mount
   useEffect(() => {
@@ -161,6 +168,17 @@ const SolveProblemsPage = () => {
   const formIncomplete = !selectedSubject || (!trimmedProblem && !uploadedAsset);
   const isBusy = isUploading || isProblemLoading;
 
+  // The problem content changed, so any previously detected structure / chosen
+  // part / created problem no longer applies. Force a fresh detection next time.
+  const resetSelection = () => {
+    setCreatedProblemId(null);
+    setProblemStructure(null);
+    setSolveFocus(null);
+    setPendingAction(null);
+    setShowPartSelector(false);
+    setIsDetecting(false);
+  };
+
   const handleImageUpload = () => {
     setInputMode('upload');
     setProblemText('');
@@ -169,6 +187,7 @@ const SolveProblemsPage = () => {
     setIsSolving(false);
     setIsGeneratingHints(false);
     setIsGeneratingConceptNotes(false);
+    resetSelection();
     setIsUploading(true);
 
     // Simulate upload
@@ -185,12 +204,14 @@ const SolveProblemsPage = () => {
     setIsSolving(false);
     setIsGeneratingHints(false);
     setIsGeneratingConceptNotes(false);
+    resetSelection();
   };
 
   const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files);
     setIsUploading(true);
     setUploadedImage(null); // Clear previous image
+    resetSelection(); // A new file means a new problem to detect
 
     try {
       for (const file of files) {
@@ -222,128 +243,62 @@ const SolveProblemsPage = () => {
     }
   };
 
-  const handleSolveProblem = async () => {
-    if (formIncomplete) return;
-    clearProblemState();
-    setIsProblemLoading(true);
-    setProblemDisplayMode('solution');
-    setProblemViewVisible(true);
+  // Create the problem row once (and associate its uploaded image once), then
+  // reuse the same id for structure detection and every generate action.
+  const ensureProblem = async () => {
+    if (createdProblemId) return createdProblemId;
 
-    try {
-      // Use provided text or default description for image-only problems
-      const problemDescription = trimmedProblem || 'Problem from uploaded image';
-      const problemData = {
-        title: `${problemDescription.substring(0, 50)}${problemDescription.length > 50 ? '...' : ''}`,
-        description: problemDescription,
-        subject: selectedSubject,
-        difficulty: 'medium',
-        imageUrl: uploadedAsset ? uploadedAsset.url : null,
-      };
-      const created = await createProblem(problemData);
-      if (created?.id) {
-        setCreatedProblemId(created.id);
-        setActiveProblem(created); // Store problem in context for later use
-        
-        // Associate uploaded asset with the problem if it exists
-        if (uploadedAsset?.id) {
-          const { problemAPI } = await import('../utils/api');
-          await problemAPI.associateAssets(created.id, [uploadedAsset.id]);
-        }
-        
-        const { problemAPI } = await import('../utils/api');
-        const solutionRes = await problemAPI.generateSolution(created.id);
-        if (solutionRes.data.solution) {
-          // Attach the database ID to the solution object
-          const solutionWithId = {
-            ...solutionRes.data.solution,
-            id: solutionRes.data.solutionId
-          };
-          setProblemSolution(solutionWithId);
-        }
-      }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsProblemLoading(false);
+    const problemDescription = trimmedProblem || 'Problem from uploaded image';
+    const problemData = {
+      title: `${problemDescription.substring(0, 50)}${problemDescription.length > 50 ? '...' : ''}`,
+      description: problemDescription,
+      subject: selectedSubject,
+      difficulty: 'medium',
+      imageUrl: uploadedAsset ? uploadedAsset.url : null,
+    };
+    const created = await createProblem(problemData);
+    if (!created?.id) {
+      throw new Error('Could not create the problem. Please try again.');
     }
+    setCreatedProblemId(created.id);
+    setActiveProblem(created);
+
+    if (uploadedAsset?.id) {
+      const { problemAPI } = await import('../utils/api');
+      await problemAPI.associateAssets(created.id, [uploadedAsset.id]);
+    }
+    return created.id;
   };
 
-  const handleGenerateHints = async () => {
-    if (formIncomplete) return;
+  // Run the actual AI generation for one of the three actions, targeting the
+  // chosen focus (question / sub-part / all). Shared by the primary buttons and
+  // the in-view "get the other thing" buttons.
+  const generateFor = async (actionType, problemId, focus) => {
     clearProblemState();
+    setShowPartSelector(false);
     setIsProblemLoading(true);
-    setProblemDisplayMode('hints');
+    setProblemDisplayMode(actionType);
     setProblemViewVisible(true);
 
+    const body = focus ? { focus } : {};
     try {
-      // Use provided text or default description for image-only problems
-      const problemDescription = trimmedProblem || 'Problem from uploaded image';
-      const problemData = {
-        title: `${problemDescription.substring(0, 50)}${problemDescription.length > 50 ? '...' : ''}`,
-        description: problemDescription,
-        subject: selectedSubject,
-        difficulty: 'medium',
-        imageUrl: uploadedAsset ? uploadedAsset.url : null,
-      };
-      const created = await createProblem(problemData);
-      if (created?.id) {
-        setCreatedProblemId(created.id);
-        setActiveProblem(created); // Store problem in context for later use
-        
-        // Associate uploaded asset with the problem if it exists
-        if (uploadedAsset?.id) {
-          const { problemAPI } = await import('../utils/api');
-          await problemAPI.associateAssets(created.id, [uploadedAsset.id]);
+      const { problemAPI } = await import('../utils/api');
+      if (actionType === 'solution') {
+        const res = await problemAPI.generateSolution(problemId, body);
+        if (res.data.solution) {
+          setProblemSolution({ ...res.data.solution, id: res.data.solutionId });
         }
-        
-        const { problemAPI } = await import('../utils/api');
-        const hintsRes = await problemAPI.generateHints(created.id);
-        if (hintsRes.data.hints) {
-          setProblemHints(hintsRes.data.hints);
+      } else if (actionType === 'hints') {
+        const res = await problemAPI.generateHints(problemId, body);
+        if (res.data.hints) {
+          setProblemHints(res.data.hints);
         }
-      }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsProblemLoading(false);
-    }
-  };
-
-  const handleGenerateConceptNotes = async () => {
-    if (formIncomplete) return;
-    clearProblemState();
-    setIsProblemLoading(true);
-    setProblemDisplayMode('concepts');
-    setProblemViewVisible(true);
-
-    try {
-      // Use provided text or default description for image-only problems
-      const problemDescription = trimmedProblem || 'Problem from uploaded image';
-      const problemData = {
-        title: `${problemDescription.substring(0, 50)}${problemDescription.length > 50 ? '...' : ''}`,
-        description: problemDescription,
-        subject: selectedSubject,
-        difficulty: 'medium',
-        imageUrl: uploadedAsset ? uploadedAsset.url : null,
-      };
-      const created = await createProblem(problemData);
-      if (created?.id) {
-        setCreatedProblemId(created.id);
-        setActiveProblem(created); // Store problem in context for later use
-        
-        // Associate uploaded asset with the problem if it exists
-        if (uploadedAsset?.id) {
-          const { problemAPI } = await import('../utils/api');
-          await problemAPI.associateAssets(created.id, [uploadedAsset.id]);
-        }
-        
-        const { problemAPI } = await import('../utils/api');
-        const notesRes = await problemAPI.generateConceptNotes(created.id);
-        if (notesRes.data.conceptNotes && notesRes.data.conceptNoteIds) {
-          // Attach database IDs to each concept note
-          const notesWithIds = notesRes.data.conceptNotes.map((note, index) => ({
+      } else if (actionType === 'concepts') {
+        const res = await problemAPI.generateConceptNotes(problemId, body);
+        if (res.data.conceptNotes && res.data.conceptNoteIds) {
+          const notesWithIds = res.data.conceptNotes.map((note, index) => ({
             ...note,
-            id: notesRes.data.conceptNoteIds[index]
+            id: res.data.conceptNoteIds[index],
           }));
           setProblemConceptNotes(notesWithIds);
         }
@@ -355,9 +310,76 @@ const SolveProblemsPage = () => {
     }
   };
 
+  // Entry point for the three primary buttons. Detects structure first; if the
+  // problem has multiple questions/parts and nothing has been chosen yet, shows
+  // the part selector and defers the action until the student picks.
+  const startAction = async (actionType) => {
+    if (formIncomplete) return;
+    setError(null);
+    setPendingAction(actionType);
+    setProblemViewVisible(true);
+
+    try {
+      const problemId = await ensureProblem();
+
+      let structure = problemStructure;
+      if (!structure) {
+        setIsDetecting(true);
+        try {
+          const { problemAPI } = await import('../utils/api');
+          const res = await problemAPI.detectStructure(problemId);
+          structure = res.data;
+          setProblemStructure(structure);
+        } catch (detectErr) {
+          // Structure detection is an enhancement, not a hard requirement. If the
+          // endpoint isn't available (e.g. backend not yet updated) or fails, fall
+          // back to the normal single-problem flow so solving still works.
+          console.warn('Structure detection unavailable, continuing without it:', detectErr);
+          structure = { hasMultipleQuestions: false, questions: [] };
+          setProblemStructure(structure);
+        } finally {
+          setIsDetecting(false);
+        }
+      }
+
+      if (structure?.hasMultipleQuestions && !solveFocus) {
+        setShowPartSelector(true);
+        return; // wait for handleFocusSelected
+      }
+
+      await generateFor(actionType, problemId, solveFocus);
+    } catch (err) {
+      setIsDetecting(false);
+      setError(err.message);
+    }
+  };
+
+  const handleSolveProblem = () => startAction('solution');
+  const handleGenerateHints = () => startAction('hints');
+  const handleGenerateConceptNotes = () => startAction('concepts');
+
+  // The student picked which question/part to work on.
+  const handleFocusSelected = async (focus) => {
+    setSolveFocus(focus);
+    setShowPartSelector(false);
+    const problemId = createdProblemId || currentProblem?.id;
+    if (!problemId) {
+      setError('Problem ID is missing. Please try again.');
+      return;
+    }
+    await generateFor(pendingAction || 'solution', problemId, focus);
+  };
+
+  // Re-open the selector so the student can change what to solve.
+  const handleChangeSelection = () => {
+    setShowPartSelector(true);
+    setProblemViewVisible(true);
+  };
+
   const handleBackToInput = () => {
     setProblemViewVisible(false);
     clearProblemState();
+    resetSelection();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -382,7 +404,7 @@ const SolveProblemsPage = () => {
     setIsProblemLoading(true);
     try {
       const { problemAPI } = await import('../utils/api');
-      const res = await problemAPI.generateSolution(problemId);
+      const res = await problemAPI.generateSolution(problemId, solveFocus ? { focus: solveFocus } : {});
       if (res.data.solution) {
         // Attach the database ID to the solution object
         const solutionWithId = {
@@ -420,7 +442,7 @@ const SolveProblemsPage = () => {
     setIsProblemLoading(true);
     try {
       const { problemAPI } = await import('../utils/api');
-      const res = await problemAPI.generateHints(problemId);
+      const res = await problemAPI.generateHints(problemId, solveFocus ? { focus: solveFocus } : {});
       if (res.data.hints) {
         setProblemHints(res.data.hints);
       }
@@ -452,7 +474,7 @@ const SolveProblemsPage = () => {
     setIsProblemLoading(true);
     try {
       const { problemAPI } = await import('../utils/api');
-      const res = await problemAPI.generateConceptNotes(problemId);
+      const res = await problemAPI.generateConceptNotes(problemId, solveFocus ? { focus: solveFocus } : {});
       if (res.data.conceptNotes && res.data.conceptNoteIds) {
         // Attach database IDs to each concept note
         const notesWithIds = res.data.conceptNotes.map((note, index) => ({
@@ -627,7 +649,13 @@ const SolveProblemsPage = () => {
                   <textarea
                     className="text-input"
                     value={problemText}
-                    onChange={(e) => setProblemText(e.target.value)}
+                    onChange={(e) => {
+                      setProblemText(e.target.value);
+                      // Editing the problem invalidates any prior detection/choice.
+                      if (createdProblemId || problemStructure || solveFocus) {
+                        resetSelection();
+                      }
+                    }}
                     placeholder="Type your problem here..."
                     rows={8}
                   />
@@ -729,7 +757,31 @@ const SolveProblemsPage = () => {
                 </div>
               </div>
 
-              {(problemSolution || problemHints.length > 0 || problemConceptNotes) && (
+              {/* Banner showing which part is currently targeted, with a way to change it */}
+              {solveFocus && !showPartSelector && !isDetecting && (
+                <div className="focus-banner">
+                  <span className="focus-banner-text">
+                    <strong>Working on:</strong>{' '}
+                    {solveFocus.scope === 'part'
+                      ? `Only ${solveFocus.partLabel}${solveFocus.questionLabel ? ` of ${solveFocus.questionLabel}` : ''}`
+                      : solveFocus.scope === 'all'
+                      ? `All of ${solveFocus.questionLabel}`
+                      : solveFocus.questionLabel || 'Selected question'}
+                  </span>
+                  {problemStructure?.hasMultipleQuestions && (
+                    <button
+                      type="button"
+                      className="focus-banner-change"
+                      onClick={handleChangeSelection}
+                      disabled={isProblemLoading}
+                    >
+                      Change selection
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {(problemSolution || problemHints.length > 0 || problemConceptNotes) && !showPartSelector && !isDetecting && (
                 <div className="ai-content-tabs" role="tablist">
                   {problemSolution && (
                     <button
@@ -765,14 +817,30 @@ const SolveProblemsPage = () => {
               )}
 
               <div className="solution-content-stack">
-                {isProblemLoading && (
+                {isDetecting && (
+                  <LoadingPanel
+                    title="Reading your problem..."
+                    message="We're checking whether this problem has multiple questions or parts."
+                  />
+                )}
+
+                {!isDetecting && showPartSelector && problemStructure && (
+                  <ProblemPartSelector
+                    structure={problemStructure}
+                    onSelect={handleFocusSelected}
+                    onCancel={handleBackToInput}
+                    busy={isProblemLoading}
+                  />
+                )}
+
+                {!isDetecting && !showPartSelector && isProblemLoading && (
                   <LoadingPanel
                     title="Generating..."
                     message="Our AI is analyzing your problem and creating helpful content."
                   />
                 )}
 
-                {!isProblemLoading && problemDisplayMode === 'solution' && problemSolution && (
+                {!isDetecting && !showPartSelector && !isProblemLoading && problemDisplayMode === 'solution' && problemSolution && (
                   <SolutionDisplay
                     solution={problemSolution}
                     onGetHints={handleGetHints}
@@ -784,7 +852,7 @@ const SolveProblemsPage = () => {
                     currentProblem={currentProblem}
                   />
                 )}
-                {!isProblemLoading && problemDisplayMode === 'hints' && problemHints.length > 0 && (
+                {!isDetecting && !showPartSelector && !isProblemLoading && problemDisplayMode === 'hints' && problemHints.length > 0 && (
                   <HintsDisplay
                     hints={problemHints}
                     onGetSolution={handleGetSolution}
@@ -793,7 +861,7 @@ const SolveProblemsPage = () => {
                     isGeneratingConceptNotes={isProblemLoading && problemDisplayMode === 'concepts'}
                   />
                 )}
-                {!isProblemLoading && problemDisplayMode === 'concepts' && problemConceptNotes && (
+                {!isDetecting && !showPartSelector && !isProblemLoading && problemDisplayMode === 'concepts' && problemConceptNotes && (
                   <ConceptNotesDisplay
                     conceptNotes={problemConceptNotes}
                     onGetSolution={handleGetSolution}
