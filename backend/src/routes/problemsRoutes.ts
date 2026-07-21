@@ -8,7 +8,8 @@ import {
   associateAssetsWithProblem,
   generateSolution,
   generateHints,
-  generateConceptNotes
+  generateConceptNotes,
+  detectProblemStructure
 } from '../controllers/problemsController';
 import { authenticateToken } from '../middleware/auth';
 
@@ -516,5 +517,31 @@ router.post('/:id/hints', generateHints);
  *         description: Failed to generate concept notes
  */
 router.post('/:id/concept-notes', generateConceptNotes);
+
+/**
+ * @swagger
+ * /api/problems/{id}/structure:
+ *   post:
+ *     summary: Detect the structure (questions and sub-parts) of a problem
+ *     description: Runs OCR/structure detection so the client can let the user choose which question or sub-part to solve
+ *     tags: [Problems]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Problem ID
+ *     responses:
+ *       200:
+ *         description: Structure detected successfully
+ *       404:
+ *         description: Problem not found
+ *       500:
+ *         description: Failed to detect structure
+ */
+router.post('/:id/structure', detectProblemStructure);
 
 export default router;

@@ -105,6 +105,36 @@ export interface ConceptNotesResponse {
   extractedProblemText?: string; // For image-only problems, extracted text from the image
 }
 
+// Problem structure detection interfaces
+export interface ProblemPart {
+  id: string;    // Stable identifier, e.g. "q2-a"
+  label: string; // Human readable label as printed on the paper, e.g. "2(a)"
+  text: string;  // The statement of this sub-part only
+}
+
+export interface ProblemQuestion {
+  id: string;         // Stable identifier, e.g. "q2"
+  label: string;      // Human readable label, e.g. "Question 2"
+  text: string;       // Shared stem/context for the whole question
+  parts: ProblemPart[]; // Empty when the question has no sub-parts
+}
+
+export interface ProblemStructureResponse {
+  extractedText: string;
+  hasMultipleQuestions: boolean;
+  questions: ProblemQuestion[];
+}
+
+// Describes which part of the problem the student asked us to work on
+export interface SolveFocus {
+  scope: 'all' | 'question' | 'part';
+  questionLabel?: string;
+  partLabel?: string;
+  focusText?: string;    // Statement of the selected question/part
+  contextText?: string;  // Full problem text, kept for context
+  siblingLabels?: string[]; // Labels of the other sub-parts of the same question
+}
+
 // Model selection types
 export type ModelTier = 'nano' | 'mini' | 'flagship';
 
@@ -432,6 +462,218 @@ export const selectModel = (params: ModelSelectionParams): string => {
   }
 };
 
+// Detect the structure of a problem (questions and sub-parts) after OCR.
+// Runs once right after upload so the UI can offer a "which part to solve" choice.
+export const detectProblemStructure = async (params: {
+  problemText: string;
+  subject: string;
+  imageData?: { url?: string; base64?: string; mimeType?: string }[];
+}): Promise<ProblemStructureResponse> => {
+  const { problemText, subject, imageData } = params;
+
+  try {
+    if (!config.openaiApiKey) {
+      logger.error('OPENAI_API_KEY is not configured');
+      throw new Error('OpenAI API key is not configured');
+    }
+
+    const hasImages = !!imageData?.length;
+    logger.info('Detecting problem structure with OpenAI', { subject, hasImages });
+
+    // Vision needed to read an image; a cheap text model is enough for typed problems.
+    const model = hasImages ? 'gpt-4o' : 'gpt-4o-mini';
+    const prompt = createStructurePrompt(problemText);
+
+    const userMessage: any = hasImages
+      ? {
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt },
+            ...(imageData || [])
+              .map(img => {
+                if (img.url) {
+                  return { type: 'image_url', image_url: { url: img.url } };
+                }
+                if (img.base64) {
+                  return {
+                    type: 'image_url',
+                    image_url: { url: `data:${img.mimeType || 'image/jpeg'};base64,${img.base64}` }
+                  };
+                }
+                return null;
+              })
+              .filter(Boolean)
+          ]
+        }
+      : { role: 'user', content: prompt };
+
+    const completion = await openai.chat.completions.create({
+      model,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are an assistant that transcribes exam problems and identifies their structure (questions and lettered sub-parts). You must respond with valid JSON only.'
+        },
+        userMessage
+      ],
+      max_completion_tokens: 2000,
+      response_format: { type: 'json_object' }
+    });
+
+    const responseContent = completion.choices[0]?.message?.content;
+    if (!responseContent) {
+      throw new Error('No response content from OpenAI');
+    }
+
+    return parseStructureResponse(responseContent, problemText);
+  } catch (error) {
+    logger.error('Error detecting problem structure:', error);
+    // Non-fatal: fall back to treating the whole thing as a single question so the
+    // normal solve/hints/concepts flow still works.
+    return {
+      extractedText: problemText === 'Problem from uploaded image' ? '' : problemText,
+      hasMultipleQuestions: false,
+      questions: []
+    };
+  }
+};
+
+const createStructurePrompt = (problemText: string): string => {
+  const isImageOnly = problemText === 'Problem from uploaded image';
+  const source = isImageOnly
+    ? 'Read the problem shown in the image(s).'
+    : `Here is the problem text:\n\n${problemText}`;
+
+  return `${source}
+
+Your job is to (1) transcribe the full problem text and (2) break it into its structure.
+
+Rules for structure:
+- A "question" is a top-level numbered item (e.g. "Question 1", "Question 2", "Câu 2"). Use its number as printed.
+- A "part" is a lettered/roman sub-item inside a question (e.g. "2(a)", "2(b)", "(i)", "(ii)").
+- If the whole thing is really just ONE question with no sub-parts, return a single question with an empty "parts" array and set "hasMultipleQuestions" to false.
+- Only set "hasMultipleQuestions" to true when there is genuinely more than one question OR at least one question that has 2+ sub-parts. A single simple problem must NOT be split artificially.
+- Preserve any shared context/stem of a question in the question's "text", and put only the specific ask of each sub-part in that part's "text".
+- "label" must match what a student sees on the paper (e.g. "Question 2", "2(a)"). Keep it short.
+- "id" is a slug you invent: "q2" for question 2, "q2-a" for part 2(a).
+
+**Return ONLY this JSON object (no markdown, no code fences):**
+{
+  "extractedText": "The complete transcribed problem text",
+  "hasMultipleQuestions": true,
+  "questions": [
+    {
+      "id": "q2",
+      "label": "Question 2",
+      "text": "Shared context/stem for question 2 (may be empty)",
+      "parts": [
+        { "id": "q2-a", "label": "2(a)", "text": "Statement of part (a) only" },
+        { "id": "q2-b", "label": "2(b)", "text": "Statement of part (b) only" }
+      ]
+    }
+  ]
+}`;
+};
+
+const parseStructureResponse = (
+  response: string,
+  originalText: string
+): ProblemStructureResponse => {
+  const jsonContent = extractJson(response);
+  if (!jsonContent) {
+    logger.warn('No JSON content found in structure response; treating as single question');
+    return {
+      extractedText: originalText === 'Problem from uploaded image' ? '' : originalText,
+      hasMultipleQuestions: false,
+      questions: []
+    };
+  }
+
+  try {
+    const cleaned = jsonContent
+      .trim()
+      .replace(/[ ---]+/g, '')
+      .replace(/,\s*([}\]])/g, '$1')
+      .replace(/^﻿/, '');
+    const parsed = JSON.parse(cleaned);
+
+    const rawQuestions: any[] = Array.isArray(parsed.questions) ? parsed.questions : [];
+    const questions: ProblemQuestion[] = rawQuestions.map((q: any, qi: number) => {
+      const rawParts: any[] = Array.isArray(q.parts) ? q.parts : [];
+      const parts: ProblemPart[] = rawParts.map((p: any, pi: number) => ({
+        id: String(p.id || `q${qi + 1}-p${pi + 1}`),
+        label: String(p.label || `Part ${pi + 1}`),
+        text: String(p.text || '')
+      }));
+      return {
+        id: String(q.id || `q${qi + 1}`),
+        label: String(q.label || `Question ${qi + 1}`),
+        text: String(q.text || ''),
+        parts
+      };
+    });
+
+    // Decide "multiple" ourselves rather than trusting the flag blindly.
+    const totalParts = questions.reduce((sum, q) => sum + q.parts.length, 0);
+    const hasMultiple = questions.length > 1 || totalParts >= 2;
+
+    return {
+      extractedText: String(parsed.extractedText || originalText || ''),
+      hasMultipleQuestions: hasMultiple,
+      questions
+    };
+  } catch (error) {
+    logger.error('Error parsing structure response:', {
+      errorMessage: error instanceof Error ? error.message : String(error)
+    });
+    return {
+      extractedText: originalText === 'Problem from uploaded image' ? '' : originalText,
+      hasMultipleQuestions: false,
+      questions: []
+    };
+  }
+};
+
+// Build a focus instruction block that steers solve/hints/concepts toward the
+// specific question or sub-part the student selected.
+const buildFocusInstruction = (focus?: SolveFocus): string => {
+  if (!focus || focus.scope === 'all') {
+    // Whole question (or whole problem): solve every sub-part in order.
+    if (focus?.scope === 'all' && focus.questionLabel && focus.siblingLabels?.length) {
+      return `\n\n**FOCUS INSTRUCTION:**
+The student wants the ENTIRE ${focus.questionLabel} solved. Solve every sub-part in order (${focus.siblingLabels.join(
+        ' → '
+      )}). Address each sub-part explicitly and label it, carrying results forward between sub-parts as needed.`;
+    }
+    return '';
+  }
+
+  if (focus.scope === 'question') {
+    return `\n\n**FOCUS INSTRUCTION:**
+Solve ONLY ${focus.questionLabel || 'the selected question'}. Ignore any other questions in the problem.${
+      focus.focusText ? `\n\nThe selected question is:\n${focus.focusText}` : ''
+    }`;
+  }
+
+  // scope === 'part'
+  const siblings =
+    focus.siblingLabels && focus.siblingLabels.length
+      ? ` The same question also contains ${focus.siblingLabels.join(
+          ', '
+        )}, but you must NOT solve those in full.`
+      : '';
+  return `\n\n**FOCUS INSTRUCTION:**
+Focus ONLY on ${focus.partLabel || 'the selected sub-part'}${
+    focus.questionLabel ? ` of ${focus.questionLabel}` : ''
+  }. Do not solve the other sub-parts.${siblings}
+If ${focus.partLabel || 'this sub-part'} depends on a result from an earlier sub-part, you may compute just the intermediate result you need to proceed — briefly and clearly — rather than requiring the student to have solved the earlier part first. Keep the earlier work minimal; the deliverable is the solution to ${
+    focus.partLabel || 'the selected sub-part'
+  }.${focus.focusText ? `\n\nThe selected sub-part is:\n${focus.focusText}` : ''}${
+    focus.contextText ? `\n\nFull problem for context (do not solve all of it):\n${focus.contextText}` : ''
+  }`;
+};
+
 // Generate step-by-step solution
 export const generateSolution = async (params: {
   problemText: string;
@@ -439,8 +681,9 @@ export const generateSolution = async (params: {
   difficulty?: string;
   imageContext?: string;
   imageData?: { url?: string; base64?: string; mimeType?: string }[];
+  focus?: SolveFocus;
 }): Promise<SolutionResponse> => {
-  const { problemText, subject, difficulty = 'medium', imageContext, imageData } = params;
+  const { problemText, subject, difficulty = 'medium', imageContext, imageData, focus } = params;
 
   try {
     if (!config.openaiApiKey) {
@@ -456,7 +699,11 @@ export const generateSolution = async (params: {
     const hasImages = imageData && imageData.length > 0;
     const visionModel = hasImages ? 'gpt-4o' : model;
     
-    const prompt = createSolutionPrompt(problemText, subject, difficulty, imageContext);
+    const prompt = createSolutionPrompt(problemText, subject, difficulty, imageContext) + buildFocusInstruction(focus);
+
+    // Solving a whole multi-part question needs more room so the answer isn't truncated.
+    const solveWholeQuestion = focus?.scope === 'all' && (focus.siblingLabels?.length || 0) > 1;
+    const maxTokens = solveWholeQuestion ? 6000 : 3000;
 
     // Build messages with image support
     const userMessage: any = hasImages ? {
@@ -495,7 +742,7 @@ export const generateSolution = async (params: {
         },
         userMessage
       ],
-      max_completion_tokens: 3000,
+      max_completion_tokens: maxTokens,
       response_format: { type: "json_object" },
     });
 
@@ -654,8 +901,9 @@ export const generateHints = async (params: {
   difficulty?: string;
   options?: any;
   imageData?: { url?: string; base64?: string; mimeType?: string }[];
+  focus?: SolveFocus;
 }): Promise<HintsResponse> => {
-  const { problemText, subject, difficulty = 'medium', options, imageData } = params;
+  const { problemText, subject, difficulty = 'medium', options, imageData, focus } = params;
 
   try {
     if (!config.openaiApiKey) {
@@ -671,7 +919,7 @@ export const generateHints = async (params: {
     const hasImages = imageData && imageData.length > 0;
     const visionModel = hasImages ? 'gpt-4o' : model;
     
-    const prompt = createHintsPrompt(problemText, subject, difficulty, options);
+    const prompt = createHintsPrompt(problemText, subject, difficulty, options) + buildFocusInstruction(focus);
 
     // Build messages with image support
     const userMessage: any = hasImages ? {
@@ -848,8 +1096,9 @@ export const generateConceptNotes = async (params: {
   difficulty?: string;
   options?: any;
   imageData?: { url?: string; base64?: string; mimeType?: string }[];
+  focus?: SolveFocus;
 }): Promise<ConceptNotesResponse> => {
-  const { problemText, subject, difficulty = 'medium', options, imageData } = params;
+  const { problemText, subject, difficulty = 'medium', options, imageData, focus } = params;
 
   try {
     if (!config.openaiApiKey) {
@@ -866,7 +1115,7 @@ export const generateConceptNotes = async (params: {
     const hasImages = imageData && imageData.length > 0;
     const visionModel = hasImages ? 'gpt-4o' : model;
 
-    const prompt = createConceptNotesPrompt(problemText, subject, difficulty, options);
+    const prompt = createConceptNotesPrompt(problemText, subject, difficulty, options) + buildFocusInstruction(focus);
 
     // Build messages with image support
     const userMessage: any = hasImages ? {
@@ -967,8 +1216,9 @@ const generateConceptNotesFallback = async (params: {
   difficulty?: string;
   options?: any;
   imageData?: { url?: string; base64?: string; mimeType?: string }[];
+  focus?: SolveFocus;
 }): Promise<ConceptNotesResponse> => {
-  const { problemText, subject, difficulty = 'medium', imageData } = params;
+  const { problemText, subject, difficulty = 'medium', imageData, focus } = params;
 
   try {
     logger.info('Generating fallback concept notes with OpenAI', { subject, difficulty });
@@ -979,7 +1229,7 @@ const generateConceptNotesFallback = async (params: {
 
 **Problem:** ${problemText}
 
-**Task:** Generate simple concept notes explaining the key concepts needed to solve this problem.
+**Task:** Generate simple concept notes explaining the key concepts needed to solve this problem.${buildFocusInstruction(focus)}
 
 **Each note should include:**
 - id: unique identifier
@@ -1227,5 +1477,6 @@ export default {
   generateSolution,
   generateHints,
   generateConceptNotes,
+  detectProblemStructure,
   selectModel
 };

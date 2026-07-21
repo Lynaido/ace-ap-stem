@@ -470,6 +470,87 @@ export const associateAssetsWithProblem = async (req: Request, res: Response): P
 };
 
 /**
+ * Helper: build base64 image data array from a problem's image assets.
+ */
+const buildImageData = (
+  assets: { mimeType: string; fileData: Buffer | null; fileName: string }[] | undefined
+): { base64: string; mimeType: string }[] | undefined => {
+  if (!assets || assets.length === 0) return undefined;
+  const imageData: { base64: string; mimeType: string }[] = [];
+  for (const asset of assets) {
+    if (asset.mimeType.startsWith('image/') && asset.fileData) {
+      imageData.push({ base64: asset.fileData.toString('base64'), mimeType: asset.mimeType });
+    }
+  }
+  return imageData.length > 0 ? imageData : undefined;
+};
+
+/**
+ * POST /api/problems/:id/structure
+ * Detect the structure (questions and sub-parts) of a problem after OCR so the
+ * client can offer a "which part to solve" choice.
+ */
+export const detectProblemStructure = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'User not authenticated' });
+      return;
+    }
+
+    const problem = await prisma.problem.findFirst({
+      where: { id, userId },
+      include: { assets: true }
+    });
+
+    if (!problem) {
+      res.status(404).json({ success: false, error: 'Problem not found' });
+      return;
+    }
+
+    logger.info(`Detecting structure for problem ${id}`, { subject: problem.subject });
+
+    const imageData = buildImageData(problem.assets);
+
+    const structure = await openaiService.detectProblemStructure({
+      problemText: problem.description,
+      subject: problem.subject,
+      imageData
+    });
+
+    // If OCR produced text for an image-only problem, persist it so later
+    // solve/hints/concepts calls have real text to work with.
+    if (
+      structure.extractedText &&
+      problem.description === 'Problem from uploaded image'
+    ) {
+      await prisma.problem.update({
+        where: { id },
+        data: {
+          description: structure.extractedText,
+          title: `${structure.extractedText.substring(0, 50)}${structure.extractedText.length > 50 ? '...' : ''}`
+        }
+      });
+      logger.info(`Updated problem ${id} with OCR text from structure detection`, {
+        extractedLength: structure.extractedText.length
+      });
+    }
+
+    res.json({ success: true, data: structure });
+  } catch (error) {
+    logger.error('Error detecting problem structure:', error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to detect problem structure'
+      });
+    }
+  }
+};
+
+/**
  * POST /api/problems/:id/solutions
  * Generate AI solution for a problem
  */
@@ -550,7 +631,8 @@ export const generateSolution = async (req: Request, res: Response): Promise<voi
         problemText: problem.description,
         subject: problem.subject,
         difficulty: problem.difficulty || 'medium',
-        imageData: imageData && imageData.length > 0 ? imageData : undefined
+        imageData: imageData && imageData.length > 0 ? imageData : undefined,
+        focus: req.body?.focus
       });
 
       // Save solution to database
@@ -715,7 +797,8 @@ export const generateHints = async (req: Request, res: Response): Promise<void> 
         subject: problem.subject,
         difficulty: problem.difficulty || 'medium',
         options,
-        imageData: imageData && imageData.length > 0 ? imageData : undefined
+        imageData: imageData && imageData.length > 0 ? imageData : undefined,
+        focus: req.body?.focus
       });
 
       // Validate hints structure before saving
@@ -881,7 +964,8 @@ export const generateConceptNotes = async (req: Request, res: Response): Promise
         subject: problem.subject,
         difficulty: problem.difficulty || 'medium',
         options,
-        imageData: imageData && imageData.length > 0 ? imageData : undefined
+        imageData: imageData && imageData.length > 0 ? imageData : undefined,
+        focus: req.body?.focus
       });
 
       // Validate and save concept notes to the database

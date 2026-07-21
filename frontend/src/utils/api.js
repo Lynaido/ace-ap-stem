@@ -215,6 +215,7 @@ export const problemAPI = {
   generateSolution: (id, options = {}) => apiClient.post(`/api/problems/${id}/solutions`, options),
   generateHints: (id, options = {}) => apiClient.post(`/api/problems/${id}/hints`, options),
   generateConceptNotes: (id, options = {}) => apiClient.post(`/api/problems/${id}/concept-notes`, options),
+  detectStructure: (id) => apiClient.post(`/api/problems/${id}/structure`, {}),
   associateAssets: (id, assetIds) => apiClient.post(`/api/problems/${id}/assets`, { assetIds }),
 };
 

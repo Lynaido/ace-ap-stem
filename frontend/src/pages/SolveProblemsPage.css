@@ -1451,3 +1451,43 @@
     color: #6b7280;
   }
 }
+
+/* Focus banner: shows which question/part the AI is currently targeting */
+.solve-problems-page .focus-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  border: 1px solid var(--color-border-default);
+  border-left: 3px solid #f97316;
+  border-radius: var(--border-radius-md);
+  background: var(--color-bg-alt);
+}
+
+.solve-problems-page .focus-banner-text {
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+}
+
+.solve-problems-page .focus-banner-change {
+  background: none;
+  border: none;
+  color: #f97316;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--border-radius-sm);
+}
+
+.solve-problems-page .focus-banner-change:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.solve-problems-page .focus-banner-change:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
