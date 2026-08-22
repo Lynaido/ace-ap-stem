@@ -85,8 +85,8 @@ const SignInPage = () => {
       setErrors({});
       setIsSubmitting(false);
 
-      // Navigate to dashboard or home
-      navigate('/');
+      const destination = location.state?.from?.pathname || '/dashboard';
+      navigate(destination, { replace: true });
     } catch (error) {
       setErrors({ general: error.message || 'Login failed. Please try again.' });
       setIsSubmitting(false);

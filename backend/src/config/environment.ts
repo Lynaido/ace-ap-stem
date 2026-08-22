@@ -3,6 +3,35 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
+const REQUIRED_PRODUCTION_VARIABLES = [
+  'API_BASE_URL',
+  'DATABASE_URL',
+  'JWT_SECRET',
+  'JWT_REFRESH_SECRET',
+  'OPENAI_API_KEY',
+  'FRONTEND_URL',
+] as const;
+
+if (process.env.NODE_ENV === 'production') {
+  const missingVariables = REQUIRED_PRODUCTION_VARIABLES.filter(
+    (key) => !process.env[key]?.trim()
+  );
+
+  if (missingVariables.length > 0) {
+    throw new Error(
+      `Missing required production environment variables: ${missingVariables.join(', ')}`
+    );
+  }
+
+  if ((process.env.JWT_SECRET?.length || 0) < 32) {
+    throw new Error('JWT_SECRET must be at least 32 characters in production');
+  }
+
+  if ((process.env.JWT_REFRESH_SECRET?.length || 0) < 32) {
+    throw new Error('JWT_REFRESH_SECRET must be at least 32 characters in production');
+  }
+}
+
 interface EnvironmentConfig {
   port: number;
   nodeEnv: string;

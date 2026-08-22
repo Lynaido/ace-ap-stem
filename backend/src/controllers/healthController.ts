@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import logger from '../config/logger';
 import config from '../config/environment';
+import prisma from '../lib/prisma';
 
 /**
  * @swagger
@@ -58,6 +59,37 @@ export const healthCheck = async (req: Request, res: Response): Promise<void> =>
       success: false,
       error: {
         message: 'Health check failed',
+      },
+    });
+  }
+};
+
+/**
+ * Readiness check used by Railway before routing traffic to a deployment.
+ * It verifies that the API process can reach its primary database.
+ */
+export const readinessCheck = async (req: Request, res: Response): Promise<void> => {
+  const startedAt = Date.now();
+
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        status: 'ready',
+        database: 'reachable',
+        responseTimeMs: Date.now() - startedAt,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    logger.error('Readiness check failed', { error });
+    res.status(503).json({
+      success: false,
+      error: {
+        message: 'Service is not ready',
+        database: 'unreachable',
       },
     });
   }

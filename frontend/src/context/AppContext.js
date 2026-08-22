@@ -510,6 +510,7 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.CLEAR_ERROR });
 
       const response = await authAPI.register(userData);
+      localStorage.setItem('user', JSON.stringify(response.user));
       dispatch({ type: ActionTypes.LOGIN, payload: response.user });
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
 

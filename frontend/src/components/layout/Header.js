@@ -44,7 +44,7 @@ const Header = () => {
   return (
     <header className="app-header">
       <div className="header-container">
-        <Link to="/" className="logo">
+        <Link to={isAuthenticated ? '/dashboard' : '/'} className="logo">
           <div className="logo-container">
             <div className="logo-icon" aria-label="ACE AP STEM">
               <img
@@ -65,11 +65,22 @@ const Header = () => {
 
         {/* Desktop Navigation */}
         <nav className="nav-links desktop-nav">
-          <NavLink to="/" className="nav-link">Home</NavLink>
-          <NavLink to="/about-us" className="nav-link">About</NavLink>
-          <NavLink to="/solve-problems" className="nav-link">Problem Upload</NavLink>
-          <NavLink to="/notes-hub" className="nav-link">Notes Hub</NavLink>
-          <NavLink to="/study-mode" className="nav-link">Study Mode</NavLink>
+          {isAuthenticated ? (
+            <>
+              <NavLink to="/dashboard" className="nav-link">Dashboard</NavLink>
+              <NavLink to="/solve-problems" className="nav-link">Solve</NavLink>
+              <NavLink to="/tutor" className="nav-link">AI Tutor</NavLink>
+              <NavLink to="/notes-hub" className="nav-link">Notes Hub</NavLink>
+              <NavLink to="/study-mode" className="nav-link">Study Mode</NavLink>
+            </>
+          ) : (
+            <>
+              <NavLink to="/" end className="nav-link">Home</NavLink>
+              <NavLink to="/about-us" className="nav-link">About</NavLink>
+              <NavLink to="/contact" className="nav-link">Contact</NavLink>
+              <NavLink to="/faq" className="nav-link">FAQ</NavLink>
+            </>
+          )}
         </nav>
 
         {/* Desktop Actions */}
@@ -115,11 +126,22 @@ const Header = () => {
         {/* Mobile Menu Overlay */}
         <div className={`mobile-menu-overlay ${isMobileMenuOpen ? 'active' : ''}`}>
           <nav className="mobile-nav">
-            <NavLink to="/" className="mobile-nav-link">Home</NavLink>
-            <NavLink to="/about-us" className="mobile-nav-link">About</NavLink>
-            <NavLink to="/solve-problems" className="mobile-nav-link">Problem Upload</NavLink>
-            <NavLink to="/notes-hub" className="mobile-nav-link">Notes Hub</NavLink>
-            <NavLink to="/study-mode" className="mobile-nav-link">Study Mode</NavLink>
+            {isAuthenticated ? (
+              <>
+                <NavLink to="/dashboard" className="mobile-nav-link">Dashboard</NavLink>
+                <NavLink to="/solve-problems" className="mobile-nav-link">Solve Problems</NavLink>
+                <NavLink to="/tutor" className="mobile-nav-link">AI Tutor</NavLink>
+                <NavLink to="/notes-hub" className="mobile-nav-link">Notes Hub</NavLink>
+                <NavLink to="/study-mode" className="mobile-nav-link">Study Mode</NavLink>
+              </>
+            ) : (
+              <>
+                <NavLink to="/" end className="mobile-nav-link">Home</NavLink>
+                <NavLink to="/about-us" className="mobile-nav-link">About</NavLink>
+                <NavLink to="/contact" className="mobile-nav-link">Contact</NavLink>
+                <NavLink to="/faq" className="mobile-nav-link">FAQ</NavLink>
+              </>
+            )}
 
             <div className="mobile-menu-divider"></div>
 

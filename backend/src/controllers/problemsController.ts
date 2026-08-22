@@ -1,9 +1,55 @@
 import { Request, Response } from 'express';
-import { } from '@prisma/client';
+import { z } from 'zod';
 import prisma from '../lib/prisma';
 import { storageService } from '../services/storageService';
 import * as openaiService from '../services/openaiService';
+import type { SolveFocus } from '../services/openaiService';
 import logger from '../config/logger';
+
+const solveFocusSchema = z
+  .object({
+    scope: z.enum(['all', 'question', 'part']),
+    questionLabel: z.string().trim().min(1).max(100).optional(),
+    partLabel: z.string().trim().min(1).max(100).optional(),
+    focusText: z.string().trim().max(20000).optional(),
+    contextText: z.string().trim().max(60000).optional(),
+    siblingLabels: z.array(z.string().trim().min(1).max(100)).max(50).optional()
+  })
+  .strict()
+  .superRefine((focus, ctx) => {
+    if (!focus.questionLabel) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['questionLabel'],
+        message: 'questionLabel is required when a focus is provided'
+      });
+    }
+    if (focus.scope === 'part' && !focus.partLabel) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['partLabel'],
+        message: 'partLabel is required for part focus'
+      });
+    }
+  });
+
+const parseSolveFocus = (
+  value: unknown
+): { success: true; data?: SolveFocus } | { success: false; error: string } => {
+  if (value === undefined || value === null) {
+    return { success: true, data: undefined };
+  }
+
+  const parsed = solveFocusSchema.safeParse(value);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues.map(issue => issue.message).join('; ')
+    };
+  }
+
+  return { success: true, data: parsed.data };
+};
 
 
 
@@ -567,6 +613,12 @@ export const generateSolution = async (req: Request, res: Response): Promise<voi
       return;
     }
 
+    const focusResult = parseSolveFocus(req.body?.focus);
+    if (!focusResult.success) {
+      res.status(400).json({ success: false, error: focusResult.error });
+      return;
+    }
+
     // Fetch the problem
     const problem = await prisma.problem.findFirst({
       where: { id, userId },
@@ -594,7 +646,8 @@ export const generateSolution = async (req: Request, res: Response): Promise<voi
           problemId: id,
           problemText: problem.description,
           subject: problem.subject,
-          difficulty: problem.difficulty
+          difficulty: problem.difficulty,
+          focus: focusResult.data as any
         }
       }
     });
@@ -632,7 +685,7 @@ export const generateSolution = async (req: Request, res: Response): Promise<voi
         subject: problem.subject,
         difficulty: problem.difficulty || 'medium',
         imageData: imageData && imageData.length > 0 ? imageData : undefined,
-        focus: req.body?.focus
+        focus: focusResult.data
       });
 
       // Save solution to database
@@ -737,6 +790,12 @@ export const generateHints = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    const focusResult = parseSolveFocus(req.body?.focus);
+    if (!focusResult.success) {
+      res.status(400).json({ success: false, error: focusResult.error });
+      return;
+    }
+
     // Fetch the problem
     const problem = await prisma.problem.findFirst({
       where: { id, userId },
@@ -765,7 +824,8 @@ export const generateHints = async (req: Request, res: Response): Promise<void> 
         input: {
           problemId: id,
           problemText: problem.description,
-          subject: problem.subject
+          subject: problem.subject,
+          focus: focusResult.data as any
         }
       }
     });
@@ -798,7 +858,7 @@ export const generateHints = async (req: Request, res: Response): Promise<void> 
         difficulty: problem.difficulty || 'medium',
         options,
         imageData: imageData && imageData.length > 0 ? imageData : undefined,
-        focus: req.body?.focus
+        focus: focusResult.data
       });
 
       // Validate hints structure before saving
@@ -904,6 +964,12 @@ export const generateConceptNotes = async (req: Request, res: Response): Promise
       return;
     }
 
+    const focusResult = parseSolveFocus(req.body?.focus);
+    if (!focusResult.success) {
+      res.status(400).json({ success: false, error: focusResult.error });
+      return;
+    }
+
     // Fetch the problem
     const problem = await prisma.problem.findFirst({
       where: { id, userId },
@@ -932,7 +998,8 @@ export const generateConceptNotes = async (req: Request, res: Response): Promise
         input: {
           problemId: id,
           problemText: problem.description,
-          subject: problem.subject
+          subject: problem.subject,
+          focus: focusResult.data as any
         }
       }
     });
@@ -965,7 +1032,7 @@ export const generateConceptNotes = async (req: Request, res: Response): Promise
         difficulty: problem.difficulty || 'medium',
         options,
         imageData: imageData && imageData.length > 0 ? imageData : undefined,
-        focus: req.body?.focus
+        focus: focusResult.data
       });
 
       // Validate and save concept notes to the database

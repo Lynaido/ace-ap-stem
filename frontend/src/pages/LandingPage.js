@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import HeroSection from '../components/home/HeroSection';
 
@@ -9,6 +9,7 @@ import Testimonials from '../components/home/Testimonials';
 import FaqSection from '../components/home/FaqSection';
 import CtaBanner from '../components/home/CtaBanner';
 
+const MascotShowcase = lazy(() => import('../components/home/MascotShowcase'));
 
 const LandingPage = () => {
   const location = useLocation();
@@ -29,6 +30,9 @@ const LandingPage = () => {
   return (
     <>
       <HeroSection />
+      <Suspense fallback={<div style={{ minHeight: '640px', background: '#fff7ed' }} aria-hidden="true" />}>
+        <MascotShowcase />
+      </Suspense>
       <HowItWorks />
       <FeatureCards />
       <Testimonials />

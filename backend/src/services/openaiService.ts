@@ -480,8 +480,10 @@ export const detectProblemStructure = async (params: {
     const hasImages = !!imageData?.length;
     logger.info('Detecting problem structure with OpenAI', { subject, hasImages });
 
-    // Vision needed to read an image; a cheap text model is enough for typed problems.
-    const model = hasImages ? 'gpt-4o' : 'gpt-4o-mini';
+    // Keep structure detection on the cost-efficient multimodal model for both
+    // typed and image problems. The full generation calls still choose their
+    // model independently based on task complexity.
+    const model = 'gpt-4o-mini';
     const prompt = createStructurePrompt(problemText);
 
     const userMessage: any = hasImages
@@ -593,7 +595,7 @@ const parseStructureResponse = (
   try {
     const cleaned = jsonContent
       .trim()
-      .replace(/[ ---]+/g, '')
+      .replace(/[\u0000-\u0008\u000b-\u000c\u000e-\u001f\u007f]+/g, '')
       .replace(/,\s*([}\]])/g, '$1')
       .replace(/^﻿/, '');
     const parsed = JSON.parse(cleaned);
