@@ -3,3 +3,11 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+import { TextDecoder, TextEncoder } from 'util';
+
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
+window.scrollTo = jest.fn();
+window.HTMLMediaElement.prototype.play = jest.fn(() => Promise.resolve());
+window.HTMLMediaElement.prototype.pause = jest.fn();

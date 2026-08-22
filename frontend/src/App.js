@@ -1,12 +1,14 @@
 import React, { useEffect } from 'react';
 import './styles/main.css';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AppProvider } from './context/AppContext';
+import { AppProvider, useAppContext } from './context/AppContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import AuthLoading from './components/AuthLoading';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import LandingPage from './pages/LandingPage';
+import DashboardPage from './pages/DashboardPage';
 import SolveProblemsPage from './pages/SolveProblemsPage';
 import TutorPage from './pages/TutorPage';
 import NotesHubPage from './pages/NotesHubPage';
@@ -36,6 +38,16 @@ function ScrollToTop() {
   return null;
 }
 
+function HomePage() {
+  const { isAuthenticated, isAuthLoading } = useAppContext();
+
+  if (isAuthLoading) {
+    return <AuthLoading />;
+  }
+
+  return isAuthenticated ? <DashboardPage /> : <LandingPage />;
+}
+
 function App() {
   return (
     <AppProvider>
@@ -44,7 +56,8 @@ function App() {
         <Header />
         <main>
           <Routes>
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/solve-problems" element={<ProtectedRoute><SolveProblemsPage /></ProtectedRoute>} />
             <Route path="/tutor" element={<TutorPage />} />
             <Route path="/notes-hub" element={<ProtectedRoute><NotesHubPage /></ProtectedRoute>} />

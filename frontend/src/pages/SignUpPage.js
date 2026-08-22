@@ -99,8 +99,7 @@ const SignUpPage = () => {
       setErrors({});
       setIsSubmitting(false);
 
-      // Navigate to dashboard or home
-      navigate('/');
+      navigate('/dashboard', { replace: true });
     } catch (error) {
       setErrors({ general: error.message || 'Registration failed. Please try again.' });
       setIsSubmitting(false);

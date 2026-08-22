@@ -67,6 +67,12 @@ const SolveProblemsPage = () => {
   const [showPartSelector, setShowPartSelector] = useState(false);
   const [isDetecting, setIsDetecting] = useState(false);
 
+  useEffect(() => () => {
+    if (uploadedImage?.previewUrl) {
+      URL.revokeObjectURL(uploadedImage.previewUrl);
+    }
+  }, [uploadedImage]);
+
   // Load folders on mount
   useEffect(() => {
     const loadFolders = async () => {
@@ -182,6 +188,8 @@ const SolveProblemsPage = () => {
   const handleImageUpload = () => {
     setInputMode('upload');
     setProblemText('');
+    setUploadedImage(null);
+    setUploadedAsset(null);
     setActiveView(null);
     setProblemViewVisible(false);
     setIsSolving(false);
@@ -199,6 +207,8 @@ const SolveProblemsPage = () => {
   const handleTypeProblem = () => {
     setInputMode('text');
     setProblemText('');
+    setUploadedImage(null);
+    setUploadedAsset(null);
     setActiveView(null);
     setProblemViewVisible(false);
     setIsSolving(false);
@@ -208,30 +218,27 @@ const SolveProblemsPage = () => {
   };
 
   const handleFileUpload = async (event) => {
-    const files = Array.from(event.target.files);
+    const file = event.target.files?.[0];
+    if (!file) return;
     setIsUploading(true);
     setUploadedImage(null); // Clear previous image
+    setUploadedAsset(null);
     resetSelection(); // A new file means a new problem to detect
 
     try {
-      for (const file of files) {
-        // Validate file type
-        if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-          throw new Error('Only images and PDF files are allowed');
-        }
-
-        // Validate file size (10MB limit)
-        if (file.size > 10 * 1024 * 1024) {
-          throw new Error('File size must be less than 10MB');
-        }
-
-        // Create a preview URL
-        const previewUrl = URL.createObjectURL(file);
-        setUploadedImage({ file, previewUrl });
-
-        const asset = await uploadFile(file, null, `Upload for problem: ${trimmedProblem.substring(0, 50)}...`);
-        setUploadedAsset(asset);
+      if (!file.type.startsWith('image/')) {
+        throw new Error('Only image files are allowed');
       }
+
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error('File size must be less than 10MB');
+      }
+
+      const previewUrl = URL.createObjectURL(file);
+      setUploadedImage({ file, previewUrl });
+
+      const asset = await uploadFile(file, null, `Upload for problem: ${file.name}`);
+      setUploadedAsset(asset);
 
       // Clear the file input
       event.target.value = '';
@@ -599,8 +606,7 @@ const SolveProblemsPage = () => {
                     <input
                       type="file"
                       id="file-upload"
-                      multiple
-                      accept="image/*,.pdf"
+                      accept="image/*"
                       onChange={handleFileUpload}
                       disabled={isBusy}
                       style={{ display: 'none' }}
@@ -640,7 +646,7 @@ const SolveProblemsPage = () => {
                             </svg>
                           </div>
                           <p className="drop-title">Click to upload an image or drag and drop</p>
-                          <p className="drop-hint">PNG, JPG or PDF up to 10MB</p>
+                          <p className="drop-hint">PNG or JPG up to 10MB</p>
                         </div>
                       )}
                     </div>

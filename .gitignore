@@ -19,6 +19,7 @@ backend/build/
 
 # Environment variables (actual files with secrets)
 .env
+.env.docker
 .env.local
 .env.development
 .env.development.local
@@ -32,6 +33,8 @@ backend/.env.development.local
 backend/.env.test.local
 backend/.env.production
 backend/.env.production.local
+backend/.env.supabase.backup
+backend/.env.*.backup
 
 # Docker local override (optional - if you want to keep API key private)
 # Uncomment the line below if you don't want to commit your OpenAI key
@@ -119,3 +122,6 @@ public/uploads/
 # Miscellaneous
 *.tgz
 *.tar.gz
+
+.vercel/
+.railway/
