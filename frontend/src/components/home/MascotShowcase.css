@@ -4,23 +4,23 @@
   --mascot-border: #fed7aa;
   --mascot-ink: #292524;
   --mascot-muted: #6b625d;
-  padding: clamp(4.5rem, 8vw, 7.5rem) 1rem;
+  padding: clamp(4.25rem, 7vw, 6.75rem) 1rem;
   background: #fff8f1;
   color: var(--mascot-ink);
   overflow: hidden;
 }
 
 .mascot-showcase__container {
-  width: min(1220px, 100%);
+  width: min(1240px, 100%);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
-  gap: clamp(2.75rem, 6vw, 6rem);
+  grid-template-columns: minmax(320px, 0.86fr) minmax(0, 1.14fr);
+  gap: clamp(2.5rem, 5vw, 4.8rem);
   align-items: center;
 }
 
 .mascot-showcase__copy {
-  max-width: 520px;
+  max-width: 545px;
 }
 
 .mascot-showcase__eyebrow {
@@ -34,11 +34,11 @@
 
 .mascot-showcase__copy h2 {
   margin: 0;
-  max-width: 12ch;
+  max-width: 15ch;
   color: var(--mascot-ink);
-  font-size: clamp(2.35rem, 4.6vw, 4.35rem);
-  line-height: 1.01;
-  letter-spacing: -0.048em;
+  font-size: clamp(2.45rem, 4.1vw, 3.75rem);
+  line-height: 1.03;
+  letter-spacing: -0.043em;
 }
 
 .mascot-showcase__copy > p:not(.mascot-showcase__eyebrow) {
@@ -75,17 +75,22 @@
 
 .mascot-showcase__experience {
   min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--mascot-border);
+  border-radius: 1.45rem;
+  background: #fffdf9;
+  box-shadow: 0 32px 74px -44px rgba(124, 45, 18, 0.52);
 }
 
 .mascot-stage {
   position: relative;
   width: 100%;
-  min-height: 580px;
+  min-height: 510px;
   overflow: hidden;
-  border: 1px solid var(--mascot-border);
-  border-radius: 1.5rem 1.5rem 0.85rem 0.85rem;
+  border: 0;
+  border-radius: 0;
   background: #fffdf9;
-  box-shadow: 0 30px 70px -42px rgba(124, 45, 18, 0.46);
+  box-shadow: none;
   isolation: isolate;
   transition: border-color 280ms ease, background-color 280ms ease;
 }
@@ -93,7 +98,7 @@
 .mascot-stage::before {
   content: '';
   position: absolute;
-  inset: 11% 12% 13%;
+  inset: 10% 13% 12%;
   z-index: -1;
   border-radius: 50%;
   background: #ffedd5;
@@ -115,7 +120,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 580px;
+  min-height: 510px;
   touch-action: none;
   cursor: grab;
 }
@@ -211,19 +216,19 @@
 
 .mascot-controls {
   position: relative;
-  margin: 0 0.75rem;
-  padding: 1.35rem 1.4rem 1.45rem;
-  border: 1px solid var(--mascot-border);
-  border-top: 0;
-  border-radius: 0 0 1.3rem 1.3rem;
+  margin: 0;
+  padding: 1.25rem 1.35rem 1.4rem;
+  border: 0;
+  border-top: 1px solid var(--mascot-border);
+  border-radius: 0;
   background: #fffdf9;
-  box-shadow: 0 26px 60px -46px rgba(124, 45, 18, 0.55);
+  box-shadow: none;
 }
 
 .mascot-controls__heading {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(190px, 0.8fr);
-  gap: 1rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1.25rem;
   align-items: start;
 }
 
@@ -242,13 +247,30 @@
 }
 
 .mascot-controls__status {
-  min-height: 2.8em;
-  padding-left: 0.9rem;
-  border-left: 2px solid #fb923c;
+  position: relative;
+  box-sizing: border-box;
+  max-width: 260px;
+  min-height: 0;
+  padding: 0.55rem 0.7rem 0.55rem 1.65rem;
+  border: 1px solid #ffedd5;
+  border-radius: 0.75rem;
+  background: #fff8f1;
   color: #7c2d12;
   font-size: 0.78rem;
   font-weight: 650;
   line-height: 1.4;
+}
+
+.mascot-controls__status::before {
+  content: '';
+  position: absolute;
+  top: 0.82rem;
+  left: 0.72rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #f97316;
+  box-shadow: 0 0 0 4px #ffedd5;
 }
 
 .mascot-controls__group {
@@ -271,23 +293,19 @@
 .mascot-outfit-picker,
 .mascot-mood-picker,
 .mascot-action-picker {
-  display: flex;
+  display: grid;
   gap: 0.55rem;
 }
 
 .mascot-outfit-picker {
-  padding: 0.15rem 0.1rem 0.55rem;
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
-  scrollbar-width: thin;
-  scrollbar-color: #fdba74 transparent;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .mascot-choice,
 .mascot-action {
-  flex: 0 0 auto;
+  width: 100%;
   min-height: 2.35rem;
-  padding: 0.64rem 0.82rem;
+  padding: 0.62rem 0.6rem;
   border: 1px solid var(--mascot-border);
   border-radius: 0.7rem;
   background: #fffaf5;
@@ -296,9 +314,8 @@
   font-size: 0.8rem;
   font-weight: 720;
   line-height: 1;
-  white-space: nowrap;
+  white-space: normal;
   cursor: pointer;
-  scroll-snap-align: start;
   transition: transform 160ms ease, background-color 160ms ease, color 160ms ease,
     border-color 160ms ease, box-shadow 160ms ease;
 }
@@ -336,12 +353,16 @@
 
 .mascot-controls__lower {
   display: grid;
-  grid-template-columns: minmax(220px, 0.8fr) minmax(300px, 1.2fr);
+  grid-template-columns: minmax(210px, 0.85fr) minmax(310px, 1.15fr);
   gap: 1.15rem;
 }
 
 .mascot-action-picker {
-  flex-wrap: wrap;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mascot-mood-picker {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .mascot-action {
@@ -361,12 +382,16 @@
   }
 
   .mascot-showcase__copy h2 {
-    max-width: 15ch;
+    max-width: 17ch;
   }
 
   .mascot-stage,
   .mascot-stage__canvas {
-    min-height: 560px;
+    min-height: 520px;
+  }
+
+  .mascot-showcase__notes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -376,8 +401,8 @@
   }
 
   .mascot-showcase__copy h2 {
-    max-width: 13ch;
-    font-size: clamp(2.15rem, 11vw, 3.25rem);
+    max-width: 15ch;
+    font-size: clamp(2.15rem, 10vw, 3.15rem);
   }
 
   .mascot-showcase__notes {
@@ -386,15 +411,14 @@
 
   .mascot-stage,
   .mascot-stage__canvas {
-    min-height: 470px;
+    min-height: 460px;
   }
 
-  .mascot-stage {
-    border-radius: 1.15rem 1.15rem 0.7rem 0.7rem;
+  .mascot-showcase__experience {
+    border-radius: 1.15rem;
   }
 
   .mascot-controls {
-    margin: 0 0.35rem;
     padding: 1.2rem 1rem 1.25rem;
   }
 
@@ -403,8 +427,23 @@
     grid-template-columns: 1fr;
   }
 
+  .mascot-controls__heading {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
   .mascot-controls__status {
+    width: 100%;
     min-height: auto;
+    max-width: none;
+  }
+
+  .mascot-showcase__notes {
+    grid-template-columns: 1fr;
+  }
+
+  .mascot-outfit-picker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .mascot-stage__hint {
@@ -416,12 +455,6 @@
   .mascot-stage,
   .mascot-stage__canvas {
     min-height: 420px;
-  }
-
-  .mascot-mood-picker,
-  .mascot-action-picker {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .mascot-choice,
