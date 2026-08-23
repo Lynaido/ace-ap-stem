@@ -6,22 +6,50 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import './MascotShowcase.css';
 
 export const OUTFITS = [
-  { id: 'hoodie', label: 'Hoodie', type: 'glb', url: '/mascot/outfits/hoodie.glb', unitScale: 100 },
-  { id: 'doctor', label: 'Doctor', type: 'glb', url: '/mascot/outfits/doctor.glb', unitScale: 100 },
-  { id: 'classic', label: 'Classic', type: 'glb', url: '/mascot/outfits/classic.glb', unitScale: 100, showBaseArms: true },
-  { id: 'artist', label: 'Artist', type: 'glb', url: '/mascot/outfits/artist.glb', unitScale: 100, showBaseArms: true },
-  { id: 'cloak', label: 'Cloak', type: 'glb', url: '/mascot/outfits/cloak.glb', unitScale: 100 },
-  { id: 'wizard', label: 'Wizard', type: 'glb', url: '/mascot/outfits/wizard.glb', unitScale: 100 },
+  {
+    id: 'hoodie', label: 'Hoodie', type: 'glb', url: '/mascot/outfits/hoodie.glb', unitScale: 100,
+    armPose: { shoulderX: 16.1, shoulderY: 19.45, outerMin: 45 },
+  },
+  {
+    id: 'doctor', label: 'Doctor', type: 'glb', url: '/mascot/outfits/doctor.glb', unitScale: 100,
+    armPose: { shoulderX: 19, shoulderY: 18.8, outerMin: 45 },
+  },
+  {
+    id: 'classic', label: 'Classic', type: 'glb', url: '/mascot/outfits/classic.glb', unitScale: 100,
+    showBaseArms: true, armPose: { shoulderX: 19, shoulderY: 18.6, outerMin: 24 },
+  },
+  {
+    id: 'artist', label: 'Artist', type: 'glb', url: '/mascot/outfits/artist.glb', unitScale: 100,
+    showBaseArms: true, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 24 },
+  },
+  {
+    id: 'cloak', label: 'Cloak', type: 'glb', url: '/mascot/outfits/cloak.glb', unitScale: 100,
+    armPose: { shoulderX: 16.3, shoulderY: 19.45, outerMin: 45 },
+  },
+  {
+    id: 'wizard', label: 'Wizard', type: 'glb', url: '/mascot/outfits/wizard.glb', unitScale: 100,
+    armPose: { shoulderX: 15.3, shoulderY: 15.25, outerMin: 45 },
+  },
   {
     id: 'graduation',
     label: 'Graduation',
     type: 'fbx',
     url: '/mascot/outfits/graduation/graduation.fbx',
     unitScale: 1,
+    armPose: { shoulderX: 21.1, shoulderY: 18.8, outerMin: 45 },
   },
-  { id: 'activewear', label: 'Activewear', type: 'glb', url: '/mascot/outfits/activewear.glb', unitScale: 100, showBaseArms: true },
-  { id: 'vest', label: 'Vest', type: 'glb', url: '/mascot/outfits/vest.glb', unitScale: 100 },
-  { id: 'long-vest', label: 'Long vest', type: 'glb', url: '/mascot/outfits/long-vest.glb', unitScale: 100 },
+  {
+    id: 'activewear', label: 'Activewear', type: 'glb', url: '/mascot/outfits/activewear.glb', unitScale: 100,
+    armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 45 },
+  },
+  {
+    id: 'vest', label: 'Vest', type: 'glb', url: '/mascot/outfits/vest.glb', unitScale: 100,
+    armPose: { shoulderX: 18.3, shoulderY: 18.6, outerMin: 45 },
+  },
+  {
+    id: 'long-vest', label: 'Long vest', type: 'glb', url: '/mascot/outfits/long-vest.glb', unitScale: 100,
+    armPose: { shoulderX: 19.3, shoulderY: 18.3, outerMin: 43 },
+  },
 ];
 
 const MOODS = [
@@ -178,38 +206,331 @@ const createStaticMesh = (node, geometry, name) => {
   return mesh;
 };
 
+const REST_ARM_ANGLES = {
+  left: THREE.MathUtils.degToRad(30),
+  right: THREE.MathUtils.degToRad(-34),
+};
+
+const ACTION_ARM_ANGLES = {
+  hello: { left: REST_ARM_ANGLES.left, right: THREE.MathUtils.degToRad(48) },
+  focus: { left: THREE.MathUtils.degToRad(37), right: THREE.MathUtils.degToRad(-39) },
+  celebrate: { left: THREE.MathUtils.degToRad(-28), right: THREE.MathUtils.degToRad(28) },
+};
+
+const getAttributeValue = (attribute, index, item) => {
+  if (item === 0) return attribute.getX(index);
+  if (item === 1) return attribute.getY(index);
+  if (item === 2) return attribute.getZ(index);
+  return attribute.getW(index);
+};
+
+const getTriangleMaterialIndex = (geometry, triangle) => {
+  if (!geometry.groups.length) return 0;
+  const offset = triangle * 3;
+  const group = geometry.groups.find(
+    (item) => offset >= item.start && offset < item.start + item.count
+  );
+  return group?.materialIndex || 0;
+};
+
+const createTriangleGeometry = (source, triangles) => {
+  if (!triangles.length) return null;
+
+  const geometry = new THREE.BufferGeometry();
+  const sourceIndex = source.getIndex();
+
+  Object.entries(source.attributes).forEach(([name, attribute]) => {
+    if (name === 'skinIndex' || name === 'skinWeight') return;
+    const values = new attribute.array.constructor(triangles.length * 3 * attribute.itemSize);
+    let cursor = 0;
+
+    triangles.forEach((triangle) => {
+      for (let corner = 0; corner < 3; corner += 1) {
+        const offset = (triangle * 3) + corner;
+        const vertex = sourceIndex ? sourceIndex.getX(offset) : offset;
+        for (let item = 0; item < attribute.itemSize; item += 1) {
+          values[cursor] = getAttributeValue(attribute, vertex, item);
+          cursor += 1;
+        }
+      }
+    });
+
+    geometry.setAttribute(
+      name,
+      new THREE.BufferAttribute(values, attribute.itemSize, attribute.normalized)
+    );
+  });
+
+  let groupStart = 0;
+  let groupMaterial = getTriangleMaterialIndex(source, triangles[0]);
+  triangles.forEach((triangle, index) => {
+    const materialIndex = getTriangleMaterialIndex(source, triangle);
+    if (materialIndex !== groupMaterial) {
+      geometry.addGroup(groupStart, (index * 3) - groupStart, groupMaterial);
+      groupStart = index * 3;
+      groupMaterial = materialIndex;
+    }
+  });
+  geometry.addGroup(groupStart, (triangles.length * 3) - groupStart, groupMaterial);
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+};
+
+const findArmTriangles = (node, armPose) => {
+  const geometry = node.geometry;
+  const positions = geometry.getAttribute('position');
+  const sourceIndex = geometry.getIndex();
+  const triangleCount = Math.floor((sourceIndex?.count || positions.count) / 3);
+  const parents = Array.from({ length: triangleCount }, (_, index) => index);
+  const positionOwners = new Map();
+  const point = new THREE.Vector3();
+
+  const find = (index) => {
+    let root = index;
+    while (parents[root] !== root) root = parents[root];
+    while (parents[index] !== index) {
+      const next = parents[index];
+      parents[index] = root;
+      index = next;
+    }
+    return root;
+  };
+
+  const union = (first, second) => {
+    const firstRoot = find(first);
+    const secondRoot = find(second);
+    if (firstRoot !== secondRoot) parents[secondRoot] = firstRoot;
+  };
+
+  const worldPoint = (triangle, corner) => {
+    const offset = (triangle * 3) + corner;
+    const vertex = sourceIndex ? sourceIndex.getX(offset) : offset;
+    return point.fromBufferAttribute(positions, vertex).applyMatrix4(node.matrixWorld);
+  };
+
+  for (let triangle = 0; triangle < triangleCount; triangle += 1) {
+    for (let corner = 0; corner < 3; corner += 1) {
+      const value = worldPoint(triangle, corner);
+      const key = `${Math.round(value.x * 1000)}:${Math.round(value.y * 1000)}:${Math.round(value.z * 1000)}`;
+      const owner = positionOwners.get(key);
+      if (owner === undefined) positionOwners.set(key, triangle);
+      else union(triangle, owner);
+    }
+  }
+
+  const components = new Map();
+  for (let triangle = 0; triangle < triangleCount; triangle += 1) {
+    const root = find(triangle);
+    if (!components.has(root)) {
+      components.set(root, {
+        triangles: [],
+        bounds: new THREE.Box3(
+          new THREE.Vector3(Infinity, Infinity, Infinity),
+          new THREE.Vector3(-Infinity, -Infinity, -Infinity)
+        ),
+      });
+    }
+    const component = components.get(root);
+    component.triangles.push(triangle);
+    for (let corner = 0; corner < 3; corner += 1) {
+      component.bounds.expandByPoint(worldPoint(triangle, corner));
+    }
+  }
+
+  const buckets = { body: [], left: [], right: [] };
+  components.forEach(({ triangles, bounds }) => {
+    const size = bounds.getSize(new THREE.Vector3());
+    const center = bounds.getCenter(new THREE.Vector3());
+    const rightSide = bounds.min.x > 12;
+    const leftSide = bounds.max.x < -12;
+    const outerX = rightSide ? bounds.max.x : leftSide ? Math.abs(bounds.min.x) : 0;
+    const isArm = (rightSide || leftSide)
+      && outerX >= armPose.outerMin
+      && size.x >= 3.5
+      && size.y <= 21
+      && size.z <= 18
+      && Math.abs(center.y - armPose.shoulderY) <= 8
+      && Math.abs(center.z) <= 4.5;
+
+    buckets[isArm ? (rightSide ? 'right' : 'left') : 'body'].push(...triangles);
+  });
+
+  // Some garments connect both sleeves through a shoulder yoke. In that case
+  // the connected component spans both sides, so cut only at the authored
+  // shoulder line and keep the central torso triangles in the body bucket.
+  ['left', 'right'].forEach((side) => {
+    if (buckets[side].length) return;
+    const sign = side === 'right' ? 1 : -1;
+    const bodyTriangles = [];
+
+    buckets.body.forEach((triangle) => {
+      const triangleBounds = new THREE.Box3(
+        new THREE.Vector3(Infinity, Infinity, Infinity),
+        new THREE.Vector3(-Infinity, -Infinity, -Infinity)
+      );
+      for (let corner = 0; corner < 3; corner += 1) {
+        triangleBounds.expandByPoint(worldPoint(triangle, corner));
+      }
+      const center = triangleBounds.getCenter(new THREE.Vector3());
+      const entirelyOnSide = sign > 0
+        ? triangleBounds.min.x >= armPose.shoulderX - 0.5
+        : triangleBounds.max.x <= -armPose.shoulderX + 0.5;
+      const inArmBand = entirelyOnSide
+        && Math.abs(center.y - armPose.shoulderY) <= 10.5
+        && Math.abs(center.z) <= 8;
+
+      if (inArmBand) buckets[side].push(triangle);
+      else bodyTriangles.push(triangle);
+    });
+
+    buckets.body = bodyTriangles;
+  });
+
+  Object.values(buckets).forEach((triangles) => triangles.sort((a, b) => a - b));
+  return buckets;
+};
+
+const copyMeshPresentation = (source, target) => {
+  target.name = source.name;
+  target.position.copy(source.position);
+  target.quaternion.copy(source.quaternion);
+  target.scale.copy(source.scale);
+  target.visible = source.visible;
+  target.renderOrder = source.renderOrder;
+  target.frustumCulled = source.frustumCulled;
+  target.castShadow = true;
+  target.receiveShadow = true;
+};
+
+const createOutfitArmRigs = (model, armPose) => {
+  const sourceMeshes = [];
+  model.traverse((node) => {
+    if (node.isMesh && node.geometry?.getAttribute('position')) sourceMeshes.push(node);
+  });
+  model.updateMatrixWorld(true);
+
+  const rigs = {};
+  ['left', 'right'].forEach((side) => {
+    const sign = side === 'right' ? 1 : -1;
+    const rig = new THREE.Group();
+    rig.name = `ACE-${side}-outfit-shoulder`;
+    model.add(rig);
+    model.updateMatrixWorld(true);
+    rig.position.copy(model.worldToLocal(new THREE.Vector3(
+      sign * armPose.shoulderX,
+      armPose.shoulderY,
+      armPose.shoulderZ || 0
+    )));
+    rigs[side] = rig;
+  });
+  model.updateMatrixWorld(true);
+
+  sourceMeshes.forEach((node) => {
+    const buckets = findArmTriangles(node, armPose);
+    if (!buckets.left.length && !buckets.right.length) return;
+
+    const sourceGeometry = node.geometry;
+    ['left', 'right'].forEach((side) => {
+      const sleeveGeometry = createTriangleGeometry(sourceGeometry, buckets[side]);
+      if (!sleeveGeometry) return;
+      const sleeve = new THREE.Mesh(sleeveGeometry, cloneMaterial(node.material));
+      copyMeshPresentation(node, sleeve);
+      sleeve.name = `${node.name}-${side}-sleeve`;
+      node.parent.add(sleeve);
+      model.updateMatrixWorld(true);
+      rigs[side].attach(sleeve);
+    });
+
+    const bodyGeometry = createTriangleGeometry(sourceGeometry, buckets.body);
+    if (bodyGeometry) node.geometry = bodyGeometry;
+    else node.visible = false;
+    sourceGeometry.dispose();
+  });
+
+  model.userData.armRigs = rigs;
+  return rigs;
+};
+
+const createSkinMaterial = (hand) => {
+  const source = Array.isArray(hand.material) ? hand.material[0] : hand.material;
+  return new THREE.MeshStandardMaterial({
+    color: source?.color?.clone() || new THREE.Color(0xd8c9ef),
+    roughness: Number.isFinite(source?.roughness) ? source.roughness : 0.62,
+    metalness: Number.isFinite(source?.metalness) ? source.metalness : 0.02,
+  });
+};
+
 const addArmAndHand = (model, hand, side) => {
   hand.geometry.computeBoundingBox();
-  const handSize = hand.geometry.boundingBox.getSize(new THREE.Vector3()).multiply(hand.scale);
-  const innerHandX = Math.abs(hand.position.x) - (handSize.x / 2);
-  const shoulderX = 10;
-  const armEndX = Math.max(shoulderX + 16, innerHandX + 2);
-  const radius = 6.5;
-  const totalLength = armEndX - shoulderX;
+  const sign = side === 'right' ? 1 : -1;
+  const handCenter = hand.position.clone();
+  const shoulderX = 19;
+  const shoulderY = 18.6;
+  const armStartX = 24.5;
+  const armEndX = 50.5;
+  const radius = 5.1;
+  const totalLength = armEndX - armStartX;
+  const shoulder = new THREE.Group();
+  shoulder.name = `ACE-${side}-shoulder`;
+  shoulder.position.set(sign * shoulderX, shoulderY, 0);
+  model.add(shoulder);
+
   const arm = new THREE.Mesh(
     new THREE.CapsuleGeometry(radius, Math.max(4, totalLength - (radius * 2)), 8, 16),
-    new THREE.MeshStandardMaterial({ color: 0xd8c9ef, roughness: 0.62, metalness: 0.02 })
+    createSkinMaterial(hand)
   );
   arm.name = `ACE-${side}-arm`;
-  arm.rotation.z = Math.PI / 2;
+  arm.rotation.z = sign * -Math.PI / 2;
   arm.position.set(
-    (side === 'right' ? 1 : -1) * ((shoulderX + armEndX) / 2),
-    hand.position.y,
-    hand.position.z - 2
+    sign * (((armStartX + armEndX) / 2) - shoulderX),
+    handCenter.y - shoulderY - 0.7,
+    handCenter.z - 1.5
   );
   arm.castShadow = true;
   arm.receiveShadow = true;
   arm.visible = false;
-  model.add(arm);
+  shoulder.add(arm);
 
-  const pivot = new THREE.Group();
-  pivot.name = `ACE-${side}-hand-pivot`;
-  pivot.position.copy(hand.position);
-  hand.position.set(0, 0, 0);
-  model.remove(hand);
-  pivot.add(hand);
-  model.add(pivot);
-  return { arm, pivot };
+  const wrist = new THREE.Group();
+  wrist.name = `ACE-${side}-wrist`;
+  wrist.position.copy(handCenter).sub(shoulder.position);
+  shoulder.add(wrist);
+  model.updateMatrixWorld(true);
+  wrist.attach(hand);
+
+  return { arm, shoulder, wrist, handCenter };
+};
+
+const configureBaseArmRigs = (model, outfit) => {
+  const rigs = model?.userData.armRigs;
+  if (!rigs) return;
+
+  ['left', 'right'].forEach((side) => {
+    const rig = rigs[side];
+    if (!rig) return;
+    const sign = side === 'right' ? 1 : -1;
+    const shoulderX = outfit.armPose.shoulderX;
+    const shoulderY = outfit.armPose.shoulderY;
+    rig.shoulder.position.set(sign * shoulderX, shoulderY, outfit.armPose.shoulderZ || 0);
+    rig.wrist.position.copy(rig.handCenter).sub(rig.shoulder.position);
+    rig.arm.position.set(
+      sign * (37.5 - shoulderX),
+      rig.handCenter.y - shoulderY - 0.7,
+      rig.handCenter.z - 1.5
+    );
+    rig.arm.visible = Boolean(outfit.showBaseArms);
+  });
+};
+
+const setArmPose = (model, angles, wristWave = 0) => {
+  const rigs = model?.userData.armRigs;
+  if (!rigs) return;
+  if (rigs.left?.shoulder) rigs.left.shoulder.rotation.z = angles.left;
+  else if (rigs.left) rigs.left.rotation.z = angles.left;
+  if (rigs.right?.shoulder) rigs.right.shoulder.rotation.z = angles.right;
+  else if (rigs.right) rigs.right.rotation.z = angles.right;
+  if (rigs.right?.wrist) rigs.right.wrist.rotation.z = wristWave;
 };
 
 // The supplied FBX contains vertices with more skinning weights than Three.js supports.
@@ -249,9 +570,8 @@ export const createWebReadyBase = (source) => {
   if (hands.left && hands.right) {
     const left = addArmAndHand(staticModel, hands.left, 'left');
     const right = addArmAndHand(staticModel, hands.right, 'right');
-    staticModel.userData.armMeshes = [left.arm, right.arm];
-    staticModel.userData.leftHandPivot = left.pivot;
-    staticModel.userData.rightHandPivot = right.pivot;
+    staticModel.userData.armRigs = { left, right };
+    setArmPose(staticModel, REST_ARM_ANGLES);
   }
   configureModel(staticModel);
   return staticModel;
@@ -269,6 +589,8 @@ const releaseSourceMeshes = (source) => {
 const prepareOutfitModel = (model, outfit) => {
   if (outfit.unitScale !== 1) model.scale.multiplyScalar(outfit.unitScale);
   model.name = `ACEOutfit-${outfit.id}`;
+  createOutfitArmRigs(model, outfit.armPose);
+  setArmPose(model, REST_ARM_ANGLES);
   configureModel(model);
   return model;
 };
@@ -310,7 +632,7 @@ const MascotShowcase = () => {
   const [outfitStatus, setOutfitStatus] = useState('idle');
   const [outfitProgress, setOutfitProgress] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
-  const [announcement, setAnnouncement] = useState('Choose an outfit or a mood for ACE.');
+  const [announcement, setAnnouncement] = useState('ACE is ready. Pick a look or mood.');
   const activeMoodRef = useRef(activeMoodId);
   activeMoodRef.current = activeMoodId;
 
@@ -468,9 +790,7 @@ const MascotShowcase = () => {
         model.visible = true;
         visibleOutfit = model;
         const baseModel = contentRoot.getObjectByName('ACEWebReadyBase');
-        baseModel?.userData.armMeshes?.forEach((arm) => {
-          arm.visible = Boolean(outfit.showBaseArms);
-        });
+        configureBaseArmRigs(baseModel, outfit);
         setOutfitStatus('ready');
         setOutfitProgress(null);
         setAnnouncement(`ACE is now wearing the ${outfit.label.toLowerCase()} outfit.`);
@@ -486,10 +806,12 @@ const MascotShowcase = () => {
       currentMood = moodId;
     };
 
-    const clock = new THREE.Clock();
+    const timer = new THREE.Timer();
+    timer.connect(document);
+    timer.update();
 
     const playAction = (actionId) => {
-      currentAction = { id: actionId, startedAt: clock.getElapsedTime() };
+      currentAction = { id: actionId, startedAt: timer.getElapsed() };
     };
 
     sceneApiRef.current = { showOutfit, setMood, playAction };
@@ -537,27 +859,40 @@ const MascotShowcase = () => {
       cheerful: { mouthX: 1.1, mouthZ: 0.72, eyesZ: 0.96 },
     };
 
-    renderer.setAnimationLoop(() => {
-      const elapsed = clock.getElapsedTime();
+    renderer.setAnimationLoop((timestamp) => {
+      timer.update(timestamp);
+      const elapsed = timer.getElapsed();
       let y = reduceMotion ? 0 : Math.sin(elapsed * 1.1) * 0.018;
       let tilt = reduceMotion ? 0 : Math.sin(elapsed * 0.68) * 0.008;
       let turn = 0;
+      const armAngles = { ...REST_ARM_ANGLES };
+      let wristWave = 0;
 
       if (currentAction && !reduceMotion) {
         const actionElapsed = elapsed - currentAction.startedAt;
-        const duration = currentAction.id === 'focus' ? 1.6 : 1.25;
+        const duration = currentAction.id === 'hello'
+          ? 3
+          : currentAction.id === 'focus'
+            ? 2.35
+            : 2.65;
         const progress = Math.min(1, Math.max(0, actionElapsed / duration));
-        const envelope = Math.sin(progress * Math.PI);
+        const envelope = Math.sin(progress * Math.PI) ** 2;
+        const targetAngles = ACTION_ARM_ANGLES[currentAction.id] || REST_ARM_ANGLES;
+        armAngles.left = THREE.MathUtils.lerp(REST_ARM_ANGLES.left, targetAngles.left, envelope);
+        armAngles.right = THREE.MathUtils.lerp(REST_ARM_ANGLES.right, targetAngles.right, envelope);
 
         if (currentAction.id === 'hello') {
-          tilt += Math.sin(progress * Math.PI * 5) * 0.085 * envelope;
-          turn += Math.sin(progress * Math.PI * 2) * 0.08 * envelope;
+          tilt -= 0.025 * envelope;
+          turn -= 0.055 * envelope;
+          wristWave = Math.sin(progress * Math.PI * 8) * 0.2 * envelope;
         } else if (currentAction.id === 'focus') {
-          y -= Math.sin(progress * Math.PI) * 0.055;
-          turn += Math.sin(progress * Math.PI * 2) * 0.035;
+          y -= 0.045 * envelope;
+          tilt += Math.sin(progress * Math.PI * 2) * 0.018 * envelope;
+          turn += 0.045 * envelope;
         } else if (currentAction.id === 'celebrate') {
-          y += Math.sin(progress * Math.PI * 3) * 0.12 * envelope;
-          turn += Math.sin(progress * Math.PI * 4) * 0.12 * envelope;
+          y += Math.abs(Math.sin(progress * Math.PI * 2)) * 0.095 * envelope;
+          tilt += Math.sin(progress * Math.PI * 4) * 0.028 * envelope;
+          turn += Math.sin(progress * Math.PI * 2) * 0.055 * envelope;
         }
 
         if (progress >= 1) currentAction = null;
@@ -568,14 +903,8 @@ const MascotShowcase = () => {
       companionRoot.rotation.y = turn;
 
       const baseModel = contentRoot.getObjectByName('ACEWebReadyBase');
-      const rightHandPivot = baseModel?.userData.rightHandPivot;
-      if (rightHandPivot) rightHandPivot.rotation.z = 0;
-      if (rightHandPivot && currentAction?.id === 'hello' && !reduceMotion) {
-        const actionElapsed = elapsed - currentAction.startedAt;
-        const progress = Math.min(1, Math.max(0, actionElapsed / 1.25));
-        const envelope = Math.sin(progress * Math.PI);
-        rightHandPivot.rotation.z = Math.sin(progress * Math.PI * 6) * 0.34 * envelope;
-      }
+      setArmPose(baseModel, armAngles, wristWave);
+      setArmPose(visibleOutfit, armAngles);
 
       const targets = baseModel?.userData.faceTargets;
       const mood = moodScale[currentMood] || moodScale.ready;
@@ -601,6 +930,7 @@ const MascotShowcase = () => {
       sceneApiRef.current = null;
       resizeObserver.disconnect();
       renderer.setAnimationLoop(null);
+      timer.dispose();
       controls.dispose();
       disposeModel(contentRoot);
       floor.geometry.dispose();
@@ -632,7 +962,7 @@ const MascotShowcase = () => {
     window.clearTimeout(announcementTimerRef.current);
     announcementTimerRef.current = window.setTimeout(
       () => setAnnouncement('ACE is ready for your next study step.'),
-      2200
+      3400
     );
   };
 
@@ -650,16 +980,16 @@ const MascotShowcase = () => {
     <section className="mascot-showcase" id="meet-ace" ref={sectionRef}>
       <div className="mascot-showcase__container">
         <div className="mascot-showcase__copy">
-          <p className="mascot-showcase__eyebrow">Your study companion</p>
-          <h2>Meet ACE. Make every study session feel more personal.</h2>
+          <p className="mascot-showcase__eyebrow">Your interactive study companion</p>
+          <h2>Meet ACE, your study companion.</h2>
           <p>
-            Choose an outfit, set ACE's mood, and share small moments of focus and progress.
-            Your choices stay ready for the next visit on this device.
+            Choose a look, set a mood, and let ACE respond as you focus, learn, and celebrate
+            progress. Your choices stay ready for the next visit on this device.
           </p>
           <div className="mascot-showcase__notes" aria-label="Mascot features">
-            <span>10 selectable outfits</span>
-            <span>Three moods and study reactions</span>
-            <span>Ready for future character designs</span>
+            <span>10 outfits fitted as one system</span>
+            <span>Natural idle and study reactions</span>
+            <span>Preferences saved on this device</span>
           </div>
         </div>
 
@@ -697,14 +1027,14 @@ const MascotShowcase = () => {
               </div>
             )}
 
-            <p className="mascot-stage__hint">Drag to rotate. Scroll to zoom.</p>
+            <p className="mascot-stage__hint">Drag to turn. Pinch or scroll to zoom.</p>
           </div>
 
           <div className="mascot-controls">
             <div className="mascot-controls__heading">
               <div>
                 <h3>Customize ACE</h3>
-                <p>Pick a look and a mood that fits today's study session.</p>
+                <p>Build a look and mood for today's study session.</p>
               </div>
               <span className="mascot-controls__status" aria-live="polite">{announcement}</span>
             </div>
