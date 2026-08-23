@@ -248,6 +248,7 @@
 
 .mascot-controls__status {
   position: relative;
+  box-sizing: border-box;
   max-width: 260px;
   min-height: 0;
   padding: 0.55rem 0.7rem 0.55rem 1.65rem;
