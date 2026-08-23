@@ -5,25 +5,53 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import './MascotShowcase.css';
 
-const OUTFITS = [
-  { id: 'hoodie', label: 'Hoodie', type: 'glb', url: '/mascot/outfits/hoodie.glb' },
-  { id: 'doctor', label: 'Doctor', type: 'glb', url: '/mascot/outfits/doctor.glb' },
-  { id: 'classic', label: 'Classic', type: 'glb', url: '/mascot/outfits/classic.glb' },
-  { id: 'artist', label: 'Artist', type: 'glb', url: '/mascot/outfits/artist.glb' },
-  { id: 'cloak', label: 'Cloak', type: 'glb', url: '/mascot/outfits/cloak.glb' },
-  { id: 'wizard', label: 'Wizard', type: 'glb', url: '/mascot/outfits/wizard.glb' },
+export const OUTFITS = [
+  { id: 'hoodie', label: 'Hoodie', type: 'glb', url: '/mascot/outfits/hoodie.glb', unitScale: 100 },
+  { id: 'doctor', label: 'Doctor', type: 'glb', url: '/mascot/outfits/doctor.glb', unitScale: 100 },
+  { id: 'classic', label: 'Classic', type: 'glb', url: '/mascot/outfits/classic.glb', unitScale: 100, showBaseArms: true },
+  { id: 'artist', label: 'Artist', type: 'glb', url: '/mascot/outfits/artist.glb', unitScale: 100, showBaseArms: true },
+  { id: 'cloak', label: 'Cloak', type: 'glb', url: '/mascot/outfits/cloak.glb', unitScale: 100 },
+  { id: 'wizard', label: 'Wizard', type: 'glb', url: '/mascot/outfits/wizard.glb', unitScale: 100 },
   {
     id: 'graduation',
     label: 'Graduation',
     type: 'fbx',
     url: '/mascot/outfits/graduation/graduation.fbx',
+    unitScale: 1,
   },
-  { id: 'activewear', label: 'Activewear', type: 'glb', url: '/mascot/outfits/activewear.glb' },
-  { id: 'vest', label: 'Vest', type: 'glb', url: '/mascot/outfits/vest.glb' },
-  { id: 'long-vest', label: 'Long vest', type: 'glb', url: '/mascot/outfits/long-vest.glb' },
+  { id: 'activewear', label: 'Activewear', type: 'glb', url: '/mascot/outfits/activewear.glb', unitScale: 100, showBaseArms: true },
+  { id: 'vest', label: 'Vest', type: 'glb', url: '/mascot/outfits/vest.glb', unitScale: 100 },
+  { id: 'long-vest', label: 'Long vest', type: 'glb', url: '/mascot/outfits/long-vest.glb', unitScale: 100 },
+];
+
+const MOODS = [
+  { id: 'ready', label: 'Ready' },
+  { id: 'curious', label: 'Curious' },
+  { id: 'cheerful', label: 'Cheerful' },
+];
+
+const ACTIONS = [
+  { id: 'hello', label: 'Say hello', message: 'ACE says hello and is ready to study with you.' },
+  { id: 'focus', label: 'Focus with me', message: 'ACE is settling in for a focused study session.' },
+  { id: 'celebrate', label: 'Celebrate', message: 'ACE is celebrating your progress.' },
 ];
 
 const DEFAULT_OUTFIT_ID = 'hoodie';
+const DEFAULT_MOOD_ID = 'ready';
+const PREFERENCES_KEY = 'ace-mascot-preferences-v1';
+
+const readPreferences = () => {
+  if (typeof window === 'undefined') return {};
+
+  try {
+    const preferences = JSON.parse(window.localStorage.getItem(PREFERENCES_KEY) || '{}');
+    return preferences && typeof preferences === 'object' ? preferences : {};
+  } catch (error) {
+    return {};
+  }
+};
+
+const isKnownPreference = (items, id) => items.some((item) => item.id === id);
 
 const configureModel = (model) => {
   model.traverse((node) => {
@@ -34,9 +62,7 @@ const configureModel = (model) => {
 
     const materials = Array.isArray(node.material) ? node.material : [node.material];
     materials.filter(Boolean).forEach((material) => {
-      if (material.map) {
-        material.map.colorSpace = THREE.SRGBColorSpace;
-      }
+      if (material.map) material.map.colorSpace = THREE.SRGBColorSpace;
       material.needsUpdate = true;
     });
   });
@@ -57,30 +83,252 @@ const disposeModel = (model) => {
   });
 };
 
-const loadOutfitModel = (outfit) => new Promise((resolve, reject) => {
+const cloneMaterial = (material) => {
+  if (Array.isArray(material)) return material.map((item) => item.clone());
+  return material?.clone();
+};
+
+const repairNeutralPoseGeometry = (node, geometry) => {
+  if (node.name !== 'polySurface1010') return geometry;
+
+  const positions = geometry.getAttribute('position');
+  if (!positions) return geometry;
+
+  for (let index = 0; index < positions.count; index += 1) {
+    // The two hand islands are the only vertices beyond this X range. Their
+    // approved neutral-pose data sits 14.5 cm above the outfit sleeves.
+    if (Math.abs(positions.getX(index)) > 0.45) {
+      positions.setZ(index, positions.getZ(index) - 0.145);
+    }
+  }
+
+  positions.needsUpdate = true;
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+};
+
+const splitHandGeometry = (geometry) => {
+  if (geometry.index || geometry.getAttribute('position').count % 3 !== 0) {
+    return [{ id: 'body', geometry }];
+  }
+
+  const attributes = Object.entries(geometry.attributes).filter(
+    ([name]) => name !== 'skinIndex' && name !== 'skinWeight'
+  );
+  const buckets = {
+    body: Object.fromEntries(attributes.map(([name]) => [name, []])),
+    leftHand: Object.fromEntries(attributes.map(([name]) => [name, []])),
+    rightHand: Object.fromEntries(attributes.map(([name]) => [name, []])),
+  };
+  const positions = geometry.getAttribute('position');
+
+  for (let triangle = 0; triangle < positions.count; triangle += 3) {
+    const centerX = (
+      positions.getX(triangle)
+      + positions.getX(triangle + 1)
+      + positions.getX(triangle + 2)
+    ) / 3;
+    const bucket = centerX < -0.45
+      ? buckets.leftHand
+      : centerX > 0.45
+        ? buckets.rightHand
+        : buckets.body;
+
+    attributes.forEach(([name, attribute]) => {
+      for (let vertex = triangle; vertex < triangle + 3; vertex += 1) {
+        for (let item = 0; item < attribute.itemSize; item += 1) {
+          bucket[name].push(attribute.array[(vertex * attribute.itemSize) + item]);
+        }
+      }
+    });
+  }
+
+  return Object.entries(buckets).map(([id, attributeValues]) => {
+    const part = new THREE.BufferGeometry();
+    attributes.forEach(([name, sourceAttribute]) => {
+      const values = new sourceAttribute.array.constructor(attributeValues[name]);
+      part.setAttribute(
+        name,
+        new THREE.BufferAttribute(values, sourceAttribute.itemSize, sourceAttribute.normalized)
+      );
+    });
+    part.computeBoundingBox();
+    part.computeBoundingSphere();
+    return { id, geometry: part };
+  });
+};
+
+const createStaticMesh = (node, geometry, name) => {
+  geometry.computeBoundingBox();
+  const localCenter = geometry.boundingBox.getCenter(new THREE.Vector3());
+  const worldCenter = localCenter.clone().applyMatrix4(node.matrixWorld);
+  const worldPosition = new THREE.Vector3();
+  const worldQuaternion = new THREE.Quaternion();
+  const worldScale = new THREE.Vector3();
+  node.matrixWorld.decompose(worldPosition, worldQuaternion, worldScale);
+  geometry.translate(-localCenter.x, -localCenter.y, -localCenter.z);
+
+  const mesh = new THREE.Mesh(geometry, cloneMaterial(node.material));
+  mesh.name = name;
+  mesh.visible = node.visible;
+  mesh.position.copy(worldCenter);
+  mesh.quaternion.copy(worldQuaternion);
+  mesh.scale.copy(worldScale);
+  return mesh;
+};
+
+const addArmAndHand = (model, hand, side) => {
+  hand.geometry.computeBoundingBox();
+  const handSize = hand.geometry.boundingBox.getSize(new THREE.Vector3()).multiply(hand.scale);
+  const innerHandX = Math.abs(hand.position.x) - (handSize.x / 2);
+  const shoulderX = 10;
+  const armEndX = Math.max(shoulderX + 16, innerHandX + 2);
+  const radius = 6.5;
+  const totalLength = armEndX - shoulderX;
+  const arm = new THREE.Mesh(
+    new THREE.CapsuleGeometry(radius, Math.max(4, totalLength - (radius * 2)), 8, 16),
+    new THREE.MeshStandardMaterial({ color: 0xd8c9ef, roughness: 0.62, metalness: 0.02 })
+  );
+  arm.name = `ACE-${side}-arm`;
+  arm.rotation.z = Math.PI / 2;
+  arm.position.set(
+    (side === 'right' ? 1 : -1) * ((shoulderX + armEndX) / 2),
+    hand.position.y,
+    hand.position.z - 2
+  );
+  arm.castShadow = true;
+  arm.receiveShadow = true;
+  arm.visible = false;
+  model.add(arm);
+
+  const pivot = new THREE.Group();
+  pivot.name = `ACE-${side}-hand-pivot`;
+  pivot.position.copy(hand.position);
+  hand.position.set(0, 0, 0);
+  model.remove(hand);
+  pivot.add(hand);
+  model.add(pivot);
+  return { arm, pivot };
+};
+
+// The supplied FBX contains vertices with more skinning weights than Three.js supports.
+// Converting the approved neutral pose to static meshes prevents the loader from dropping
+// hand weights and separating the hands from the body. Future rigged assets can replace
+// this adapter without changing the companion controls.
+export const createWebReadyBase = (source) => {
+  source.updateMatrixWorld(true);
+  const staticModel = new THREE.Group();
+  staticModel.name = 'ACEWebReadyBase';
+  const faceTargets = {};
+  const hands = {};
+
+  source.traverse((node) => {
+    if (!node.isMesh) return;
+
+    const geometry = repairNeutralPoseGeometry(node, node.geometry.clone());
+    const parts = node.name === 'polySurface1010'
+      ? splitHandGeometry(geometry)
+      : [{ id: 'body', geometry }];
+    if (node.name === 'polySurface1010' && parts.every((part) => part.geometry !== geometry)) {
+      geometry.dispose();
+    }
+
+    parts.forEach((part) => {
+      const mesh = createStaticMesh(node, part.geometry, `${node.name}-${part.id}`);
+      staticModel.add(mesh);
+
+      if (part.id === 'leftHand') hands.left = mesh;
+      if (part.id === 'rightHand') hands.right = mesh;
+      if (node.name === 'polySurface1008') faceTargets.mouth = mesh;
+      if (node.name === 'polySurface1007') faceTargets.eyes = mesh;
+    });
+  });
+
+  staticModel.userData.faceTargets = faceTargets;
+  if (hands.left && hands.right) {
+    const left = addArmAndHand(staticModel, hands.left, 'left');
+    const right = addArmAndHand(staticModel, hands.right, 'right');
+    staticModel.userData.armMeshes = [left.arm, right.arm];
+    staticModel.userData.leftHandPivot = left.pivot;
+    staticModel.userData.rightHandPivot = right.pivot;
+  }
+  configureModel(staticModel);
+  return staticModel;
+};
+
+const releaseSourceMeshes = (source) => {
+  source.traverse((node) => {
+    if (!node.isMesh) return;
+    node.geometry?.dispose();
+    const materials = Array.isArray(node.material) ? node.material : [node.material];
+    materials.filter(Boolean).forEach((material) => material.dispose());
+  });
+};
+
+const prepareOutfitModel = (model, outfit) => {
+  if (outfit.unitScale !== 1) model.scale.multiplyScalar(outfit.unitScale);
+  model.name = `ACEOutfit-${outfit.id}`;
+  configureModel(model);
+  return model;
+};
+
+const loadOutfitModel = (outfit, onProgress) => new Promise((resolve, reject) => {
   if (outfit.type === 'fbx') {
-    new FBXLoader().load(outfit.url, resolve, undefined, reject);
+    new FBXLoader().load(outfit.url, resolve, onProgress, reject);
     return;
   }
 
-  new GLTFLoader().load(outfit.url, (gltf) => resolve(gltf.scene), undefined, reject);
+  new GLTFLoader().load(outfit.url, (gltf) => resolve(gltf.scene), onProgress, reject);
 });
 
+const getProgress = (event) => {
+  if (!event?.lengthComputable || !event.total) return null;
+  return Math.min(100, Math.round((event.loaded / event.total) * 100));
+};
+
 const MascotShowcase = () => {
+  const initialPreferences = useMemo(readPreferences, []);
   const sectionRef = useRef(null);
   const stageRef = useRef(null);
   const canvasRef = useRef(null);
   const sceneApiRef = useRef(null);
+  const announcementTimerRef = useRef(null);
   const [shouldLoad, setShouldLoad] = useState(false);
-  const [activeOutfitId, setActiveOutfitId] = useState(DEFAULT_OUTFIT_ID);
+  const [sceneVersion, setSceneVersion] = useState(0);
+  const [activeOutfitId, setActiveOutfitId] = useState(
+    isKnownPreference(OUTFITS, initialPreferences.outfitId)
+      ? initialPreferences.outfitId
+      : DEFAULT_OUTFIT_ID
+  );
+  const [activeMoodId, setActiveMoodId] = useState(
+    isKnownPreference(MOODS, initialPreferences.moodId)
+      ? initialPreferences.moodId
+      : DEFAULT_MOOD_ID
+  );
   const [baseStatus, setBaseStatus] = useState('idle');
   const [outfitStatus, setOutfitStatus] = useState('idle');
+  const [outfitProgress, setOutfitProgress] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [announcement, setAnnouncement] = useState('Choose an outfit or a mood for ACE.');
+  const activeMoodRef = useRef(activeMoodId);
+  activeMoodRef.current = activeMoodId;
 
   const activeOutfit = useMemo(
     () => OUTFITS.find((outfit) => outfit.id === activeOutfitId) || OUTFITS[0],
     [activeOutfitId]
   );
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        PREFERENCES_KEY,
+        JSON.stringify({ outfitId: activeOutfitId, moodId: activeMoodId })
+      );
+    } catch (error) {
+      // Personalization still works for this visit when browser storage is unavailable.
+    }
+  }, [activeMoodId, activeOutfitId]);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -110,13 +358,18 @@ const MascotShowcase = () => {
 
     let disposed = false;
     let outfitRequest = 0;
+    let visibleOutfit = null;
+    let currentMood = activeMoodRef.current;
+    let currentAction = null;
     const stage = stageRef.current;
     const canvas = canvasRef.current;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const scene = new THREE.Scene();
-    const modelRoot = new THREE.Group();
+    const companionRoot = new THREE.Group();
+    const contentRoot = new THREE.Group();
     const outfitCache = new Map();
-    scene.add(modelRoot);
+    companionRoot.add(contentRoot);
+    scene.add(companionRoot);
 
     let renderer;
     try {
@@ -150,8 +403,6 @@ const MascotShowcase = () => {
     controls.minPolarAngle = Math.PI * 0.25;
     controls.maxPolarAngle = Math.PI * 0.72;
     controls.target.set(0, 0, 0);
-    controls.autoRotate = !reduceMotion;
-    controls.autoRotateSpeed = 0.65;
 
     scene.add(new THREE.HemisphereLight(0xffffff, 0xe2e8f0, 2.5));
 
@@ -193,51 +444,71 @@ const MascotShowcase = () => {
     const showOutfit = async (outfit) => {
       const requestId = ++outfitRequest;
       setOutfitStatus('loading');
-
-      outfitCache.forEach((model) => {
-        model.visible = false;
-      });
+      setOutfitProgress(null);
+      setErrorMessage('');
 
       try {
         let model = outfitCache.get(outfit.id);
         if (!model) {
-          model = await loadOutfitModel(outfit);
+          model = await loadOutfitModel(outfit, (event) => {
+            if (requestId === outfitRequest) setOutfitProgress(getProgress(event));
+          });
           if (disposed) {
             disposeModel(model);
             return;
           }
-          configureModel(model);
+          prepareOutfitModel(model, outfit);
           model.visible = false;
           outfitCache.set(outfit.id, model);
-          modelRoot.add(model);
+          contentRoot.add(model);
         }
 
         if (requestId !== outfitRequest) return;
+        if (visibleOutfit && visibleOutfit !== model) visibleOutfit.visible = false;
         model.visible = true;
+        visibleOutfit = model;
+        const baseModel = contentRoot.getObjectByName('ACEWebReadyBase');
+        baseModel?.userData.armMeshes?.forEach((arm) => {
+          arm.visible = Boolean(outfit.showBaseArms);
+        });
         setOutfitStatus('ready');
-        setErrorMessage('');
+        setOutfitProgress(null);
+        setAnnouncement(`ACE is now wearing the ${outfit.label.toLowerCase()} outfit.`);
       } catch (error) {
         if (requestId !== outfitRequest || disposed) return;
         setOutfitStatus('error');
+        setOutfitProgress(null);
         setErrorMessage(`Could not load the ${outfit.label.toLowerCase()} outfit.`);
       }
     };
 
-    sceneApiRef.current = { showOutfit };
+    const setMood = (moodId) => {
+      currentMood = moodId;
+    };
+
+    const clock = new THREE.Clock();
+
+    const playAction = (actionId) => {
+      currentAction = { id: actionId, startedAt: clock.getElapsedTime() };
+    };
+
+    sceneApiRef.current = { showOutfit, setMood, playAction };
     setBaseStatus('loading');
+    setOutfitStatus('idle');
 
     const baseLoader = new FBXLoader();
     baseLoader.setPath('/mascot/body/');
     baseLoader.load(
       'body_light_neon.fbx',
-      (model) => {
+      (source) => {
         if (disposed) {
-          disposeModel(model);
+          disposeModel(source);
           return;
         }
 
-        configureModel(model);
-        modelRoot.add(model);
+        const model = createWebReadyBase(source);
+        releaseSourceMeshes(source);
+        contentRoot.add(model);
 
         const bounds = new THREE.Box3().setFromObject(model);
         const size = bounds.getSize(new THREE.Vector3());
@@ -245,11 +516,12 @@ const MascotShowcase = () => {
 
         if (size.y > 0) {
           const scale = 2.6 / size.y;
-          modelRoot.scale.setScalar(scale);
-          modelRoot.position.set(-center.x * scale, -center.y * scale - 0.04, -center.z * scale);
+          contentRoot.scale.setScalar(scale);
+          contentRoot.position.set(-center.x * scale, -center.y * scale - 0.04, -center.z * scale);
         }
 
         setBaseStatus('ready');
+        setErrorMessage('');
       },
       undefined,
       () => {
@@ -259,7 +531,66 @@ const MascotShowcase = () => {
       }
     );
 
+    const moodScale = {
+      ready: { mouthX: 1, mouthZ: 1, eyesZ: 1 },
+      curious: { mouthX: 0.9, mouthZ: 0.86, eyesZ: 1.06 },
+      cheerful: { mouthX: 1.1, mouthZ: 0.72, eyesZ: 0.96 },
+    };
+
     renderer.setAnimationLoop(() => {
+      const elapsed = clock.getElapsedTime();
+      let y = reduceMotion ? 0 : Math.sin(elapsed * 1.1) * 0.018;
+      let tilt = reduceMotion ? 0 : Math.sin(elapsed * 0.68) * 0.008;
+      let turn = 0;
+
+      if (currentAction && !reduceMotion) {
+        const actionElapsed = elapsed - currentAction.startedAt;
+        const duration = currentAction.id === 'focus' ? 1.6 : 1.25;
+        const progress = Math.min(1, Math.max(0, actionElapsed / duration));
+        const envelope = Math.sin(progress * Math.PI);
+
+        if (currentAction.id === 'hello') {
+          tilt += Math.sin(progress * Math.PI * 5) * 0.085 * envelope;
+          turn += Math.sin(progress * Math.PI * 2) * 0.08 * envelope;
+        } else if (currentAction.id === 'focus') {
+          y -= Math.sin(progress * Math.PI) * 0.055;
+          turn += Math.sin(progress * Math.PI * 2) * 0.035;
+        } else if (currentAction.id === 'celebrate') {
+          y += Math.sin(progress * Math.PI * 3) * 0.12 * envelope;
+          turn += Math.sin(progress * Math.PI * 4) * 0.12 * envelope;
+        }
+
+        if (progress >= 1) currentAction = null;
+      }
+
+      companionRoot.position.y = y;
+      companionRoot.rotation.z = tilt;
+      companionRoot.rotation.y = turn;
+
+      const baseModel = contentRoot.getObjectByName('ACEWebReadyBase');
+      const rightHandPivot = baseModel?.userData.rightHandPivot;
+      if (rightHandPivot) rightHandPivot.rotation.z = 0;
+      if (rightHandPivot && currentAction?.id === 'hello' && !reduceMotion) {
+        const actionElapsed = elapsed - currentAction.startedAt;
+        const progress = Math.min(1, Math.max(0, actionElapsed / 1.25));
+        const envelope = Math.sin(progress * Math.PI);
+        rightHandPivot.rotation.z = Math.sin(progress * Math.PI * 6) * 0.34 * envelope;
+      }
+
+      const targets = baseModel?.userData.faceTargets;
+      const mood = moodScale[currentMood] || moodScale.ready;
+      if (targets?.mouth) {
+        const base = targets.mouth.userData.baseScale || targets.mouth.scale.clone();
+        targets.mouth.userData.baseScale = base;
+        targets.mouth.scale.x = THREE.MathUtils.lerp(targets.mouth.scale.x, base.x * mood.mouthX, 0.12);
+        targets.mouth.scale.z = THREE.MathUtils.lerp(targets.mouth.scale.z, base.z * mood.mouthZ, 0.12);
+      }
+      if (targets?.eyes) {
+        const base = targets.eyes.userData.baseScale || targets.eyes.scale.clone();
+        targets.eyes.userData.baseScale = base;
+        targets.eyes.scale.z = THREE.MathUtils.lerp(targets.eyes.scale.z, base.z * mood.eyesZ, 0.12);
+      }
+
       controls.update();
       renderer.render(scene, camera);
     });
@@ -271,12 +602,12 @@ const MascotShowcase = () => {
       resizeObserver.disconnect();
       renderer.setAnimationLoop(null);
       controls.dispose();
-      disposeModel(modelRoot);
+      disposeModel(contentRoot);
       floor.geometry.dispose();
       floor.material.dispose();
       renderer.dispose();
     };
-  }, [shouldLoad]);
+  }, [sceneVersion, shouldLoad]);
 
   useEffect(() => {
     if (sceneApiRef.current && baseStatus === 'ready') {
@@ -284,29 +615,60 @@ const MascotShowcase = () => {
     }
   }, [activeOutfit, baseStatus]);
 
+  useEffect(() => {
+    sceneApiRef.current?.setMood(activeMoodId);
+  }, [activeMoodId]);
+
+  useEffect(() => () => window.clearTimeout(announcementTimerRef.current), []);
+
+  const chooseMood = (mood) => {
+    setActiveMoodId(mood.id);
+    setAnnouncement(`ACE feels ${mood.label.toLowerCase()}.`);
+  };
+
+  const runAction = (action) => {
+    sceneApiRef.current?.playAction(action.id);
+    setAnnouncement(action.message);
+    window.clearTimeout(announcementTimerRef.current);
+    announcementTimerRef.current = window.setTimeout(
+      () => setAnnouncement('ACE is ready for your next study step.'),
+      2200
+    );
+  };
+
+  const retryScene = () => {
+    setErrorMessage('');
+    setBaseStatus('idle');
+    setOutfitStatus('idle');
+    setSceneVersion((version) => version + 1);
+  };
+
   const isLoading = baseStatus === 'loading' || outfitStatus === 'loading';
+  const controlsReady = baseStatus === 'ready';
 
   return (
     <section className="mascot-showcase" id="meet-ace" ref={sectionRef}>
       <div className="mascot-showcase__container">
         <div className="mascot-showcase__copy">
-          <h2>Meet ACE, your study companion.</h2>
+          <p className="mascot-showcase__eyebrow">Your study companion</p>
+          <h2>Meet ACE. Make every study session feel more personal.</h2>
           <p>
-            Choose a look for ACE, rotate the model, and make your study space feel more personal.
+            Choose an outfit, set ACE's mood, and share small moments of focus and progress.
+            Your choices stay ready for the next visit on this device.
           </p>
           <div className="mascot-showcase__notes" aria-label="Mascot features">
             <span>10 selectable outfits</span>
-            <span>Interactive 3D preview</span>
-            <span>Designed for focused study</span>
+            <span>Three moods and study reactions</span>
+            <span>Ready for future character designs</span>
           </div>
         </div>
 
         <div className="mascot-showcase__experience">
           <div
-            className="mascot-stage"
+            className={`mascot-stage mascot-stage--${activeMoodId}`}
             ref={stageRef}
             role="img"
-            aria-label={`Interactive 3D model of ACE wearing the ${activeOutfit.label.toLowerCase()} outfit`}
+            aria-label={`Interactive 3D model of ACE wearing the ${activeOutfit.label.toLowerCase()} outfit and feeling ${activeMoodId}`}
           >
             <canvas ref={canvasRef} className="mascot-stage__canvas" />
 
@@ -318,32 +680,89 @@ const MascotShowcase = () => {
 
             {isLoading && (
               <div className="mascot-stage__loading" role="status" aria-live="polite">
-                Preparing {activeOutfit.label.toLowerCase()}...
+                <span>
+                  {baseStatus === 'loading'
+                    ? 'Preparing ACE'
+                    : `Changing to ${activeOutfit.label.toLowerCase()}`}
+                </span>
+                {outfitProgress !== null && <strong>{outfitProgress}%</strong>}
               </div>
             )}
 
             {errorMessage && (
-              <div className="mascot-stage__error" role="status">
-                <strong>ACE is still here.</strong>
+              <div className="mascot-stage__error" role="alert">
+                <strong>ACE needs a quick reset.</strong>
                 <span>{errorMessage}</span>
+                <button type="button" onClick={retryScene}>Try again</button>
               </div>
             )}
 
             <p className="mascot-stage__hint">Drag to rotate. Scroll to zoom.</p>
           </div>
 
-          <div className="mascot-outfit-picker" aria-label="Choose ACE's outfit">
-            {OUTFITS.map((outfit) => (
-              <button
-                type="button"
-                key={outfit.id}
-                className={`mascot-outfit-picker__button${activeOutfitId === outfit.id ? ' is-active' : ''}`}
-                aria-pressed={activeOutfitId === outfit.id}
-                onClick={() => setActiveOutfitId(outfit.id)}
-              >
-                {outfit.label}
-              </button>
-            ))}
+          <div className="mascot-controls">
+            <div className="mascot-controls__heading">
+              <div>
+                <h3>Customize ACE</h3>
+                <p>Pick a look and a mood that fits today's study session.</p>
+              </div>
+              <span className="mascot-controls__status" aria-live="polite">{announcement}</span>
+            </div>
+
+            <fieldset className="mascot-controls__group">
+              <legend>Outfit</legend>
+              <div className="mascot-outfit-picker">
+                {OUTFITS.map((outfit) => (
+                  <button
+                    type="button"
+                    key={outfit.id}
+                    className={`mascot-choice${activeOutfitId === outfit.id ? ' is-active' : ''}`}
+                    aria-pressed={activeOutfitId === outfit.id}
+                    disabled={!controlsReady}
+                    onClick={() => setActiveOutfitId(outfit.id)}
+                  >
+                    {outfit.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
+            <div className="mascot-controls__lower">
+              <fieldset className="mascot-controls__group">
+                <legend>Mood</legend>
+                <div className="mascot-mood-picker">
+                  {MOODS.map((mood) => (
+                    <button
+                      type="button"
+                      key={mood.id}
+                      className={`mascot-choice${activeMoodId === mood.id ? ' is-active' : ''}`}
+                      aria-pressed={activeMoodId === mood.id}
+                      disabled={!controlsReady}
+                      onClick={() => chooseMood(mood)}
+                    >
+                      {mood.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+
+              <fieldset className="mascot-controls__group mascot-controls__group--actions">
+                <legend>Study reactions</legend>
+                <div className="mascot-action-picker">
+                  {ACTIONS.map((action) => (
+                    <button
+                      type="button"
+                      key={action.id}
+                      className="mascot-action"
+                      disabled={!controlsReady}
+                      onClick={() => runAction(action)}
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            </div>
           </div>
         </div>
       </div>
