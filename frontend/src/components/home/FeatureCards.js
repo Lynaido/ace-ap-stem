@@ -7,7 +7,7 @@ const features = [
   {
     icon: <FaListOl />,
     title: 'Solve Problems',
-    description: "Get full, detailed solutions for any problem you're stuck on.",
+    description: 'Get a structured solution for the full question or only the sub-part you select.',
     link: '/solve-problems'
   },
   {
@@ -19,7 +19,7 @@ const features = [
   {
     icon: <FaBook />,
     title: 'Concept Notes',
-    description: 'Get essential theories and concepts required to solve a problem without revealing the final answer. Build the background knowledge that guides your thinking.',
+    description: 'Review the essential ideas behind the selected problem without losing the original context.',
     link: '/concept-notes'
   },
   {
@@ -31,7 +31,7 @@ const features = [
   {
     icon: <FaFolderOpen />,
     title: 'Notes Hub',
-    description: 'Save and organize all your solved problems, notes, and chats in one place.',
+    description: 'Save and organize problems, complete solutions, hints, and concept notes in one place.',
     link: '/notes-hub'
   },
   {
@@ -46,7 +46,7 @@ const FeatureCards = () => {
   return (
     <section className="feature-cards-section">
       <div className="feature-cards-container">
-        <h2>A Full Suite of Learning Tools</h2>
+        <h2>Everything stays connected to what you chose.</h2>
         <div className="cards-grid">
           {features.map((feature, index) => (
             <Link to={feature.link} key={index} className="feature-card">

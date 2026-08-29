@@ -118,6 +118,7 @@ model Solution {
   sources    String[]
   steps      Json?
   finalAnswer Json?
+  context    Json?
   createdAt  DateTime @default(now())
 
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
@@ -131,6 +132,7 @@ model Hint {
   id         String   @id @default(cuid())
   problemId  String
   content    String
+  context    Json?
   createdAt  DateTime @default(now())
 
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
@@ -145,6 +147,8 @@ model ConceptNote {
   problemId  String
   title      String
   content    String
+  structuredContent Json?
+  context    Json?
   createdAt  DateTime @default(now())
 
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)

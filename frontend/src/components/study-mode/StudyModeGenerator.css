@@ -96,8 +96,8 @@
 }
 
 .meta-tags span {
-  background: rgba(249, 115, 22, 0.12);
-  color: #f97316;
+  background: rgba(109, 74, 255, 0.12);
+  color: #6d4aff;
   font-weight: 600;
   font-size: 0.8rem;
   border-radius: 999px;
@@ -176,7 +176,7 @@
 
 .session-variant-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 34px 56px -30px rgba(249, 115, 22, 0.35);
+  box-shadow: 0 34px 56px -30px rgba(109, 74, 255, 0.35);
 }
 
 .variant-header {
@@ -188,8 +188,8 @@
   width: 44px;
   height: 44px;
   border-radius: 14px;
-  background: rgba(249, 115, 22, 0.12);
-  color: #f97316;
+  background: rgba(109, 74, 255, 0.12);
+  color: #6d4aff;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -345,9 +345,9 @@
   justify-content: center;
   min-height: 400px;
   padding: 3rem;
-  background: linear-gradient(145deg, rgba(249, 115, 22, 0.02) 0%, rgba(249, 115, 22, 0.05) 100%);
+  background: linear-gradient(145deg, rgba(109, 74, 255, 0.02) 0%, rgba(109, 74, 255, 0.05) 100%);
   border-radius: 20px;
-  border: 2px dashed rgba(249, 115, 22, 0.15);
+  border: 2px dashed rgba(109, 74, 255, 0.15);
 }
 
 .variants-loading-content {
@@ -400,10 +400,10 @@
 @keyframes glowPulse {
   0%, 100% {
     transform: scale(1);
-    filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.3));
+    filter: drop-shadow(0 0 8px rgba(109, 74, 255, 0.3));
   }
   50% {
     transform: scale(1.08);
-    filter: drop-shadow(0 0 16px rgba(249, 115, 22, 0.5));
+    filter: drop-shadow(0 0 16px rgba(109, 74, 255, 0.5));
   }
 }

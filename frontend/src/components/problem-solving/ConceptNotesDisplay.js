@@ -277,7 +277,7 @@ const ConceptNotesDisplay = ({ conceptNotes, problemText, onGetSolution, onGetHi
         onSave={onSave}
         itemType="CONCEPT_NOTE"
         itemData={{
-          conceptNoteId: conceptNotes[0]?.id,
+          conceptNoteIds: conceptNotes.map((note) => note.id).filter(Boolean),
           problemId: currentProblem?.id
         }}
         folders={folders}

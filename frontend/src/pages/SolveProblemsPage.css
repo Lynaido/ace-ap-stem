@@ -1,4 +1,4 @@
-﻿/* SolveProblemsPage.css */
+/* SolveProblemsPage.css */
 
 .solve-problems-page {
   --page-vertical-pad: clamp(2rem, 4vh + 1rem, 3.25rem);
@@ -133,7 +133,7 @@
   margin: 0 0 0.5rem 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #f97316;
+  color: #6d4aff;
 }
 
 .create-mode-header p {
@@ -170,7 +170,7 @@
 }
 
 .notes-link:focus-visible {
-  outline: 3px solid rgba(249, 115, 22, 0.5);
+  outline: 3px solid rgba(109, 74, 255, 0.5);
   outline-offset: 2px;
 }
 
@@ -195,8 +195,8 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(251, 146, 60, 0.12) 100%);
-  border: 1px solid rgba(249, 115, 22, 0.2);
+  background: linear-gradient(135deg, rgba(109, 74, 255, 0.08) 0%, rgba(251, 146, 60, 0.12) 100%);
+  border: 1px solid rgba(109, 74, 255, 0.2);
   border-radius: 16px;
   margin-bottom: 1rem;
 }
@@ -298,7 +298,7 @@
 }
 
 .tab-button:focus-visible {
-  outline: 3px solid rgba(249, 115, 22, 0.35);
+  outline: 3px solid rgba(109, 74, 255, 0.35);
   outline-offset: 2px;
 }
 
@@ -407,8 +407,8 @@
 
 .image-drop-area:hover,
 .image-drop-area:focus {
-  border-color: #f97316;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+  border-color: #6d4aff;
+  box-shadow: 0 0 0 3px rgba(109, 74, 255, 0.15);
   transform: translateY(-2px);
 }
 
@@ -422,8 +422,8 @@
 
 
 .document-icon {
-  color: #f97316;
-  background: rgba(249, 115, 22, 0.1);
+  color: #6d4aff;
+  background: rgba(109, 74, 255, 0.1);
   border-radius: 16px;
   padding: 0.65rem;
   display: inline-flex;
@@ -467,8 +467,8 @@
 
 .text-input:focus {
   outline: none;
-  border-color: #f97316;
-  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+  border-color: #6d4aff;
+  box-shadow: 0 0 0 4px rgba(109, 74, 255, 0.15);
   background: #ffffff;
 }
 
@@ -517,8 +517,8 @@
 
 .styled-select:hover,
 .styled-select:focus {
-  border-color: #f97316;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+  border-color: #6d4aff;
+  box-shadow: 0 0 0 3px rgba(109, 74, 255, 0.12);
   outline: none;
 }
 
@@ -542,16 +542,16 @@
 
 
 .solve-btn {
-  background: #f97316 !important;
+  background: #6d4aff !important;
   color: #ffffff !important;
   border: none !important;
-  box-shadow: 0 18px 30px -20px rgba(249, 115, 22, 0.6) !important;
+  box-shadow: 0 18px 30px -20px rgba(109, 74, 255, 0.6) !important;
 }
 
 .solve-btn:hover {
-  background: #ea580c !important;
+  background: #5638d5 !important;
   transform: translateY(-1px);
-  box-shadow: 0 24px 40px -18px rgba(249, 115, 22, 0.65) !important;
+  box-shadow: 0 24px 40px -18px rgba(109, 74, 255, 0.65) !important;
 }
 
 .solve-btn:disabled {
@@ -800,7 +800,7 @@
 }
 
 .concept-action .btn-icon {
-  color: var(--color-orange, #f97316);
+  color: var(--color-orange, #6d4aff);
 }
 
 .concept-callout {
@@ -818,7 +818,7 @@
   display: flex;
   align-items: flex-start;
   font-size: 1.75rem;
-  color: var(--color-orange, #f97316);
+  color: var(--color-orange, #6d4aff);
 }
 
 .concept-callout-content h3 {
@@ -1170,7 +1170,7 @@
 
   .solve-problems-page .text-input:focus {
     background-color: #ffffff;
-    border-color: #f97316;
+    border-color: #6d4aff;
   }
 
   .solve-problems-page .text-input::placeholder {
@@ -1257,8 +1257,8 @@
 
   /* Variant banner */
   .solve-problems-page .variant-banner {
-    background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(251, 146, 60, 0.12) 100%);
-    border-color: rgba(249, 115, 22, 0.2);
+    background: linear-gradient(135deg, rgba(109, 74, 255, 0.08) 0%, rgba(251, 146, 60, 0.12) 100%);
+    border-color: rgba(109, 74, 255, 0.2);
   }
 
   .solve-problems-page .variant-banner-content strong {
@@ -1347,7 +1347,7 @@
 
   .solve-problems-page .input-primitive:focus {
     background-color: #ffffff;
-    border-color: #f97316;
+    border-color: #6d4aff;
   }
 
   .solve-problems-page .input-label {
@@ -1462,7 +1462,7 @@
   padding: 10px 16px;
   margin-bottom: 12px;
   border: 1px solid var(--color-border-default);
-  border-left: 3px solid #f97316;
+  border-left: 3px solid #6d4aff;
   border-radius: var(--border-radius-md);
   background: var(--color-bg-alt);
 }
@@ -1475,7 +1475,7 @@
 .solve-problems-page .focus-banner-change {
   background: none;
   border: none;
-  color: #f97316;
+  color: #6d4aff;
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;

@@ -696,7 +696,8 @@ export const generateSolution = async (req: Request, res: Response): Promise<voi
           steps: solutionData.steps as any,
           finalAnswer: solutionData.finalAnswer,
           confidence: solutionData.confidence,
-          sources: solutionData.assumptions || []
+          sources: solutionData.assumptions || [],
+          context: focusResult.data as any
         }
       });
 
@@ -873,7 +874,8 @@ export const generateHints = async (req: Request, res: Response): Promise<void> 
           prisma.hint.create({
             data: {
               problemId: id,
-              content: `${hint.text}\n\nExplanation: ${hint.explanation}`
+              content: `${hint.text}\n\nExplanation: ${hint.explanation}`,
+              context: focusResult.data as any
             }
           })
         )
@@ -1047,7 +1049,9 @@ export const generateConceptNotes = async (req: Request, res: Response): Promise
             data: {
               problemId: id,
               title: note.title,
-              content: `${note.description}\n\n${note.content}${note.formula ? `\n\nFormula: ${note.formula}` : ''}`
+              content: `${note.description}\n\n${note.content}${note.formula ? `\n\nFormula: ${note.formula}` : ''}`,
+              structuredContent: note as any,
+              context: focusResult.data as any
             }
           })
         )

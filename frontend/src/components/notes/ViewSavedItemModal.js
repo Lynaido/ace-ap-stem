@@ -1,6 +1,7 @@
 import React from 'react';
 import Button from '../primitives/Button';
 import SolutionDisplay from '../problem-solving/SolutionDisplay';
+import LatexRenderer from '../primitives/LatexRenderer';
 import './ViewSavedItemModal.css';
 
 const ViewSavedItemModal = ({
@@ -18,7 +19,7 @@ const ViewSavedItemModal = ({
           <div className="saved-item-view-content">
             <div className="problem-context">
               <h3>Problem</h3>
-              <p>{savedItem.problem?.description || savedItem.excerpt}</p>
+              <LatexRenderer content={savedItem.problem?.description || savedItem.excerpt} />
               {savedItem.problem?.imageUrl && (
                 <img 
                   src={savedItem.problem.imageUrl} 
@@ -45,13 +46,13 @@ const ViewSavedItemModal = ({
           <div className="saved-item-view-content">
             <div className="problem-context">
               <h3>Problem</h3>
-              <p>{savedItem.problem?.description || savedItem.excerpt}</p>
+              <LatexRenderer content={savedItem.problem?.description || savedItem.excerpt} />
             </div>
             {savedItem.conceptNote && (
               <div className="concept-note-single">
-                <h3>{savedItem.conceptNote.title}</h3>
+                <h3><LatexRenderer content={savedItem.conceptNote.title} /></h3>
                 <div className="concept-note-content">
-                  <p style={{ whiteSpace: 'pre-wrap' }}>{savedItem.conceptNote.content}</p>
+                  <LatexRenderer content={savedItem.conceptNote.structuredContent || savedItem.conceptNote.content} />
                 </div>
               </div>
             )}
@@ -63,13 +64,13 @@ const ViewSavedItemModal = ({
           <div className="saved-item-view-content">
             <div className="problem-context">
               <h3>Problem</h3>
-              <p>{savedItem.problem?.description || savedItem.excerpt}</p>
+              <LatexRenderer content={savedItem.problem?.description || savedItem.excerpt} />
             </div>
             {savedItem.hint && (
               <div className="hint-single">
                 <h3>Hint</h3>
                 <div className="hint-content">
-                  <p>{savedItem.hint.content}</p>
+                  <LatexRenderer content={savedItem.hint.content} />
                 </div>
               </div>
             )}
@@ -86,7 +87,7 @@ const ViewSavedItemModal = ({
                 <span className="badge">{savedItem.problem?.difficulty || 'Medium'}</span>
               </div>
               <div className="problem-description">
-                <p>{savedItem.problem?.description || savedItem.excerpt}</p>
+                <LatexRenderer content={savedItem.problem?.description || savedItem.excerpt} />
               </div>
               {savedItem.problem?.imageUrl && (
                 <img 

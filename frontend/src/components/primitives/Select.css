@@ -58,7 +58,7 @@
 .select-primitive:focus,
 .select-open {
   border-color: var(--color-orange);
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  box-shadow: 0 0 0 3px rgba(109, 74, 255, 0.1);
 }
 
 .select-value {
@@ -182,14 +182,14 @@
 }
 
 .select-option-selected {
-  background-color: rgba(249, 115, 22, 0.1);
+  background-color: rgba(109, 74, 255, 0.1);
   color: var(--color-orange);
   font-weight: 600;
 }
 
 .select-option-selected:hover,
 .select-option-selected.select-option-focused {
-  background-color: rgba(249, 115, 22, 0.15);
+  background-color: rgba(109, 74, 255, 0.15);
 }
 
 .select-option-label {

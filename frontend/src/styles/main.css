@@ -6,14 +6,14 @@
 /* ------------------- */
 :root {
   /* Brand Colors */
-  --color-deep-navy: #0C1E3A;
-  --color-ink: #1C2740;
-  --color-teal: #f97316;
-  --color-orange: #f97316;
-  --color-orange-hover: #ea580c;
-  --color-orange-light: rgba(249, 115, 22, 0.1);
-  --color-off-white: #FAFAF8;
-  --color-cool-gray: #D9DDE3;
+  --color-deep-navy: #19152f;
+  --color-ink: #242038;
+  --color-teal: #6d4aff;
+  --color-orange: #6d4aff;
+  --color-orange-hover: #5638d5;
+  --color-orange-light: rgba(109, 74, 255, 0.1);
+  --color-off-white: #fbfaff;
+  --color-cool-gray: #ddd9ea;
 
   /* Semantic Colors */
   --color-success: #10b981;
@@ -40,8 +40,8 @@
 
   /* Background Colors */
   --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f9fafb;
-  --color-bg-alt: #f3f4f6;
+  --color-bg-secondary: #faf8ff;
+  --color-bg-alt: #f3efff;
   --color-bg-overlay: rgba(0, 0, 0, 0.5);
 
   /* Text Colors */
@@ -57,8 +57,8 @@
   --color-border-focus: var(--color-orange);
 
   /* Typography */
-  --font-heading: 'Inter', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  --font-heading: 'Segoe UI Variable Display', 'Aptos Display', 'Segoe UI', sans-serif;
+  --font-body: 'Segoe UI Variable Text', 'Aptos', 'Segoe UI', sans-serif;
   --font-mono: 'Menlo', 'Monaco', 'Consolas', monospace;
 
   /* Font Weights */
@@ -114,7 +114,7 @@
   --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
 
   /* Focus Ring */
-  --focus-ring: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  --focus-ring: 0 0 0 3px rgba(109, 74, 255, 0.18);
   --focus-ring-offset: 2px;
 
   /* Z-Index Scale */
@@ -159,13 +159,25 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #ffffff;
-  color: #1a1a1a;
+  background-color: #fbfaff;
+  color: #242038;
+}
+
+* { box-sizing: border-box; }
+
+button,
+input,
+textarea,
+select { font: inherit; }
+
+:focus-visible {
+  outline: 3px solid rgba(109, 74, 255, 0.28);
+  outline-offset: 3px;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
-  color: #1a1a1a;
+  color: #242038;
   font-weight: 700;
 }
 
@@ -189,7 +201,7 @@ a:hover {
 
 .btn {
   padding: 0.75rem 1.5rem;
-  border-radius: var(--border-radius-md);
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
@@ -200,12 +212,12 @@ a:hover {
   background-color: var(--color-orange);
   color: white;
   border: none;
-  box-shadow: 0 2px 8px -1px rgba(249, 115, 22, 0.4);
+  box-shadow: 0 12px 28px -16px rgba(86, 56, 213, 0.72);
 }
 
 .btn-primary:hover {
   background-color: var(--color-orange-hover);
-  box-shadow: 0 4px 12px -2px rgba(249, 115, 22, 0.5);
+  box-shadow: 0 16px 32px -18px rgba(86, 56, 213, 0.8);
   transform: translateY(-1px);
 }
 
@@ -317,8 +329,8 @@ a:hover {
 
 .form-group input:focus {
   outline: none;
-  border-color: #f97316;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  border-color: #6d4aff;
+  box-shadow: 0 0 0 3px rgba(109, 74, 255, 0.1);
 }
 
 .form-group input.error {
@@ -343,26 +355,26 @@ a:hover {
 
 .signin-forgot a {
   font-size: 0.875rem;
-  color: #f97316;
+  color: #6d4aff;
   text-decoration: none;
   font-weight: 500;
   transition: all 0.2s ease;
 }
 
 .signin-forgot a:hover {
-  color: #ea580c;
+  color: #5638d5;
   text-decoration: underline;
 }
 
 .btn-signin {
-  background: #f97316;
+  background: #6d4aff;
   border: none;
   color: white;
   padding: 0.875rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
   border-radius: 0.5rem;
-  box-shadow: 0 2px 8px -1px rgba(249, 115, 22, 0.4);
+  box-shadow: 0 2px 8px -1px rgba(109, 74, 255, 0.4);
   transition: all 0.2s ease;
   cursor: pointer;
   width: 100%;
@@ -370,8 +382,8 @@ a:hover {
 }
 
 .btn-signin:hover:not(:disabled) {
-  background: #ea580c;
-  box-shadow: 0 4px 12px -2px rgba(249, 115, 22, 0.5);
+  background: #5638d5;
+  box-shadow: 0 4px 12px -2px rgba(109, 74, 255, 0.5);
   transform: translateY(-1px);
 }
 
@@ -439,14 +451,14 @@ a:hover {
 }
 
 .signin-footer a {
-  color: #f97316;
+  color: #6d4aff;
   text-decoration: none;
   font-weight: 500;
   transition: all 0.2s ease;
 }
 
 .signin-footer a:hover {
-  color: #ea580c;
+  color: #5638d5;
   text-decoration: underline;
 }
 

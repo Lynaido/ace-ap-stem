@@ -1,9 +1,47 @@
 // API utility functions for backend integration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+export const API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? '/backend'
+  : (process.env.REACT_APP_API_URL || 'http://localhost:3001');
 
 class ApiClient {
   constructor() {
     this.baseURL = API_BASE_URL;
+    this.refreshPromise = null;
+  }
+
+  notifyAuthenticationExpired() {
+    localStorage.removeItem('accessToken');
+    window.dispatchEvent(new CustomEvent('auth:expired'));
+  }
+
+  async refreshAccessToken() {
+    if (!this.refreshPromise) {
+      this.refreshPromise = fetch(`${this.baseURL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      })
+        .then(async (response) => {
+          if (!response.ok) {
+            throw new Error('Your session has expired. Please sign in again.');
+          }
+
+          const data = await response.json();
+          localStorage.setItem('accessToken', data.accessToken);
+          return data.accessToken;
+        })
+        .catch((error) => {
+          this.notifyAuthenticationExpired();
+          throw error;
+        })
+        .finally(() => {
+          this.refreshPromise = null;
+        });
+    }
+
+    return this.refreshPromise;
   }
 
   async request(endpoint, options = {}) {
@@ -28,33 +66,13 @@ class ApiClient {
 
       // Handle 401 - try to refresh token
       if (response.status === 401) {
-        console.log('Token expired, attempting refresh...');
-        
         try {
-          const refreshResponse = await fetch(`${this.baseURL}/auth/refresh`, {
-            method: 'POST',
-            credentials: 'include',
-          });
-
-          if (refreshResponse.ok) {
-            const refreshData = await refreshResponse.json();
-            localStorage.setItem('accessToken', refreshData.accessToken);
-            console.log('Token refreshed successfully');
-
-            // Retry original request with new token
-            config.headers.Authorization = `Bearer ${refreshData.accessToken}`;
-            const retryResponse = await fetch(url, config);
-            return this.handleResponse(retryResponse);
-          } else {
-            console.log('Token refresh failed');
-            // Refresh failed, clear token and throw error 
-            localStorage.removeItem('accessToken');
-            throw new Error('Authentication failed - please log in again');
-          }
+          const refreshedToken = await this.refreshAccessToken();
+          config.headers.Authorization = `Bearer ${refreshedToken}`;
+          const retryResponse = await fetch(url, config);
+          return this.handleResponse(retryResponse);
         } catch (refreshError) {
-          console.log('Token refresh request failed:', refreshError);
-          localStorage.removeItem('accessToken');
-          throw new Error('Authentication failed - please log in again');
+          throw refreshError;
         }
       }
 
@@ -121,6 +139,9 @@ class ApiClient {
       await fetch(`${this.baseURL}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        },
       });
     } catch (error) {
       console.error('Logout error:', error);
@@ -133,6 +154,11 @@ class ApiClient {
 
   async getCurrentUser() {
     return this.request('/auth/me');
+  }
+
+  async restoreSession() {
+    await this.refreshAccessToken();
+    return this.getCurrentUser();
   }
 
   // Generic CRUD methods
@@ -170,6 +196,7 @@ export const authAPI = {
   register: (userData) => apiClient.register(userData),
   logout: () => apiClient.logout(),
   getCurrentUser: () => apiClient.getCurrentUser(),
+  restoreSession: () => apiClient.restoreSession(),
   forgotPassword: async (email) => {
     const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
       method: 'POST',

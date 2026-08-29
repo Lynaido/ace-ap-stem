@@ -21,7 +21,7 @@ const FAQ_ITEMS = [
   },
   {
     question: 'Is there a mobile app available?',
-    answer: 'Yes! The official ACE AP STEM app is available on the iOS App Store. The Google Play Store app for Android is currently in progress and will be released very soon.'
+    answer: 'ACE AP STEM works in modern mobile and desktop browsers. An iOS version is also available through the official App Store listing.'
   }
 ];
 

@@ -1,23 +1,22 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { FaArrowRight, FaCheck, FaPause, FaPlay } from 'react-icons/fa';
 import { useAppContext } from '../../context/AppContext';
 import './HeroSection.css';
 import VideoSlideshow from './VideoSlideshow';
 
-const CACHE_BUST = Date.now();
-
 const demoVideos = [
   {
     title: 'Upload Problem',
-    url: `/videos/uploadProblem.mp4?v=${CACHE_BUST}`,
+    url: '/videos/uploadProblem.mp4',
   },
   {
     title: 'Hint & Concept Note',
-    url: `/videos/hintAndConceptNote.mp4?v=${CACHE_BUST}`,
+    url: '/videos/hintAndConceptNote.mp4',
   },
   {
     title: 'Study Mode',
-    url: `/videos/studyMode.mp4?v=${CACHE_BUST}`,
+    url: '/videos/studyMode.mp4',
   },
 ];
 
@@ -34,20 +33,30 @@ const HeroSection = () => {
     <section className="hero-section">
       <div className="hero-container">
         <div className="hero-content">
-          <h1 className="hero-title"><strong>Your AI-Powered AP STEM Companion</strong></h1>
+          <p className="hero-eyebrow">BUILT FOR AP STEM LEARNING</p>
+          <h1 className="hero-title">Understand the exact part that has you stuck.</h1>
           <p className="hero-tagline">
-            Solve, explain, and organize AP STEM problems with ease. Learn smarter, stay organized, and strengthen your understanding with ACE AP STEM.
+            Upload a problem, choose the question or sub-part, and keep the solution, hints, and concept notes focused on the same learning goal.
           </p>
           <div className="hero-buttons">
             {isAuthenticated ? (
-              <Link to="/solve-problems" className="btn btn-primary">Go to Problem Upload</Link>
+              <Link to="/solve-problems" className="btn btn-primary">Open your workspace <FaArrowRight /></Link>
             ) : (
-              <Link to="/sign-up" className="btn btn-primary">Sign Up Now</Link>
+              <Link to="/sign-up" className="btn btn-primary">Start learning <FaArrowRight /></Link>
             )}
+            <a href="#how-it-works" className="hero-text-link">See how it works</a>
           </div>
+          <ul className="hero-proof" aria-label="Product highlights">
+            <li><FaCheck /> Question and sub-part selection</li>
+            <li><FaCheck /> Connected hints, solutions, and notes</li>
+            <li><FaCheck /> Saved learning history</li>
+          </ul>
         </div>
         <div className="hero-mockup-wrapper">
-          <h2 className="video-section-title">{demoVideos[currentSlide].title}</h2>
+          <div className="hero-demo-heading">
+            <span>PRODUCT TOUR</span>
+            <strong>{demoVideos[currentSlide].title}</strong>
+          </div>
           <div className="hero-mockup">
             <VideoSlideshow 
               videos={demoVideos} 
@@ -58,15 +67,7 @@ const HeroSection = () => {
           </div>
           <div className="watch-demo-container">
             <button className="btn-play" onClick={togglePlay}>
-              {isPlaying ? (
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ marginRight: '8px' }}>
-                  <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ marginRight: '8px' }}>
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              )}
+              {isPlaying ? <FaPause aria-hidden="true" /> : <FaPlay aria-hidden="true" />}
               {isPlaying ? 'Pause Demo' : 'Watch Demo'}
             </button>
           </div>

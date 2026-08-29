@@ -1,6 +1,6 @@
 .mascot-showcase {
-  --mascot-accent: #c2410c;
-  --mascot-accent-strong: #9a3412;
+  --mascot-accent: #4f35bd;
+  --mascot-accent-strong: #4e33b5;
   --mascot-border: #fed7aa;
   --mascot-ink: #292524;
   --mascot-muted: #6b625d;
@@ -70,7 +70,7 @@
   left: 0;
   width: 0.55rem;
   height: 2px;
-  background: #f97316;
+  background: #6d4aff;
 }
 
 .mascot-showcase__experience {
@@ -182,7 +182,7 @@
   border: 1px solid var(--mascot-accent);
   border-radius: 0.65rem;
   background: var(--mascot-accent);
-  color: #fffaf5;
+  color: #faf8ff;
   font: inherit;
   font-size: 0.82rem;
   font-weight: 760;
@@ -269,7 +269,7 @@
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
-  background: #f97316;
+  background: #6d4aff;
   box-shadow: 0 0 0 4px #ffedd5;
 }
 
@@ -308,7 +308,7 @@
   padding: 0.62rem 0.6rem;
   border: 1px solid var(--mascot-border);
   border-radius: 0.7rem;
-  background: #fffaf5;
+  background: #faf8ff;
   color: #7c2d12;
   font: inherit;
   font-size: 0.8rem;
@@ -334,14 +334,14 @@
 .mascot-choice:focus-visible,
 .mascot-action:focus-visible,
 .mascot-stage__error button:focus-visible {
-  outline: 3px solid rgba(249, 115, 22, 0.3);
+  outline: 3px solid rgba(109, 74, 255, 0.3);
   outline-offset: 2px;
 }
 
 .mascot-choice.is-active {
   border-color: var(--mascot-accent);
   background: var(--mascot-accent);
-  color: #fffaf5;
+  color: #faf8ff;
   box-shadow: 0 8px 18px -14px rgba(154, 52, 18, 0.8);
 }
 

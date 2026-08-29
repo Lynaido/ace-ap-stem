@@ -6,7 +6,8 @@ import {
   notesAPI,
   savedItemsAPI,
   tagsAPI,
-  studySessionsAPI
+  studySessionsAPI,
+  API_BASE_URL
 } from '../utils/api';
 import { toast } from 'react-toastify';
 
@@ -407,12 +408,23 @@ export const useAppContext = () => {
 export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
+  useEffect(() => {
+    const handleAuthenticationExpired = () => {
+      localStorage.removeItem('user');
+      dispatch({ type: ActionTypes.LOGOUT });
+    };
+
+    window.addEventListener('auth:expired', handleAuthenticationExpired);
+    return () => window.removeEventListener('auth:expired', handleAuthenticationExpired);
+  }, []);
+
   // Initialize authentication state on app load
   useEffect(() => {
     const initializeAuth = async () => {
       const token = localStorage.getItem('accessToken');
 
-      // Only try to get user data if we have a token
+      // Restore from an access token when possible, or from the secure refresh
+      // cookie when local storage was cleared between visits.
       if (token) {
         try {
           const userData = await authAPI.getCurrentUser();
@@ -448,8 +460,13 @@ export const AppProvider = ({ children }) => {
           }
         }
       } else {
-        // No token found, set loading to false
-        dispatch({ type: ActionTypes.LOGOUT });
+        try {
+          const userData = await authAPI.restoreSession();
+          localStorage.setItem('user', JSON.stringify(userData.user));
+          dispatch({ type: ActionTypes.LOGIN, payload: userData.user });
+        } catch (error) {
+          dispatch({ type: ActionTypes.LOGOUT });
+        }
       }
     };
 
@@ -717,7 +734,7 @@ export const AppProvider = ({ children }) => {
         formData.append('description', description);
       }
 
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/uploads`, {
+      const response = await fetch(`${API_BASE_URL}/api/uploads`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
@@ -954,7 +971,7 @@ export const AppProvider = ({ children }) => {
 
   const getSubjects = useCallback(async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/subjects`, {
+      const response = await fetch(`${API_BASE_URL}/api/subjects`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json',

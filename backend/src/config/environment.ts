@@ -49,6 +49,7 @@ interface EnvironmentConfig {
   openaiConceptNotesTimeoutMs: number;
   redisUrl: string;
   frontendUrl: string;
+  allowedPreviewOrigins: string[];
   maxFileSize: number;
   uploadPath: string;
   logLevel: string;
@@ -88,6 +89,10 @@ export const config: EnvironmentConfig = {
   ),
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
   frontendUrl: validateEnvironmentVariable('FRONTEND_URL', process.env.FRONTEND_URL),
+  allowedPreviewOrigins: (process.env.ALLOWED_PREVIEW_ORIGINS || '')
+    .split(',')
+    .map((origin) => origin.trim().replace(/\/$/, ''))
+    .filter(Boolean),
   maxFileSize: parseInt(process.env.MAX_FILE_SIZE || '10485760', 10), // 10MB default
   uploadPath: process.env.UPLOAD_PATH || 'uploads/',
   logLevel: process.env.LOG_LEVEL || 'info',
