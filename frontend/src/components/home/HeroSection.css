@@ -149,7 +149,25 @@
 
 @media (max-width: 600px) {
   .hero-section { padding: 54px 16px 66px; }
-  .hero-title { font-size: clamp(2.6rem, 13vw, 4.2rem); }
+  .hero-container,
+  .hero-content,
+  .hero-mockup-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .hero-title {
+    width: 100%;
+    max-width: 100%;
+    font-size: clamp(2.45rem, 12.5vw, 3.2rem);
+    letter-spacing: -.05em;
+    overflow-wrap: break-word;
+  }
+  .hero-tagline {
+    width: 100%;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
   .hero-buttons { flex-direction: column; }
   .hero-buttons .btn-primary { width: 100%; justify-content: center; }
   .hero-mockup-wrapper { padding: 10px; border-radius: 20px; }
