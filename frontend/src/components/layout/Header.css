@@ -621,3 +621,32 @@ body.mobile-menu-open {
     font-size: 0.8rem;
   }
 }
+
+/* Marketing navigation refinement */
+.app-header {
+  padding: .8rem 1.5rem;
+  border-bottom-color: #e8e3f5;
+  background: rgba(251, 250, 255, .92);
+  box-shadow: none;
+}
+
+.app-header:hover { background: rgba(251, 250, 255, .98); box-shadow: none; }
+.header-container { max-width: 1220px; }
+.logo-icon { box-shadow: none; }
+.logo-container:hover { transform: none; background: transparent; }
+.logo-container:hover .logo-icon { transform: none; box-shadow: none; }
+.logo-container:hover .logo-text { color: #242038; text-shadow: none; }
+.logo-text { color: #242038; }
+.nav-link:hover,
+.nav-link.active { background: #f0ecff !important; color: #5638d5 !important; box-shadow: none; transform: none; }
+.header-actions .btn-outline { border-color: #dcd5ee !important; color: #3f3855 !important; }
+.header-actions .btn-primary { background: #6445e6 !important; box-shadow: 0 12px 24px -16px rgba(86,56,213,.75); border-radius: 11px; }
+.header-actions .btn-primary::before { display: none; }
+.header-actions .btn-primary:hover { background: #5638d5 !important; transform: translateY(-1px); box-shadow: 0 15px 28px -17px rgba(86,56,213,.85); }
+.mobile-menu-overlay { background: #fbfaff; }
+.mobile-nav-link:hover,
+.mobile-nav-link.active { background: #f0ecff; color: #5638d5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .app-header *, .app-header *::before { transition: none !important; }
+}

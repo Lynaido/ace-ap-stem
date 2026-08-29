@@ -1,4 +1,4 @@
-﻿.folder-sidebar {
+.folder-sidebar {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -56,17 +56,17 @@
 }
 
 .folder-item:hover {
-  border-color: rgba(249, 115, 22, 0.4);
+  border-color: rgba(109, 74, 255, 0.4);
   background: #fff;
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+  box-shadow: 0 4px 12px rgba(109, 74, 255, 0.15);
   transform: translateY(-1px);
 }
 
 .folder-item.active {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(255, 255, 255, 0.95) 100%);
-  border-color: rgba(249, 115, 22, 0.5);
+  background: linear-gradient(135deg, rgba(109, 74, 255, 0.12) 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-color: rgba(109, 74, 255, 0.5);
   color: #0f172a;
-  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.2);
+  box-shadow: 0 4px 16px rgba(109, 74, 255, 0.2);
 }
 
 .folder-item__name {
@@ -85,8 +85,8 @@
 }
 
 .folder-item.active .folder-item__meta {
-  background: rgba(249, 115, 22, 0.15);
-  color: #ea580c;
+  background: rgba(109, 74, 255, 0.15);
+  color: #5638d5;
 }
 
 .folder-empty {

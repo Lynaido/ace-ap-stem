@@ -45,12 +45,12 @@
 
 .faq-item:hover {
   border-color: var(--color-orange-hover);
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.05);
+  box-shadow: 0 4px 12px rgba(109, 74, 255, 0.05);
 }
 
 .faq-item.active {
   border-color: var(--color-orange);
-  box-shadow: 0 4px 20px rgba(249, 115, 22, 0.08);
+  box-shadow: 0 4px 20px rgba(109, 74, 255, 0.08);
 }
 
 .faq-question-btn {

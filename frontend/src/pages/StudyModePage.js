@@ -126,7 +126,7 @@ const StudyModePage = () => {
     const fetchSavedItems = async () => {
       try {
         setLoading(true);
-        const data = await getSavedItems();
+        const data = await getSavedItems({ page: 1, limit: 100 });
         setSavedItems(data);
       } catch (err) {
         setError('Failed to fetch saved items. Please try again later.');

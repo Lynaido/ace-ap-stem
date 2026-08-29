@@ -3,11 +3,6 @@ import { Link } from 'react-router-dom';
 import './Footer.css';
 
 const Footer = () => {
-  const handleGooglePlayClick = (e) => {
-    e.preventDefault();
-    alert('ACE AP STEM is coming soon to the Google Play Store! We are currently in the submission process.');
-  };
-
   return (
     <footer className="app-footer">
       <div className="footer-container">
@@ -23,12 +18,6 @@ const Footer = () => {
               rel="noopener noreferrer"
             >
               App Store
-            </a>
-            <a
-              href="#google-play"
-              onClick={handleGooglePlayClick}
-            >
-              Google Play
             </a>
           </div>
         </div>

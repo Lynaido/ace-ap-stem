@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import LatexRenderer from '../primitives/LatexRenderer';
 import './SavedItemCard.css';
 
 const SavedItemCard = ({ item, onOpen, onReview, onToggleStar, onDeleteItem, className = '' }) => {
@@ -51,10 +52,6 @@ const SavedItemCard = ({ item, onOpen, onReview, onToggleStar, onDeleteItem, cla
   return (
     <article
       className={`saved-item-card ${className}`.trim()}
-      onClick={handleOpen}
-      role="button"
-      tabIndex={0}
-      onKeyPress={(evt) => evt.key === 'Enter' && handleOpen()}
       draggable="true"
       onDragStart={handleDragStart}
     >
@@ -93,8 +90,10 @@ const SavedItemCard = ({ item, onOpen, onReview, onToggleStar, onDeleteItem, cla
           </div>
         </div>
       </header>
-      <h3 className="saved-item-card__title">{item.title}</h3>
-      <p className="saved-item-card__excerpt">{item.excerpt}</p>
+      <button type="button" className="saved-item-card__open" onClick={handleOpen}>
+        <span className="saved-item-card__title">{item.title}</span>
+        <LatexRenderer content={item.excerpt} className="saved-item-card__excerpt" />
+      </button>
       <footer className="saved-item-card__footer">
         <div className="saved-item-card__tags">
           {item.subject && <span>{item.subject}</span>}

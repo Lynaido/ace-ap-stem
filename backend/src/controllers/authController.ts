@@ -7,6 +7,7 @@ import { z } from 'zod';
 import logger from '../config/logger';
 import config from '../config/environment';
 import { sendPasswordResetEmail } from '../services/emailService';
+import type { CookieOptions } from 'express';
 
 // Extend Request type to include user
 declare global {
@@ -48,6 +49,22 @@ const JWT_SECRET = config.jwtSecret;
 const JWT_REFRESH_SECRET = config.jwtRefreshSecret;
 const JWT_EXPIRES_IN = config.jwtExpiresIn;
 const JWT_REFRESH_EXPIRES_IN = config.jwtRefreshExpiresIn;
+const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+
+const refreshCookieOptions = (): CookieOptions => ({
+  httpOnly: true,
+  secure: config.nodeEnv === 'production',
+  // The production frontend proxies API requests through the same site, so
+  // Lax protects the refresh cookie without relying on third-party cookies.
+  sameSite: 'lax',
+  maxAge: REFRESH_COOKIE_MAX_AGE,
+  path: '/',
+});
+
+const clearRefreshCookieOptions = (): CookieOptions => {
+  const { maxAge, ...options } = refreshCookieOptions();
+  return options;
+};
 
 // Generate tokens
 const generateTokens = (userId: string) => {
@@ -122,12 +139,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
     ]);
 
     // Set refresh token as httpOnly cookie
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    res.cookie('refreshToken', refreshToken, refreshCookieOptions());
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -167,14 +179,14 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(user.id);
 
-    // Run database operations in parallel for better performance
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-    await Promise.all([
-      // Delete existing sessions
+    // Keep one session per browser/device. Only expired sessions are pruned.
+    // This also removes the previous delete/create race that could erase the
+    // newly-created session and force the user to sign in again.
+    const expiresAt = new Date(Date.now() + REFRESH_COOKIE_MAX_AGE);
+    await prisma.$transaction([
       prisma.session.deleteMany({
-        where: { userId: user.id },
+        where: { userId: user.id, expiresAt: { lte: new Date() } },
       }),
-      // Create new session
       prisma.session.create({
         data: {
           userId: user.id,
@@ -182,7 +194,6 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
           expiresAt,
         },
       }),
-      // Log event (non-blocking)
       prisma.event.create({
         data: {
           type: 'AUTH_LOGIN',
@@ -193,12 +204,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     ]);
 
     // Set refresh token as httpOnly cookie
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    res.cookie('refreshToken', refreshToken, refreshCookieOptions());
 
     res.json({
       message: 'Login successful',
@@ -261,12 +267,7 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
     });
 
     // Set new refresh token as httpOnly cookie
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    res.cookie('refreshToken', newRefreshToken, refreshCookieOptions());
 
     res.json({
       message: 'Token refreshed successfully',
@@ -302,7 +303,7 @@ export const logout = async (req: Request, res: Response, next: NextFunction) =>
     }
 
     // Clear cookie
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', clearRefreshCookieOptions());
     res.json({ message: 'Logout successful' });
   } catch (error) {
     logger.error('Logout error:', error);

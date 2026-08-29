@@ -21,8 +21,10 @@ export const corsOptions: cors.CorsOptions = {
         return callback(null, true);
       }
 
-      // Allow Vercel preview/deployment URLs
-      if (origin && origin.includes('.vercel.app')) {
+      // Preview deployments must be explicitly allow-listed. A broad
+      // *.vercel.app rule would let an unrelated deployment send credentialed
+      // requests to the API.
+      if (config.allowedPreviewOrigins.includes(origin.replace(/\/$/, ''))) {
         return callback(null, true);
       }
 
@@ -46,6 +48,39 @@ export const corsOptions: cors.CorsOptions = {
 
 // CORS middleware
 export const corsMiddleware = cors(corsOptions);
+
+const isTrustedBrowserOrigin = (origin: string): boolean => {
+  const configuredFrontend = config.frontendUrl.replace(/\/$/, '');
+  const configuredHost = configuredFrontend.replace(/^https?:\/\//, '').replace(/^www\./, '');
+
+  return (
+    origin === configuredFrontend ||
+    origin === `https://www.${configuredHost}` ||
+    origin === `https://${configuredHost}` ||
+    config.allowedPreviewOrigins.includes(origin.replace(/\/$/, '')) ||
+    (config.nodeEnv === 'development' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin))
+  );
+};
+
+/**
+ * Refresh and logout rely on an HttpOnly cookie. Requiring a trusted Origin
+ * and a non-simple request header prevents another website from silently
+ * rotating or clearing that cookie when SameSite=None is needed in production.
+ */
+export const verifyTrustedAuthRequest = (req: Request, res: Response, next: NextFunction) => {
+  const origin = req.get('origin');
+  const requestedWith = req.get('x-requested-with');
+
+  if (origin && !isTrustedBrowserOrigin(origin)) {
+    return res.status(403).json({ error: 'Untrusted request origin' });
+  }
+
+  if (origin && requestedWith !== 'XMLHttpRequest') {
+    return res.status(403).json({ error: 'Missing request verification header' });
+  }
+
+  return next();
+};
 
 // Helmet security middleware
 export const helmetMiddleware = helmet({

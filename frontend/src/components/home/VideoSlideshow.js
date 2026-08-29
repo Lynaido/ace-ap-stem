@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import './VideoSlideshow.css';
 
 const VideoSlideshow = ({ videos, isPlaying, onIsPlayingChange, onSlideChange }) => {
@@ -93,31 +94,34 @@ const VideoSlideshow = ({ videos, isPlaying, onIsPlayingChange, onSlideChange })
       </div>
 
       {/* Side Arrows */}
-      <button className="arrow-button prev" onClick={prevSlide}>
-        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+      <button className="arrow-button prev" onClick={prevSlide} aria-label="Previous demo">
+        <FaChevronLeft aria-hidden="true" />
       </button>
-      <button className="arrow-button next" onClick={nextSlide}>
-        <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+      <button className="arrow-button next" onClick={nextSlide} aria-label="Next demo">
+        <FaChevronRight aria-hidden="true" />
       </button>
 
       {/* Bottom Navigation */}
       <div className="slideshow-nav">
-        <button className="nav-button" onClick={prevSlide}>
-          <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        <button className="nav-button" onClick={prevSlide} aria-label="Previous demo">
+          <FaChevronLeft aria-hidden="true" />
         </button>
         
         <div className="slide-indicators">
           {videos.map((_, index) => (
-            <div
+            <button
+              type="button"
               key={index}
               className={`indicator ${index === currentSlide ? 'active' : ''}`}
               onClick={() => goToSlide(index)}
+              aria-label={`Show demo ${index + 1}`}
+              aria-pressed={index === currentSlide}
             />
           ))}
         </div>
         
-        <button className="nav-button" onClick={nextSlide}>
-          <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+        <button className="nav-button" onClick={nextSlide} aria-label="Next demo">
+          <FaChevronRight aria-hidden="true" />
         </button>
       </div>
     </div>

@@ -42,7 +42,7 @@
 .card-outlined {
   box-shadow: none;
   border: 2px solid var(--color-orange);
-  background-color: rgba(249, 115, 22, 0.02);
+  background-color: rgba(109, 74, 255, 0.02);
 }
 
 .card-success {

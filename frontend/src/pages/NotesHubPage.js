@@ -8,12 +8,22 @@ import { useAppContext } from '../context/AppContext';
 import { savedItemsAPI } from '../utils/api';
 import './NotesHubPage.css';
 import { toast } from 'react-toastify';
+import { FaArrowRight, FaFileAlt } from 'react-icons/fa';
+
+const searchableText = (value) => {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  try {
+    return JSON.stringify(value);
+  } catch (error) {
+    return '';
+  }
+};
 
 const NotesHubPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const {
-    getSavedItems,
     getFolders,
     createFolder,
     deleteSavedItem,
@@ -23,6 +33,9 @@ const NotesHubPage = () => {
   const [folders, setFolders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [foldersError, setFoldersError] = useState(null);
+  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
+  const [loadingMore, setLoadingMore] = useState(false);
   const [activeFolderId, setActiveFolderId] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFolderModal, setShowFolderModal] = useState(false);
@@ -49,20 +62,45 @@ const NotesHubPage = () => {
   });
 
   const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const [savedItemsData, foldersData] = await Promise.all([
-        getSavedItems(),
-        getFolders()
-      ]);
-      setSavedItems(savedItemsData);
-      setFolders(foldersData);
-    } catch (err) {
-      setError('Failed to fetch data. Please try again later.');
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    setError(null);
+    setFoldersError(null);
+
+    const [itemsResult, foldersResult] = await Promise.allSettled([
+      savedItemsAPI.getAll({ page: 1, limit: 20 }),
+      getFolders()
+    ]);
+
+    if (itemsResult.status === 'fulfilled') {
+      const response = itemsResult.value;
+      setSavedItems(response.data || []);
+      setPagination(response.pagination || { page: 1, pages: 1, total: response.data?.length || 0 });
+    } else {
+      setError(itemsResult.reason?.message || 'We could not load your saved learning items.');
     }
-  }, [getSavedItems, getFolders]);
+
+    if (foldersResult.status === 'fulfilled') {
+      setFolders(foldersResult.value);
+    } else {
+      setFoldersError('Collections are temporarily unavailable. Your saved items are still safe.');
+    }
+
+    setLoading(false);
+  }, [getFolders]);
+
+  const loadMoreItems = async () => {
+    if (loadingMore || pagination.page >= pagination.pages) return;
+    setLoadingMore(true);
+    try {
+      const response = await savedItemsAPI.getAll({ page: pagination.page + 1, limit: 20 });
+      setSavedItems((current) => [...current, ...(response.data || [])]);
+      setPagination(response.pagination || pagination);
+    } catch (loadMoreError) {
+      toast.error(loadMoreError.message || 'Could not load more saved items.');
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -142,7 +180,7 @@ const NotesHubPage = () => {
             return {
               ...baseItem,
               title: item.problem.title || 'Solution',
-              excerpt: `Solution: ${item.solution.finalAnswer || item.solution.content?.substring(0, 150) || 'View full solution'}`,
+              excerpt: item.solution.finalAnswer || item.solution.content?.substring(0, 150) || 'View full solution',
               subject: item.problem.subject || 'Unknown',
               difficulty: item.problem.difficulty,
               // Remove subject/difficulty from tags to avoid duplication
@@ -232,7 +270,7 @@ const NotesHubPage = () => {
     return items.filter((item) => {
       const haystack = [
         item.title || '',
-        item.excerpt || '',
+        searchableText(item.excerpt),
         item.subject || '',
         (item.tags || []).join(' ')
       ].join(' ').toLowerCase();
@@ -441,7 +479,7 @@ const NotesHubPage = () => {
           <header className="notes-hub-header">
             <div>
               <h1>Notes Hub</h1>
-              <p>Review saved solutions, chats, and custom practice sets.</p>
+              <p>Review saved problems, complete solutions, hints, and concept notes.</p>
             </div>
             <div className="notes-hub-header-controls">
               <div className="notes-hub-search-and-filters">
@@ -529,8 +567,14 @@ const NotesHubPage = () => {
             </div>
           </header>
 
-          {loading && <p>Loading...</p>}
-          {error && <p>{error}</p>}
+          {loading && <div className="notes-hub-loading" role="status">Loading your learning library...</div>}
+          {foldersError && <div className="notes-hub-inline-warning" role="status">{foldersError}</div>}
+          {error && (
+            <div className="notes-hub-error" role="alert">
+              <p>{error}</p>
+              <button type="button" onClick={fetchData}>Try again</button>
+            </div>
+          )}
 
           {!loading && !error && (
             <>
@@ -556,17 +600,26 @@ const NotesHubPage = () => {
               )}
 
               {filteredItems.length ? (
-                <section className="notes-hub-grid">
-                  {filteredItems.map((item) => (
-                    <SavedItemCard
-                      key={item.id}
-                      item={item}
-                      onOpen={(item) => setViewingItem(item)}
-                      onToggleStar={handleToggleStar}
-                      onDeleteItem={handleDeleteItem}
-                    />
-                  ))}
-                </section>
+                <>
+                  <section className="notes-hub-grid">
+                    {filteredItems.map((item) => (
+                      <SavedItemCard
+                        key={item.id}
+                        item={item}
+                        onOpen={(item) => setViewingItem(item)}
+                        onToggleStar={handleToggleStar}
+                        onDeleteItem={handleDeleteItem}
+                      />
+                    ))}
+                  </section>
+                  {pagination.page < pagination.pages && (
+                    <div className="notes-hub-load-more">
+                      <button type="button" onClick={loadMoreItems} disabled={loadingMore}>
+                        {loadingMore ? 'Loading...' : `Load more (${savedItems.length} of ${pagination.total})`}
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
                 <section className="notes-hub-empty" role="status">
                   <div className="notes-hub-empty__card">
@@ -679,74 +732,12 @@ const NotesHubPage = () => {
                       navigate(`/solve-problems?${searchParams.toString()}`);
                     }}
                   >
-                    <div className="option-icon">📝</div>
+                    <div className="option-icon"><FaFileAlt aria-hidden="true" /></div>
                     <div className="option-content">
-                      <h3>Create Problem</h3>
-                      <p>Go to problem creation page</p>
+                      <h3>Start with a problem</h3>
+                      <p>Upload or type a question, then save its problem, solution, hints, and notes from the learning workspace.</p>
                     </div>
-                  </button>
-                  <button
-                    type="button"
-                    className="save-item-option"
-                    onClick={() => {
-                      setShowSaveItemModal(false);
-                      setConfirmationModal({
-                        isOpen: true,
-                        title: 'Coming Soon',
-                        message: 'Solution creation is coming soon! First create a problem, then you can save solutions.',
-                        confirmText: 'Got it',
-                        confirmVariant: 'primary',
-                        onConfirm: () => {}
-                      });
-                    }}
-                  >
-                    <div className="option-icon">💡</div>
-                    <div className="option-content">
-                      <h3>Save Solution</h3>
-                      <p>Create a solution for an existing problem</p>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    className="save-item-option"
-                    onClick={() => {
-                      setShowSaveItemModal(false);
-                      setConfirmationModal({
-                        isOpen: true,
-                        title: 'Coming Soon',
-                        message: 'Hint creation is coming soon! First create a problem, then you can save hints.',
-                        confirmText: 'Got it',
-                        confirmVariant: 'primary',
-                        onConfirm: () => {}
-                      });
-                    }}
-                  >
-                    <div className="option-icon">💭</div>
-                    <div className="option-content">
-                      <h3>Save Hint</h3>
-                      <p>Add helpful hints and tips</p>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    className="save-item-option"
-                    onClick={() => {
-                      setShowSaveItemModal(false);
-                      setConfirmationModal({
-                        isOpen: true,
-                        title: 'Coming Soon',
-                        message: 'Concept notes are coming soon! Create problems first, then add concept explanations.',
-                        confirmText: 'Got it',
-                        confirmVariant: 'primary',
-                        onConfirm: () => {}
-                      });
-                    }}
-                  >
-                    <div className="option-icon">📚</div>
-                    <div className="option-content">
-                      <h3>Save Concept Note</h3>
-                      <p>Add concept explanations and notes</p>
-                    </div>
+                    <FaArrowRight className="option-arrow" aria-hidden="true" />
                   </button>
                 </div>
               </div>

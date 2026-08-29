@@ -12,6 +12,7 @@ import {
   authenticateToken,
   optionalAuth
 } from '../middleware/auth';
+import { verifyTrustedAuthRequest } from '../middleware/security';
 
 const router = Router();
 
@@ -193,7 +194,7 @@ router.post('/login', login);
  *       500:
  *         description: Internal server error
  */
-router.post('/refresh', refresh);
+router.post('/refresh', verifyTrustedAuthRequest, refresh);
 
 /**
  * @swagger
@@ -216,7 +217,7 @@ router.post('/refresh', refresh);
  *       500:
  *         description: Internal server error
  */
-router.post('/logout', logout);
+router.post('/logout', verifyTrustedAuthRequest, logout);
 
 /**
  * @swagger

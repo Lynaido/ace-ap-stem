@@ -50,7 +50,7 @@
 .input-primitive:focus,
 .input-focused {
   border-color: var(--color-orange);
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  box-shadow: 0 0 0 3px rgba(109, 74, 255, 0.1);
 }
 
 .input-primitive:hover:not(.input-disabled):not(.input-focused) {

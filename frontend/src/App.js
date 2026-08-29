@@ -26,6 +26,7 @@ import PrimitivesTestPage from './pages/PrimitivesTestPage';
 
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
+import AppShell from './components/layout/AppShell';
 
 // Scroll to top component
 function ScrollToTop() {
@@ -38,6 +39,20 @@ function ScrollToTop() {
   return null;
 }
 
+const MarketingLayout = ({ children }) => (
+  <>
+    <Header />
+    <main>{children}</main>
+    <Footer />
+  </>
+);
+
+const ProductLayout = ({ children }) => (
+  <ProtectedRoute>
+    <AppShell>{children}</AppShell>
+  </ProtectedRoute>
+);
+
 function HomePage() {
   const { isAuthenticated, isAuthLoading } = useAppContext();
 
@@ -45,36 +60,45 @@ function HomePage() {
     return <AuthLoading />;
   }
 
-  return isAuthenticated ? <DashboardPage /> : <LandingPage />;
+  return isAuthenticated
+    ? <AppShell><DashboardPage /></AppShell>
+    : <MarketingLayout><LandingPage /></MarketingLayout>;
 }
+
+const NotFoundPage = () => (
+  <MarketingLayout>
+    <section className="not-found-page">
+      <p>Page not found</p>
+      <h1>Let us get you back to learning.</h1>
+      <a className="btn btn-primary" href="/">Return home</a>
+    </section>
+  </MarketingLayout>
+);
 
 function App() {
   return (
     <AppProvider>
       <Router>
         <ScrollToTop />
-        <Header />
-        <main>
-          <Routes>
+        <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-            <Route path="/solve-problems" element={<ProtectedRoute><SolveProblemsPage /></ProtectedRoute>} />
-            <Route path="/tutor" element={<TutorPage />} />
-            <Route path="/notes-hub" element={<ProtectedRoute><NotesHubPage /></ProtectedRoute>} />
-            <Route path="/study-mode" element={<ProtectedRoute><StudyModePage /></ProtectedRoute>} />
-            <Route path="/concept-notes" element={<ConceptNotesPage />} />
-            <Route path="/about-us" element={<AboutUsPage />} />
-            <Route path="/sign-in" element={<SignInPage />} />
-            <Route path="/sign-up" element={<SignUpPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/faq" element={<FAQPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/primitives-test" element={<PrimitivesTestPage />} />
-          </Routes>
-        </main>
-        <Footer />
+            <Route path="/dashboard" element={<ProductLayout><DashboardPage /></ProductLayout>} />
+            <Route path="/solve-problems" element={<ProductLayout><SolveProblemsPage /></ProductLayout>} />
+            <Route path="/tutor" element={<ProductLayout><TutorPage /></ProductLayout>} />
+            <Route path="/notes-hub" element={<ProductLayout><NotesHubPage /></ProductLayout>} />
+            <Route path="/study-mode" element={<ProductLayout><StudyModePage /></ProductLayout>} />
+            <Route path="/concept-notes" element={<ProductLayout><ConceptNotesPage /></ProductLayout>} />
+            <Route path="/about-us" element={<MarketingLayout><AboutUsPage /></MarketingLayout>} />
+            <Route path="/sign-in" element={<MarketingLayout><SignInPage /></MarketingLayout>} />
+            <Route path="/sign-up" element={<MarketingLayout><SignUpPage /></MarketingLayout>} />
+            <Route path="/forgot-password" element={<MarketingLayout><ForgotPasswordPage /></MarketingLayout>} />
+            <Route path="/reset-password" element={<MarketingLayout><ResetPasswordPage /></MarketingLayout>} />
+            <Route path="/contact" element={<MarketingLayout><ContactPage /></MarketingLayout>} />
+            <Route path="/faq" element={<MarketingLayout><FAQPage /></MarketingLayout>} />
+            <Route path="/privacy" element={<MarketingLayout><PrivacyPage /></MarketingLayout>} />
+            <Route path="/primitives-test" element={<ProductLayout><PrimitivesTestPage /></ProductLayout>} />
+            <Route path="*" element={<NotFoundPage />} />
+        </Routes>
         <ToastContainer
           position="top-right"
           autoClose={5000}

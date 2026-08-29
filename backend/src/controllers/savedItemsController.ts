@@ -13,6 +13,7 @@ const createSavedItemSchema = z.object({
   solutionId: z.string().optional(),
   hintId: z.string().optional(),
   conceptNoteId: z.string().optional(),
+  conceptNoteIds: z.array(z.string()).min(1).max(50).optional(),
   folderId: z.string().optional(),
   starred: z.boolean().default(false),
   tags: z.array(z.string()).default([]),
@@ -23,6 +24,12 @@ const updateSavedItemSchema = z.object({
   tags: z.array(z.string()).optional(),
   folderId: z.string().nullable().optional(),
 });
+
+const parsePositiveInteger = (value: unknown, fallback: number, maximum?: number) => {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) return fallback;
+  return maximum ? Math.min(parsed, maximum) : parsed;
+};
 
 /**
  * GET /api/saved-items
@@ -41,12 +48,15 @@ export const getAllSavedItems = async (req: Request, res: Response): Promise<voi
     }
 
     const {
-      page = 1,
-      limit = 20,
+      page: pageQuery = 1,
+      limit: limitQuery = 20,
       type,
       starred,
       tags = []
     } = req.query;
+
+    const page = parsePositiveInteger(pageQuery, 1);
+    const limit = parsePositiveInteger(limitQuery, 20, 100);
 
     const where: any = { userId };
 
@@ -91,8 +101,8 @@ export const getAllSavedItems = async (req: Request, res: Response): Promise<voi
           }
         },
         orderBy: { createdAt: 'desc' },
-        skip: (Number(page) - 1) * Number(limit),
-        take: Number(limit)
+        skip: (page - 1) * limit,
+        take: limit
       }),
       prisma.savedItem.count({ where })
     ]);
@@ -101,10 +111,10 @@ export const getAllSavedItems = async (req: Request, res: Response): Promise<voi
       success: true,
       data: savedItems,
       pagination: {
-        page: Number(page),
-        limit: Number(limit),
+        page,
+        limit,
         total,
-        pages: Math.ceil(total / Number(limit))
+        pages: Math.ceil(total / limit)
       }
     });
   } catch (error) {
@@ -197,10 +207,59 @@ export const createSavedItem = async (req: Request, res: Response): Promise<void
       return;
     }
 
-    const { type, problemId, solutionId, hintId, conceptNoteId, folderId, starred, tags } = createSavedItemSchema.parse(req.body);
+    const { type, problemId, solutionId, hintId, conceptNoteId, conceptNoteIds, folderId, starred, tags } = createSavedItemSchema.parse(req.body);
+
+    if (type === 'CONCEPT_NOTE' && conceptNoteIds?.length) {
+      const uniqueIds = [...new Set(conceptNoteIds)];
+      const notes = await prisma.conceptNote.findMany({
+        where: {
+          id: { in: uniqueIds },
+          problem: { userId }
+        },
+        select: { id: true, problemId: true }
+      });
+
+      if (notes.length !== uniqueIds.length) {
+        res.status(404).json({ success: false, error: 'One or more concept notes were not found' });
+        return;
+      }
+
+      const authoritativeProblemId = notes[0].problemId;
+      if (notes.some((note) => note.problemId !== authoritativeProblemId)) {
+        res.status(400).json({ success: false, error: 'Concept notes must belong to the same problem' });
+        return;
+      }
+
+      if (problemId && problemId !== authoritativeProblemId) {
+        res.status(400).json({ success: false, error: 'The concept notes do not belong to the supplied problem' });
+        return;
+      }
+
+      const savedItems = await prisma.$transaction(
+        uniqueIds.map((id) => prisma.savedItem.create({
+          data: {
+            type,
+            problemId: authoritativeProblemId,
+            conceptNoteId: id,
+            userId,
+            starred: starred || false,
+            tags: tags || [],
+            folderId: folderId || null
+          }
+        }))
+      );
+
+      res.status(201).json({
+        success: true,
+        data: savedItems,
+        message: `${savedItems.length} concept notes saved successfully`
+      });
+      return;
+    }
 
     // Validate that the referenced item exists and belongs to user
     let referencedItem = null;
+    let authoritativeProblemId: string | null = problemId || null;
 
     switch (type) {
       case 'PROBLEM':
@@ -214,6 +273,7 @@ export const createSavedItem = async (req: Request, res: Response): Promise<void
         referencedItem = await prisma.problem.findFirst({
           where: { id: problemId, userId }
         });
+        authoritativeProblemId = referencedItem?.id || null;
         break;
       case 'SOLUTION':
         if (!solutionId) {
@@ -228,6 +288,7 @@ export const createSavedItem = async (req: Request, res: Response): Promise<void
         });
         // Also check if the problem belongs to user
         if (referencedItem) {
+          authoritativeProblemId = referencedItem.problemId;
           const problem = await prisma.problem.findFirst({
             where: { id: referencedItem.problemId, userId }
           });
@@ -252,6 +313,7 @@ export const createSavedItem = async (req: Request, res: Response): Promise<void
           where: { id: hintId }
         });
         if (referencedItem) {
+          authoritativeProblemId = referencedItem.problemId;
           const problem = await prisma.problem.findFirst({
             where: { id: referencedItem.problemId, userId }
           });
@@ -276,6 +338,7 @@ export const createSavedItem = async (req: Request, res: Response): Promise<void
           where: { id: conceptNoteId }
         });
         if (referencedItem) {
+          authoritativeProblemId = referencedItem.problemId;
           const problem = await prisma.problem.findFirst({
             where: { id: referencedItem.problemId, userId }
           });
@@ -298,10 +361,18 @@ export const createSavedItem = async (req: Request, res: Response): Promise<void
       return;
     }
 
+    if (problemId && authoritativeProblemId && problemId !== authoritativeProblemId) {
+      res.status(400).json({
+        success: false,
+        error: 'The saved item does not belong to the supplied problem'
+      });
+      return;
+    }
+
     const savedItem = await prisma.savedItem.create({
       data: {
         type,
-        problemId: problemId || null,
+        problemId: authoritativeProblemId,
         solutionId: solutionId || null,
         hintId: hintId || null,
         conceptNoteId: conceptNoteId || null,

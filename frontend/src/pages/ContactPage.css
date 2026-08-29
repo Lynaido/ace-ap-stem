@@ -117,13 +117,13 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.2);
+  box-shadow: 0 4px 14px rgba(109, 74, 255, 0.2);
 }
 
 .btn-submit:hover:not(:disabled) {
   background-color: var(--color-orange-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.3);
+  box-shadow: 0 6px 20px rgba(109, 74, 255, 0.3);
 }
 
 .btn-submit:active:not(:disabled) {
