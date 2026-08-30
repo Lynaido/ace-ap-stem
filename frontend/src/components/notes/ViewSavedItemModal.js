@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Button from '../primitives/Button';
 import SolutionDisplay from '../problem-solving/SolutionDisplay';
 import LatexRenderer from '../primitives/LatexRenderer';
@@ -10,6 +11,8 @@ const ViewSavedItemModal = ({
   savedItem,
   onDelete
 }) => {
+  const navigate = useNavigate();
+
   if (!isOpen || !savedItem) return null;
 
   const renderContent = () => {
@@ -148,8 +151,8 @@ const ViewSavedItemModal = ({
               variant="outline"
               size="small"
               onClick={() => {
-                // Navigate to study mode with this item
-                window.location.href = `/study-mode?itemId=${savedItem.id}`;
+                onClose();
+                navigate('/study-mode', { state: { problem: savedItem } });
               }}
             >
               Practice This

@@ -288,3 +288,19 @@
     min-width: auto;
   }
 }
+
+/* ACE workbench surface */
+.solve-problems-page .hints-display { margin:0; padding:clamp(1.1rem,3vw,1.75rem); border:1px solid var(--ace-border,#e5ddf8); border-radius:var(--ace-radius-panel,30px); background:#fff; box-shadow:var(--ace-shadow-soft,0 14px 42px -28px rgba(68,42,151,.3)); }
+.solve-problems-page .hints-header { border-color:var(--ace-border,#e5ddf8); }
+.solve-problems-page .hints-header h2 { color:var(--ace-ink,#15164f); letter-spacing:-.025em; }
+.solve-problems-page .hints-progress-fill { background:linear-gradient(90deg,var(--ace-blue,#4f82f4),var(--ace-violet,#6c3df4)); }
+.solve-problems-page .hints-description { border-left-color:var(--ace-blue,#4f82f4); border-radius:14px; background:var(--ace-surface-blue,#f1f6ff); }
+.solve-problems-page .hint-item { border-color:#dce7ff; border-radius:18px; background:#fff; box-shadow:0 14px 28px -28px rgba(39,82,168,.55); }
+.solve-problems-page .hint-number { background:linear-gradient(135deg,var(--ace-blue,#4f82f4),#76a1ff); }
+.solve-problems-page .hint-type { color:#346acb; }
+.solve-problems-page .hint-explanation { border-left-color:var(--ace-blue,#4f82f4); border-radius:12px; background:var(--ace-surface-blue,#f1f6ff); }
+.solve-problems-page .final-answer-section { border-color:#bcead9; border-radius:18px; background:var(--ace-surface-green,#effbf6); }
+.solve-problems-page .hints-tips { border-radius:16px; background:var(--ace-surface-violet,#f5f1ff); }
+.solve-problems-page .hints-actions { border-color:var(--ace-border,#e5ddf8); }
+
+@media (max-width:480px) { .solve-problems-page .hints-display { padding:1rem; border-radius:22px; } }

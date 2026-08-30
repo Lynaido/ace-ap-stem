@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { toast } from 'react-toastify';
+import { FaArrowRight, FaCheckCircle } from 'react-icons/fa';
+import './AuthPages.css';
 
 const SignInPage = () => {
   const [email, setEmail] = useState('');
@@ -94,78 +96,93 @@ const SignInPage = () => {
   };
 
   return (
-    <section className="signin-section">
-      <div className="signin-container">
-        <div className="signin-header">
-          <h1>Welcome Back</h1>
-          <p>Sign in to continue your learning journey with AAS</p>
-          {authMessage && (
-            <div className="auth-message" style={{ backgroundColor: '#e3f2fd', padding: '10px', borderRadius: '4px', marginBottom: '20px', color: '#1976d2' }}>
-              {authMessage}
-            </div>
-          )}
-        </div>
+    <section className="ace-auth" aria-labelledby="sign-in-title">
+      <div className="ace-auth__shell">
+        <aside className="ace-auth__story">
+          <Link to="/" className="ace-auth__brand" aria-label="ACE AP STEM home">
+            <img src="/logo.png" alt="" width="40" height="40" />
+            <span>ACE AP STEM</span>
+          </Link>
+          <div className="ace-auth__story-copy">
+            <span>Your study companion</span>
+            <h2>Pick up right where you left off.</h2>
+            <p>Return to saved notes, guided problem solving, and focused AP STEM practice.</p>
+          </div>
+          <ul className="ace-auth__benefits">
+            <li><FaCheckCircle aria-hidden="true" /> Guided hints before full solutions</li>
+            <li><FaCheckCircle aria-hidden="true" /> Notes and study sessions in one place</li>
+          </ul>
+          <div className="ace-auth__mascot" aria-hidden="true" />
+        </aside>
 
-        <div className="signin-card">
-          <form onSubmit={handleSubmit} className="signin-form">
-            <div className="form-group">
-              <label htmlFor="email">Email Address *</label>
+        <div className="ace-auth__content">
+          <div className="ace-auth__content-inner">
+            <header className="ace-auth__header">
+              <h1 id="sign-in-title">Welcome back</h1>
+              <p>Sign in to continue learning with ACE.</p>
+            </header>
+
+            {authMessage && <div className="ace-auth__notice" role="status">{authMessage}</div>}
+            {errors.general && <div className="ace-auth__error-banner" role="alert">{errors.general}</div>}
+
+            <form onSubmit={handleSubmit} className="ace-auth__form" noValidate>
+              <div className="ace-auth__field">
+                <label htmlFor="email">Email address</label>
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                className={errors.email ? 'error' : ''}
+                aria-invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? 'sign-in-email-error' : undefined}
                 required
                 autoComplete="email"
               />
-              {errors.email && <span className="error-message">{errors.email}</span>}
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="password">Password *</label>
+                {errors.email && <span className="ace-auth__field-error" id="sign-in-email-error">{errors.email}</span>}
+              </div>
+
+              <div className="ace-auth__field">
+                <label htmlFor="password">Password</label>
               <input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
-                className={errors.password ? 'error' : ''}
+                aria-invalid={Boolean(errors.password)}
+                aria-describedby={errors.password ? 'sign-in-password-error' : undefined}
                 required
                 autoComplete="current-password"
               />
-              {errors.password && <span className="error-message">{errors.password}</span>}
-            </div>
+                {errors.password && <span className="ace-auth__field-error" id="sign-in-password-error">{errors.password}</span>}
+              </div>
 
-            <div className="signin-forgot">
-              <Link to="/forgot-password">Forgot Password?</Link>
-            </div>
+              <div className="ace-auth__form-meta">
+                <Link to="/forgot-password">Forgot password?</Link>
+              </div>
 
             <button
               type="submit"
-              className="btn-signin"
+                className="ace-auth__primary"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Signing In...' : 'Sign In'}
+                {isSubmitting ? 'Signing in...' : <><span>Sign in</span><FaArrowRight aria-hidden="true" /></>}
             </button>
           </form>
 
-          <div className="signin-divider">
+            <div className="ace-auth__divider">
             <span>New to AAS?</span>
           </div>
 
-          <Link to="/sign-up" className="btn-signup">
+            <Link to="/sign-up" className="ace-auth__secondary">
             Create Account
           </Link>
-        </div>
 
-        <div className="signin-footer">
-          <p>
-            By signing in, you agree to our{' '}
-            <Link to="/privacy">Privacy Policy</Link> and{' '}
-            <Link to="/terms">Terms of Service</Link>
-          </p>
+            <p className="ace-auth__legal">
+              By signing in, you acknowledge our <Link to="/privacy">Privacy Policy</Link>.
+            </p>
+          </div>
         </div>
       </div>
     </section>

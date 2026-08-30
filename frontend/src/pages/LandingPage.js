@@ -15,10 +15,9 @@ const LandingPage = () => {
   const location = useLocation();
 
   useEffect(() => {
-    if (location.hash === '#faq') {
-      const element = document.getElementById('faq');
+    if (location.hash) {
+      const element = document.getElementById(location.hash.slice(1));
       if (element) {
-        // Small timeout to ensure the DOM is fully rendered
         const timer = setTimeout(() => {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
@@ -30,11 +29,11 @@ const LandingPage = () => {
   return (
     <>
       <HeroSection />
-      <Suspense fallback={<div style={{ minHeight: '640px', background: '#fff7ed' }} aria-hidden="true" />}>
-        <MascotShowcase />
-      </Suspense>
       <HowItWorks />
       <FeatureCards />
+      <Suspense fallback={<div style={{ minHeight: '640px', background: '#f5f1ff' }} aria-hidden="true" />}>
+        <MascotShowcase />
+      </Suspense>
       <Testimonials />
       <FaqSection />
       <CtaBanner />

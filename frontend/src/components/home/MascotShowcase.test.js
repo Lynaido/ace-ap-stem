@@ -1,10 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
+import MascotShowcase, { OUTFITS } from './MascotShowcase';
 
 jest.mock('three/examples/jsm/loaders/FBXLoader.js', () => ({ FBXLoader: jest.fn() }));
 jest.mock('three/examples/jsm/loaders/GLTFLoader.js', () => ({ GLTFLoader: jest.fn() }));
 jest.mock('three/examples/jsm/controls/OrbitControls.js', () => ({ OrbitControls: jest.fn() }));
-
-import MascotShowcase, { OUTFITS } from './MascotShowcase';
 
 class IdleIntersectionObserver {
   observe() {}
@@ -28,7 +27,7 @@ test('renders complete mascot personalization controls', () => {
   expect(screen.getByRole('group', { name: /outfit/i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /^mood$/i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /study reactions/i })).toBeInTheDocument();
-  expect(screen.getByRole('group', { name: /outfit/i }).querySelectorAll('button')).toHaveLength(10);
+  expect(within(screen.getByRole('group', { name: /outfit/i })).getAllByRole('button')).toHaveLength(10);
   expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(2);
 });
 

@@ -1,64 +1,60 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaComments, FaBrain, FaBook, FaLightbulb, FaListOl, FaFolderOpen } from 'react-icons/fa';
+import { FaArrowRight, FaBookOpen, FaFolderOpen, FaLightbulb } from 'react-icons/fa';
 import './FeatureCards.css';
 
-const features = [
-  {
-    icon: <FaListOl />,
-    title: 'Solve Problems',
-    description: 'Get a structured solution for the full question or only the sub-part you select.',
-    link: '/solve-problems'
-  },
-  {
-    icon: <FaLightbulb />,
-    title: 'Step-by-Step Hints',
-    description: 'Receive guided hints that help you understand the process without giving away the answer.',
-    link: '/solve-problems' // Or a specific hints page
-  },
-  {
-    icon: <FaBook />,
-    title: 'Concept Notes',
-    description: 'Review the essential ideas behind the selected problem without losing the original context.',
-    link: '/concept-notes'
-  },
-  {
-    icon: <FaComments />,
-    title: 'Chatbot Tutor',
-    description: 'Ask questions and get personalized explanations from your on-demand AI tutor.',
-    link: '/tutor'
-  },
-  {
-    icon: <FaFolderOpen />,
-    title: 'Notes Hub',
-    description: 'Save and organize problems, complete solutions, hints, and concept notes in one place.',
-    link: '/notes-hub'
-  },
-  {
-    icon: <FaBrain />,
-    title: 'Study Mode',
-    description: 'Generate practice quizzes and review key concepts to prepare for your exams.',
-    link: '/study-mode'
-  }
-];
-
-const FeatureCards = () => {
-  return (
-    <section className="feature-cards-section">
-      <div className="feature-cards-container">
-        <h2>Everything stays connected to what you chose.</h2>
-        <div className="cards-grid">
-          {features.map((feature, index) => (
-            <Link to={feature.link} key={index} className="feature-card">
-              <div className="card-icon">{feature.icon}</div>
-              <h3>{feature.title}</h3>
-              <p>{feature.description}</p>
-            </Link>
-          ))}
+const FeatureCards = () => (
+  <section className="ace-capabilities" id="features" aria-labelledby="ace-capabilities-title">
+    <div className="ace-capabilities__inner">
+      <header className="ace-capabilities__header">
+        <div>
+          <p className="ace-section-kicker">Everything you need to learn</p>
+          <h2 id="ace-capabilities-title" className="ace-section-title">One companion. <span className="ace-gradient-text">Three focused spaces.</span></h2>
         </div>
+        <p>Move from a difficult question to clear understanding without losing the original context.</p>
+      </header>
+
+      <div className="ace-capabilities__grid">
+        <Link to="/solve-problems" className="ace-capability ace-capability--solve">
+          <div className="ace-capability__copy">
+            <span className="ace-capability__index">01</span>
+            <p className="ace-capability__label">Solve a problem</p>
+            <h3>Focus on the exact question or sub-part.</h3>
+            <p>Upload or type, choose what to solve, then keep full solutions, guided hints and concept notes aligned.</p>
+            <ul>
+              <li><FaLightbulb aria-hidden="true" /> Step-by-step hints</li>
+              <li><FaBookOpen aria-hidden="true" /> Connected concept notes</li>
+            </ul>
+            <span className="ace-capability__link">Start solving <FaArrowRight aria-hidden="true" /></span>
+          </div>
+          <div className="ace-sprite ace-sprite--solve ace-capability__mascot" aria-hidden="true" />
+        </Link>
+
+        <Link to="/notes-hub" className="ace-capability ace-capability--notes">
+          <div className="ace-capability__icon"><FaFolderOpen aria-hidden="true" /></div>
+          <div className="ace-capability__copy">
+            <span className="ace-capability__index">02</span>
+            <p className="ace-capability__label">Notes Hub</p>
+            <h3>Return to the whole learning record.</h3>
+            <p>Organize problems, complete solutions, hints and rendered math in folders you can search.</p>
+            <span className="ace-capability__link">Open Notes Hub <FaArrowRight aria-hidden="true" /></span>
+          </div>
+          <div className="ace-sprite ace-sprite--notes ace-capability__mascot" aria-hidden="true" />
+        </Link>
+
+        <Link to="/study-mode" className="ace-capability ace-capability--study">
+          <div className="ace-capability__copy">
+            <span className="ace-capability__index">03</span>
+            <p className="ace-capability__label">Study Mode</p>
+            <h3>Turn saved learning into active practice.</h3>
+            <p>Select your material and build the right review experience for the next study session.</p>
+            <span className="ace-capability__link">Choose a study mode <FaArrowRight aria-hidden="true" /></span>
+          </div>
+          <div className="ace-sprite ace-sprite--study ace-capability__mascot" aria-hidden="true" />
+        </Link>
       </div>
-    </section>
-  );
-};
+    </div>
+  </section>
+);
 
 export default FeatureCards;

@@ -1,11 +1,13 @@
 .mascot-showcase {
-  --mascot-accent: #4f35bd;
-  --mascot-accent-strong: #4e33b5;
-  --mascot-border: #fed7aa;
-  --mascot-ink: #292524;
-  --mascot-muted: #6b625d;
+  --mascot-accent: var(--ace-violet);
+  --mascot-accent-strong: #5c2de8;
+  --mascot-border: var(--ace-border);
+  --mascot-ink: var(--ace-ink);
+  --mascot-muted: var(--ace-muted);
   padding: clamp(4.25rem, 7vw, 6.75rem) 1rem;
-  background: #fff8f1;
+  background:
+    radial-gradient(circle at 15% 30%, rgba(79, 130, 244, 0.08), transparent 24%),
+    linear-gradient(180deg, #f7f3ff, #fff9fd);
   color: var(--mascot-ink);
   overflow: hidden;
 }
@@ -58,7 +60,7 @@
 .mascot-showcase__notes span {
   position: relative;
   padding-left: 1.4rem;
-  color: #44403c;
+  color: var(--ace-ink-soft);
   font-size: 0.96rem;
   font-weight: 680;
 }
@@ -78,8 +80,8 @@
   overflow: hidden;
   border: 1px solid var(--mascot-border);
   border-radius: 1.45rem;
-  background: #fffdf9;
-  box-shadow: 0 32px 74px -44px rgba(124, 45, 18, 0.52);
+  background: #fff;
+  box-shadow: var(--ace-shadow);
 }
 
 .mascot-stage {
@@ -89,7 +91,7 @@
   overflow: hidden;
   border: 0;
   border-radius: 0;
-  background: #fffdf9;
+  background: #fff;
   box-shadow: none;
   isolation: isolate;
   transition: border-color 280ms ease, background-color 280ms ease;
@@ -101,18 +103,18 @@
   inset: 10% 13% 12%;
   z-index: -1;
   border-radius: 50%;
-  background: #ffedd5;
+  background: linear-gradient(145deg, #ebe3ff, #fdeafb);
   transform: scale(1);
   transition: background-color 280ms ease, transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .mascot-stage--curious::before {
-  background: #ffdfbd;
+  background: linear-gradient(145deg, #e1edff, #eee5ff);
   transform: scale(0.94, 1.03);
 }
 
 .mascot-stage--cheerful::before {
-  background: #fed7aa;
+  background: linear-gradient(145deg, #ffe8f4, #eae2ff);
   transform: scale(1.04);
 }
 
@@ -136,9 +138,9 @@
   left: 50%;
   transform: translateX(-50%);
   border: 1px solid rgba(253, 186, 116, 0.75);
-  background: rgba(255, 253, 249, 0.96);
+  background: rgba(255, 255, 255, 0.96);
   color: var(--mascot-accent-strong);
-  box-shadow: 0 12px 32px -20px rgba(124, 45, 18, 0.5);
+  box-shadow: 0 12px 32px -20px rgba(68, 42, 151, 0.5);
 }
 
 .mascot-stage__loading {
@@ -194,7 +196,7 @@
   margin: 0;
   padding: 0.58rem 0.82rem;
   border-radius: 0.72rem;
-  color: #7c2d12;
+  color: var(--ace-ink-soft);
   font-size: 0.76rem;
   font-weight: 680;
   white-space: nowrap;
@@ -211,7 +213,7 @@
   width: 34%;
   height: 68%;
   border-radius: 46% 46% 32% 32%;
-  background: #ffedd5;
+  background: var(--ace-surface-violet);
 }
 
 .mascot-controls {
@@ -221,7 +223,7 @@
   border: 0;
   border-top: 1px solid var(--mascot-border);
   border-radius: 0;
-  background: #fffdf9;
+  background: #fff;
   box-shadow: none;
 }
 
@@ -252,10 +254,10 @@
   max-width: 260px;
   min-height: 0;
   padding: 0.55rem 0.7rem 0.55rem 1.65rem;
-  border: 1px solid #ffedd5;
+  border: 1px solid var(--ace-border);
   border-radius: 0.75rem;
-  background: #fff8f1;
-  color: #7c2d12;
+  background: var(--ace-surface-violet);
+  color: var(--ace-ink-soft);
   font-size: 0.78rem;
   font-weight: 650;
   line-height: 1.4;
@@ -270,7 +272,7 @@
   height: 0.5rem;
   border-radius: 50%;
   background: #6d4aff;
-  box-shadow: 0 0 0 4px #ffedd5;
+  box-shadow: 0 0 0 4px rgba(108, 61, 244, 0.1);
 }
 
 .mascot-controls__group {
@@ -283,7 +285,7 @@
 .mascot-controls__group legend {
   margin-bottom: 0.6rem;
   padding: 0;
-  color: #57534e;
+  color: var(--ace-muted);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -309,7 +311,7 @@
   border: 1px solid var(--mascot-border);
   border-radius: 0.7rem;
   background: #faf8ff;
-  color: #7c2d12;
+  color: var(--ace-ink-soft);
   font: inherit;
   font-size: 0.8rem;
   font-weight: 720;
@@ -322,7 +324,7 @@
 
 .mascot-choice:hover:not(:disabled),
 .mascot-action:hover:not(:disabled) {
-  border-color: #fb923c;
+  border-color: var(--ace-violet);
   transform: translateY(-1px);
 }
 
@@ -366,7 +368,7 @@
 }
 
 .mascot-action {
-  border-color: #fdba74;
+  border-color: #cdbdf8;
   background: transparent;
   color: var(--mascot-accent-strong);
 }

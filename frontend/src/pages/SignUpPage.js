@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { toast } from 'react-toastify';
+import { FaArrowRight, FaCheckCircle } from 'react-icons/fa';
+import './AuthPages.css';
 
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
@@ -107,18 +109,38 @@ const SignUpPage = () => {
   };
 
   return (
-    <section className="signin-section">
-      <div className="signup-container">
-        <div className="signin-header">
-          <h1>Join AAS Today</h1>
-          <p>Create your account and start acing your AP STEM courses</p>
-        </div>
+    <section className="ace-auth" aria-labelledby="sign-up-title">
+      <div className="ace-auth__shell">
+        <aside className="ace-auth__story">
+          <Link to="/" className="ace-auth__brand" aria-label="ACE AP STEM home">
+            <img src="/logo.png" alt="" width="40" height="40" />
+            <span>ACE AP STEM</span>
+          </Link>
+          <div className="ace-auth__story-copy">
+            <span>Learn with purpose</span>
+            <h2>Build understanding one step at a time.</h2>
+            <p>Create an account to keep your notes, solutions, and study sessions together.</p>
+          </div>
+          <ul className="ace-auth__benefits">
+            <li><FaCheckCircle aria-hidden="true" /> Practice across AP STEM subjects</li>
+            <li><FaCheckCircle aria-hidden="true" /> Save useful explanations for review</li>
+          </ul>
+          <div className="ace-auth__mascot" aria-hidden="true" />
+        </aside>
 
-        <div className="signin-card">
-          <form onSubmit={handleSubmit} className="signin-form">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-              <div className="form-group">
-                <label htmlFor="firstName">First Name *</label>
+        <div className="ace-auth__content">
+          <div className="ace-auth__content-inner">
+            <header className="ace-auth__header">
+              <h1 id="sign-up-title">Create your account</h1>
+              <p>Set up your learning space with ACE.</p>
+            </header>
+
+            {errors.general && <div className="ace-auth__error-banner" role="alert">{errors.general}</div>}
+
+            <form onSubmit={handleSubmit} className="ace-auth__form" noValidate>
+              <div className="ace-auth__name-grid">
+                <div className="ace-auth__field">
+                  <label htmlFor="firstName">First name</label>
                 <input
                   id="firstName"
                   name="firstName"
@@ -126,15 +148,16 @@ const SignUpPage = () => {
                   value={formData.firstName}
                   onChange={handleChange}
                   placeholder="Enter your first name"
-                  className={errors.firstName ? 'error' : ''}
+                  aria-invalid={Boolean(errors.firstName)}
+                  aria-describedby={errors.firstName ? 'sign-up-first-name-error' : undefined}
                   required
                   autoComplete="given-name"
                 />
-                {errors.firstName && <span className="error-message">{errors.firstName}</span>}
+                  {errors.firstName && <span className="ace-auth__field-error" id="sign-up-first-name-error">{errors.firstName}</span>}
               </div>
-              
-              <div className="form-group">
-                <label htmlFor="lastName">Last Name *</label>
+
+                <div className="ace-auth__field">
+                  <label htmlFor="lastName">Last name</label>
                 <input
                   id="lastName"
                   name="lastName"
@@ -142,16 +165,17 @@ const SignUpPage = () => {
                   value={formData.lastName}
                   onChange={handleChange}
                   placeholder="Enter your last name"
-                  className={errors.lastName ? 'error' : ''}
+                  aria-invalid={Boolean(errors.lastName)}
+                  aria-describedby={errors.lastName ? 'sign-up-last-name-error' : undefined}
                   required
                   autoComplete="family-name"
                 />
-                {errors.lastName && <span className="error-message">{errors.lastName}</span>}
+                  {errors.lastName && <span className="ace-auth__field-error" id="sign-up-last-name-error">{errors.lastName}</span>}
+                </div>
               </div>
-            </div>
 
-            <div className="form-group">
-              <label htmlFor="email">Email Address *</label>
+              <div className="ace-auth__field">
+                <label htmlFor="email">Email address</label>
               <input
                 id="email"
                 name="email"
@@ -159,15 +183,16 @@ const SignUpPage = () => {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Enter your email"
-                className={errors.email ? 'error' : ''}
+                aria-invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? 'sign-up-email-error' : undefined}
                 required
                 autoComplete="email"
               />
-              {errors.email && <span className="error-message">{errors.email}</span>}
+                {errors.email && <span className="ace-auth__field-error" id="sign-up-email-error">{errors.email}</span>}
             </div>
-            
-            <div className="form-group">
-              <label htmlFor="password">Password *</label>
+
+              <div className="ace-auth__field">
+                <label htmlFor="password">Password</label>
               <input
                 id="password"
                 name="password"
@@ -175,15 +200,16 @@ const SignUpPage = () => {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Create a password"
-                className={errors.password ? 'error' : ''}
+                aria-invalid={Boolean(errors.password)}
+                aria-describedby={errors.password ? 'sign-up-password-error' : undefined}
                 required
                 autoComplete="new-password"
               />
-              {errors.password && <span className="error-message">{errors.password}</span>}
+                {errors.password && <span className="ace-auth__field-error" id="sign-up-password-error">{errors.password}</span>}
             </div>
 
-            <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password *</label>
+              <div className="ace-auth__field">
+                <label htmlFor="confirmPassword">Confirm password</label>
               <input
                 id="confirmPassword"
                 name="confirmPassword"
@@ -191,37 +217,35 @@ const SignUpPage = () => {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 placeholder="Confirm your password"
-                className={errors.confirmPassword ? 'error' : ''}
+                aria-invalid={Boolean(errors.confirmPassword)}
+                aria-describedby={errors.confirmPassword ? 'sign-up-confirm-password-error' : undefined}
                 required
                 autoComplete="new-password"
               />
-              {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+                {errors.confirmPassword && <span className="ace-auth__field-error" id="sign-up-confirm-password-error">{errors.confirmPassword}</span>}
             </div>
-            
+
             <button 
               type="submit" 
-              className="btn-signin"
+                className="ace-auth__primary"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Creating Account...' : 'Create Account'}
+                {isSubmitting ? 'Creating account...' : <><span>Create account</span><FaArrowRight aria-hidden="true" /></>}
             </button>
           </form>
 
-          <div className="signin-divider">
+            <div className="ace-auth__divider">
             <span>Already have an account?</span>
           </div>
 
-          <Link to="/sign-in" className="btn-signup">
+            <Link to="/sign-in" className="ace-auth__secondary">
             Sign In
           </Link>
-        </div>
 
-        <div className="signin-footer">
-          <p>
-            By creating an account, you agree to our{' '}
-            <Link to="/privacy">Privacy Policy</Link> and{' '}
-            <Link to="/terms">Terms of Service</Link>
-          </p>
+            <p className="ace-auth__legal">
+              By creating an account, you acknowledge our <Link to="/privacy">Privacy Policy</Link>.
+            </p>
+          </div>
         </div>
       </div>
     </section>

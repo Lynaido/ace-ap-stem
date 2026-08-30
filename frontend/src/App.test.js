@@ -8,6 +8,6 @@ test('shows the public landing page to signed-out visitors', async () => {
   localStorage.clear();
   render(<App />);
   expect(await screen.findByRole('heading', {
-    name: /understand the exact part that has you stuck/i,
+    name: /master ap stem with an ai companion/i,
   })).toBeInTheDocument();
 });

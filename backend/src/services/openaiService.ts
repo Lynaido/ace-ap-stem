@@ -669,7 +669,7 @@ Solve ONLY ${focus.questionLabel || 'the selected question'}. Ignore any other q
 Focus ONLY on ${focus.partLabel || 'the selected sub-part'}${
     focus.questionLabel ? ` of ${focus.questionLabel}` : ''
   }. Do not solve the other sub-parts.${siblings}
-If ${focus.partLabel || 'this sub-part'} depends on a result from an earlier sub-part, you may compute just the intermediate result you need to proceed — briefly and clearly — rather than requiring the student to have solved the earlier part first. Keep the earlier work minimal; the deliverable is the solution to ${
+If ${focus.partLabel || 'this sub-part'} depends on a result from an earlier sub-part, you may compute just the intermediate result you need to proceed, briefly and clearly, rather than requiring the student to have solved the earlier part first. Keep the earlier work minimal; the deliverable is the solution to ${
     focus.partLabel || 'the selected sub-part'
   }.${focus.focusText ? `\n\nThe selected sub-part is:\n${focus.focusText}` : ''}${
     focus.contextText ? `\n\nFull problem for context (do not solve all of it):\n${focus.contextText}` : ''

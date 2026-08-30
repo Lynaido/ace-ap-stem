@@ -66,6 +66,7 @@ const StudyModePage = () => {
     return incomingProblem
       ? {
         id: incomingProblem.id ?? 'notes-hub-problem',
+        problemId: incomingProblem.problemId ?? incomingProblem.problem?.id ?? null,
         title: incomingProblem.title ?? 'Untitled saved problem',
         subject: incomingProblem.subject ?? 'Notes Hub',
         excerpt:
@@ -90,7 +91,7 @@ const StudyModePage = () => {
             title: itemData?.title || itemData?.content || 'Untitled',
             subject: item.type.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase()),
             lastReviewed: new Date(item.createdAt).toLocaleDateString(),
-            excerpt: itemData?.description || itemData?.content?.substring(0, 100) + '...' || 'No description available',
+            excerpt: itemData?.description || (itemData?.content ? `${itemData.content.substring(0, 100)}...` : 'No description available'),
             tags: item.tags || []
           };
         });
@@ -108,7 +109,7 @@ const StudyModePage = () => {
           title: itemData?.title || itemData?.content || 'Untitled',
           subject: item.type.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase()),
           lastReviewed: new Date(item.createdAt).toLocaleDateString(),
-          excerpt: itemData?.description || itemData?.content?.substring(0, 100) + '...' || 'No description available',
+          excerpt: itemData?.description || (itemData?.content ? `${itemData.content.substring(0, 100)}...` : 'No description available'),
           tags: item.tags || []
         };
       });
@@ -280,14 +281,14 @@ const StudyModePage = () => {
     <div className="study-mode-page">
       <div className="study-mode-shell">
         <header className="study-mode-hero">
-          <div className="hero-copy">
-            <span className="hero-eyebrow">Phase 6: Create Study Mode</span>
-            <h1>Design a smarter study session</h1>
+          <div className="study-mode-hero-copy">
+            <span className="study-mode-hero-eyebrow">Build your practice path</span>
+            <h1>Study with a plan that fits today.</h1>
             <p>
               Select your study mode, choose a saved problem, and generate AI-powered practice variants
               tailored to your learning goals.
             </p>
-            <div className="hero-actions">
+            <div className="study-mode-hero-actions">
               {(selectedMode || selectedProblem || variants.length > 0) && (
                 <>
                   <Button
@@ -304,20 +305,27 @@ const StudyModePage = () => {
               )}
             </div>
           </div>
-          <div className="hero-summary">
-            <div className="summary-tile">
-              <span className="summary-label">Study mode</span>
-              <strong>{selectedMode ? selectedMode.name : 'Not selected'}</strong>
-              <p>{selectedMode ? selectedMode.tagline : 'Pick a mode to define the pacing and tone of practice.'}</p>
-            </div>
-            <div className="summary-tile">
-              <span className="summary-label">Anchor note</span>
-              <strong>{selectedProblem ? selectedProblem.title : 'Not selected'}</strong>
-              <p>
-                {selectedProblem
-                  ? selectedProblem.subject ?? 'Saved problem'
-                  : 'Choose a saved problem to generate smart variants.'}
-              </p>
+          <div className="study-mode-hero-visual">
+            <div
+              className="study-mode-mascot"
+              style={{ '--ace-sprite': "url('/images/ace-sprite-v2.png')" }}
+              aria-hidden="true"
+            />
+            <div className="study-mode-hero-summary">
+              <div className="study-mode-summary-tile">
+                <span className="study-mode-summary-label">Study mode</span>
+                <strong>{selectedMode ? selectedMode.name : 'Not selected'}</strong>
+                <p>{selectedMode ? selectedMode.tagline : 'Pick a mode to set the pace.'}</p>
+              </div>
+              <div className="study-mode-summary-tile">
+                <span className="study-mode-summary-label">Anchor note</span>
+                <strong>{selectedProblem ? selectedProblem.title : 'Not selected'}</strong>
+                <p>
+                  {selectedProblem
+                    ? selectedProblem.subject ?? 'Saved problem'
+                    : 'Choose one saved problem.'}
+                </p>
+              </div>
             </div>
           </div>
         </header>
@@ -327,7 +335,7 @@ const StudyModePage = () => {
             const status = activeStep === step.id ? 'is-active' : activeStep > step.id ? 'is-complete' : 'is-pending';
             return (
               <div key={step.id} className={`step-item ${status}`} aria-current={activeStep === step.id ? 'step' : undefined}>
-                <div className="step-index">{step.id}</div>
+                <div className="step-index">{activeStep > step.id ? '✓' : step.id}</div>
                 <div className="step-meta">
                   <span className="step-label">{step.label}</span>
                   <span className="step-description">{step.description}</span>
@@ -348,7 +356,8 @@ const StudyModePage = () => {
                 {studyModes.map((mode) => {
                   const isSelected = selectedMode?.id === mode.id;
                   return (
-                    <article key={mode.id} className={`mode-card ${isSelected ? 'is-selected' : ''}`}>
+                    <article key={mode.id} className={`mode-card mode-card--${mode.id} ${isSelected ? 'is-selected' : ''}`}>
+                      <span className="mode-card-index" aria-hidden="true">0{studyModes.indexOf(mode) + 1}</span>
                       <div className="mode-card-header">
                         <h3>{mode.name}</h3>
                         <p className="mode-tagline">{mode.tagline}</p>

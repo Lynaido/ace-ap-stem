@@ -164,7 +164,7 @@ const NotesHubPage = () => {
           if (item.problem) {
             return {
               ...baseItem,
-              title: item.problem.title.replace(/^Problem:\s*/i, ''),
+              title: item.problem.title?.replace(/^Problem:\s*/i, '') || 'Saved problem',
               excerpt: item.problem.description,
               subject: item.problem.subject,
               difficulty: item.problem.difficulty,
@@ -180,7 +180,7 @@ const NotesHubPage = () => {
             return {
               ...baseItem,
               title: item.problem.title || 'Solution',
-              excerpt: item.solution.finalAnswer || item.solution.content?.substring(0, 150) || 'View full solution',
+              excerpt: searchableText(item.solution.finalAnswer || item.solution.content).substring(0, 150) || 'View full solution',
               subject: item.problem.subject || 'Unknown',
               difficulty: item.problem.difficulty,
               // Remove subject/difficulty from tags to avoid duplication
@@ -195,7 +195,7 @@ const NotesHubPage = () => {
             return {
               ...baseItem,
               title: item.problem.title || 'Hint',
-              excerpt: item.hint.content?.substring(0, 150) || 'View hint',
+              excerpt: searchableText(item.hint.content).substring(0, 150) || 'View hint',
               subject: item.problem.subject || 'Unknown',
               difficulty: item.problem.difficulty,
               // Remove subject/difficulty from tags to avoid duplication
@@ -210,7 +210,7 @@ const NotesHubPage = () => {
             return {
               ...baseItem,
               title: item.conceptNote.title || (item.problem?.title ? `${item.problem.title} - Concepts` : 'Concept Notes'),
-              excerpt: item.conceptNote.content?.substring(0, 150) || 'View concept notes',
+              excerpt: searchableText(item.conceptNote.content).substring(0, 150) || 'View concept notes',
               subject: item.problem?.subject || 'Unknown',
               difficulty: item.problem?.difficulty,
               // Remove subject/difficulty from tags to avoid duplication
@@ -475,11 +475,19 @@ const NotesHubPage = () => {
           onDeleteFolder={handleDeleteFolder}
           onItemDrop={handleItemDrop}
         />
-        <main className="notes-hub-main">
+        <div className="notes-hub-main">
           <header className="notes-hub-header">
-            <div>
-              <h1>Notes Hub</h1>
-              <p>Review saved problems, complete solutions, hints, and concept notes.</p>
+            <div className="notes-hub-intro">
+              <div className="notes-hub-intro__copy">
+                <span className="notes-hub-eyebrow">Your learning library</span>
+                <h1>Notes Hub</h1>
+                <p>Keep every problem, solution, hint, and concept note ready for your next study session.</p>
+              </div>
+              <div
+                className="notes-hub-mascot"
+                style={{ '--ace-sprite': "url('/images/ace-sprite-v2.png')" }}
+                aria-hidden="true"
+              />
             </div>
             <div className="notes-hub-header-controls">
               <div className="notes-hub-search-and-filters">
@@ -497,12 +505,14 @@ const NotesHubPage = () => {
                     type="button" 
                     className={`filter-toggle ${showFilters ? 'active' : ''}`}
                     onClick={() => setShowFilters(!showFilters)}
+                    aria-expanded={showFilters}
+                    aria-controls="notes-filter-panel"
                   >
                     Filters {hasActiveFilters && <span className="filter-indicator">●</span>}
                   </button>
                   
                   {showFilters && (
-                    <div className="filter-dropdown">
+                    <div className="filter-dropdown" id="notes-filter-panel">
                       <div className="filter-row">
                         <select 
                           value={activeFilters.type} 
@@ -567,7 +577,14 @@ const NotesHubPage = () => {
             </div>
           </header>
 
-          {loading && <div className="notes-hub-loading" role="status">Loading your learning library...</div>}
+          {loading && (
+            <div className="notes-hub-loading" role="status" aria-label="Loading your learning library">
+              <span className="notes-loading-copy">Preparing your learning library</span>
+              <div className="notes-loading-grid" aria-hidden="true">
+                <span /><span /><span />
+              </div>
+            </div>
+          )}
           {foldersError && <div className="notes-hub-inline-warning" role="status">{foldersError}</div>}
           {error && (
             <div className="notes-hub-error" role="alert">
@@ -601,6 +618,13 @@ const NotesHubPage = () => {
 
               {filteredItems.length ? (
                 <>
+                  <div className="notes-hub-results-heading">
+                    <div>
+                      <span className="notes-hub-results-heading__eyebrow">Collection</span>
+                      <h2>{allFolders.find((folder) => folder.id === activeFolderId)?.name || 'All Items'}</h2>
+                    </div>
+                    <span>{filteredItems.length} shown</span>
+                  </div>
                   <section className="notes-hub-grid">
                     {filteredItems.map((item) => (
                       <SavedItemCard
@@ -637,14 +661,20 @@ const NotesHubPage = () => {
               )}
             </>
           )}
-        </main>
+        </div>
 
         {/* Folder Creation Modal */}
         {showFolderModal && (
           <div className="modal-overlay" onClick={() => setShowFolderModal(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="modal-content"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="create-folder-title"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="modal-header">
-                <h2>Create New Folder</h2>
+                <h2 id="create-folder-title">Create New Folder</h2>
                 <button
                   type="button"
                   className="modal-close"
@@ -707,9 +737,15 @@ const NotesHubPage = () => {
         {/* Save Item Modal */}
         {showSaveItemModal && (
           <div className="modal-overlay" onClick={() => setShowSaveItemModal(false)}>
-            <div className="modal-content save-item-modal" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="modal-content save-item-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="save-item-title"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="modal-header">
-                <h2>Save New Item</h2>
+                <h2 id="save-item-title">Save New Item</h2>
                 <button
                   type="button"
                   className="modal-close"

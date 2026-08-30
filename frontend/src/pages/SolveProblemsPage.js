@@ -170,6 +170,7 @@ const SolveProblemsPage = () => {
   };
 
   const trimmedProblem = problemText.trim();
+  const destinationFolderId = new URLSearchParams(location.search).get('folderId');
   // Form is complete if we have a subject AND (either text OR an uploaded image)
   const formIncomplete = !selectedSubject || (!trimmedProblem && !uploadedAsset);
   const isBusy = isUploading || isProblemLoading;
@@ -263,7 +264,7 @@ const SolveProblemsPage = () => {
       difficulty: 'medium',
       imageUrl: uploadedAsset ? uploadedAsset.url : null,
     };
-    const created = await createProblem(problemData);
+    const created = await createProblem(problemData, destinationFolderId || null);
     if (!created?.id) {
       throw new Error('Could not create the problem. Please try again.');
     }
@@ -510,6 +511,14 @@ const SolveProblemsPage = () => {
 
   return (
     <div className={`solve-problems-page ${isProblemViewVisible ? 'solution-mode' : 'upload-mode'}`}>
+      <header className="solve-page-intro">
+        <div className="solve-page-intro-copy">
+          <span className="solve-page-eyebrow">ACE Problem Studio</span>
+          <h1>Turn a tough question into a clear next step.</h1>
+          <p>Upload a problem, choose exactly what you want to work on, and learn with guidance built around your question.</p>
+        </div>
+        <div className="solve-page-mascot" aria-hidden="true" />
+      </header>
       <div className="solve-problems-layout">
         <div className="main-content">
           {!isProblemViewVisible ? (
@@ -617,6 +626,12 @@ const SolveProblemsPage = () => {
                       role="button"
                       aria-label="Upload an image of the problem"
                       onClick={() => document.getElementById('file-upload').click()}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          document.getElementById('file-upload').click();
+                        }
+                      }}
                       onDragOver={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -654,6 +669,7 @@ const SolveProblemsPage = () => {
                 ) : (
                   <textarea
                     className="text-input"
+                    aria-label="Problem text"
                     value={problemText}
                     onChange={(e) => {
                       setProblemText(e.target.value);
@@ -683,19 +699,6 @@ const SolveProblemsPage = () => {
                         {subject.label}
                       </option>
                     ))}
-                  </select>
-                </div>
-                <div className="field-group">
-                  <label className="field-label" htmlFor="level-select">Explanation Level</label>
-                  <select
-                    id="level-select"
-                    onChange={(e) => console.log('Level changed:', e.target.value)}
-                    className="styled-select"
-                  >
-                    <option value="">Select level</option>
-                    <option value="basic">Basic</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
                   </select>
                 </div>
               </div>
@@ -744,7 +747,7 @@ const SolveProblemsPage = () => {
               </div>
 
               {error && (
-                <div className="error-message">
+                <div className="error-message" role="alert">
                   <strong>Error:</strong> {error}
                 </div>
               )}

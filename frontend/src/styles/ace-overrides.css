@@ -1,0 +1,85 @@
+/* Final presentation layer for legacy primitives. Logic and component APIs stay unchanged. */
+html { color-scheme: light; }
+
+body .btn-primitive {
+  min-height: 44px;
+  border-width: 1px;
+  border-radius: var(--ace-radius-control);
+  font-weight: 820;
+  transition: transform 170ms ease, background 170ms ease, border-color 170ms ease, box-shadow 170ms ease;
+}
+body .btn-primitive.btn-primary {
+  color: #fff;
+  border-color: var(--ace-violet);
+  background: linear-gradient(135deg, var(--ace-violet), #8258ff);
+  box-shadow: 0 14px 28px -18px rgba(90, 44, 224, .85);
+}
+body .btn-primitive.btn-primary:hover:not(.btn-disabled) {
+  border-color: #5c2de8;
+  background: linear-gradient(135deg, #5c2de8, #7348f2);
+  box-shadow: 0 18px 34px -18px rgba(90, 44, 224, .9);
+}
+body .btn-primitive.btn-secondary { color: #fff; border-color: var(--ace-ink); background: var(--ace-ink); }
+body .btn-primitive.btn-outline { color: var(--ace-ink-soft); border-color: var(--ace-border); background: #fff; }
+body .btn-primitive.btn-ghost { color: var(--ace-violet); background: transparent; }
+body .btn-primitive.btn-outline:hover:not(.btn-disabled),
+body .btn-primitive.btn-ghost:hover:not(.btn-disabled) { color: var(--ace-violet); border-color: #cdbdf8; background: var(--ace-surface-violet); }
+
+body .input-label,
+body .select-label { color: var(--ace-ink-soft); font-weight: 760; }
+body .input-primitive,
+body .select-primitive {
+  min-height: 48px;
+  border: 1px solid var(--ace-border);
+  border-radius: var(--ace-radius-control);
+  color: var(--ace-ink);
+  background: #fff;
+  box-shadow: 0 8px 24px -24px rgba(68, 42, 151, .3);
+}
+body .input-primitive:hover:not(.input-disabled),
+body .select-primitive:hover:not(.select-disabled) { border-color: #c9baf2; }
+body .input-primitive:focus,
+body .select-primitive:focus,
+body .select-open { border-color: var(--ace-violet); box-shadow: 0 0 0 4px rgba(108, 61, 244, .11); }
+body .input-primitive::placeholder,
+body .select-placeholder { color: #9795ae; }
+body .select-dropdown { border: 1px solid var(--ace-border); border-radius: 14px; background: #fff; box-shadow: var(--ace-shadow); }
+body .select-option { color: var(--ace-ink-soft); }
+body .select-option:hover,
+body .select-option-focused,
+body .select-option-selected { color: var(--ace-violet); background: var(--ace-surface-violet); }
+
+body .card-primitive {
+  border: 1px solid var(--ace-border);
+  border-radius: var(--ace-radius-card);
+  background: #fff;
+  box-shadow: var(--ace-shadow-soft);
+}
+body .card-primitive:hover { box-shadow: var(--ace-shadow); }
+body .card-title { color: var(--ace-ink); font-weight: 820; }
+
+body .tabs-pills,
+body .tabs-segmented { border: 1px solid var(--ace-border); border-radius: 14px; background: var(--ace-surface-violet); }
+body .tabs-tab { min-height: 42px; border-radius: 11px; color: var(--ace-muted); font-weight: 740; }
+body .tabs-tab:hover:not(.tabs-tab-disabled) { color: var(--ace-violet); background: rgba(255,255,255,.68); }
+body .tabs-pills .tabs-tab-active,
+body .tabs-bordered .tabs-tab-active { color: #fff; background: var(--ace-violet); }
+body .tabs-segmented .tabs-tab-active { color: var(--ace-violet); background: #fff; box-shadow: 0 8px 20px -16px rgba(68,42,151,.55); }
+
+body .empty-state-card,
+body .empty-state-subtle { border: 1px dashed #cfc2ef; border-radius: var(--ace-radius-card); background: linear-gradient(145deg, #fff, var(--ace-surface-violet)); box-shadow: none; }
+body .empty-state-title { color: var(--ace-ink); font-weight: 820; }
+body .empty-state-message { color: var(--ace-muted); }
+body .empty-state-icon { color: var(--ace-purple); }
+
+body .confirmation-modal-overlay { background: rgba(21, 22, 79, .42); backdrop-filter: blur(8px); }
+body .confirmation-modal { border: 1px solid var(--ace-border); border-radius: var(--ace-radius-card); box-shadow: var(--ace-shadow); }
+body .confirmation-modal__title { color: var(--ace-ink); }
+body .confirmation-modal__message { color: var(--ace-muted); }
+body .confirmation-modal__btn { min-height: 44px; border-radius: 13px; font-weight: 800; }
+body .confirmation-modal__btn--primary { background: var(--ace-violet); }
+
+@media (prefers-reduced-motion: reduce) {
+  body .btn-primitive,
+  body .card-primitive { transition: none; }
+}

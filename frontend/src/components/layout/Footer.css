@@ -1,107 +1,39 @@
-/* src/components/layout/Footer.css */
-
-.app-footer {
-  background-color: var(--color-ink);
-  color: var(--color-off-white);
-  padding: 3rem 2rem;
-  margin-top: 4rem;
+.ace-footer {
+  position: relative;
+  overflow: hidden;
+  padding: 76px 24px 24px;
+  color: #e3def8;
+  background:
+    radial-gradient(circle at 84% 0%, rgba(141, 103, 255, 0.28), transparent 30%),
+    #171545;
 }
 
-.footer-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 2rem;
+.ace-footer__stars { position: absolute; top: 26px; right: 8%; color: rgba(255,255,255,.34); letter-spacing: 0.6em; }
+.ace-footer__inner { position: relative; width: min(var(--ace-content), 100%); min-height: 280px; margin: 0 auto; display: grid; grid-template-columns: minmax(280px, 0.8fr) minmax(340px, 0.8fr) minmax(240px, 0.5fr); gap: 60px; align-items: start; }
+.ace-footer__brand > a { display: inline-flex; align-items: center; gap: 12px; color: #fff; font-size: 1.05rem; }
+.ace-footer__brand img { width: 42px; height: 42px; border-radius: 50%; }
+.ace-footer__brand > p { max-width: 390px; margin: 22px 0 0; color: #bdb7da; line-height: 1.65; }
+.ace-footer__badges { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 22px; }
+.ace-footer__badges a { min-height: 42px; display: inline-flex; align-items: center; gap: 8px; padding: 0 13px; border: 1px solid rgba(255,255,255,.16); border-radius: 13px; color: #fff; background: rgba(255,255,255,.06); font-size: 0.82rem; font-weight: 800; }
+.ace-footer__badges a:hover { background: rgba(255,255,255,.12); }
+.ace-footer__links { display: grid; grid-template-columns: repeat(2, 1fr); gap: 34px; }
+.ace-footer__links > div { display: grid; align-content: start; gap: 10px; }
+.ace-footer__links h4 { margin: 0 0 9px; color: #fff; font-size: 0.76rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.ace-footer__links a { color: #c9c3df; font-size: 0.88rem; font-weight: 650; }
+.ace-footer__links a:hover { color: #fff; }
+.ace-footer__mascot-wrap { position: relative; min-height: 250px; }
+.ace-footer__mascot-wrap::before { content: ''; position: absolute; inset: 9% 0 0; border-radius: 50% 50% 0 0; background: rgba(255,255,255,.07); }
+.ace-footer__mascot { position: absolute; width: 280px; right: -20px; bottom: -44px; filter: drop-shadow(0 20px 22px rgba(0,0,0,.25)); }
+.ace-footer__bottom { width: min(var(--ace-content), 100%); margin: 30px auto 0; padding-top: 20px; display: flex; justify-content: space-between; gap: 20px; border-top: 1px solid rgba(255,255,255,.12); color: #9f98bd; font-size: 0.77rem; }
+.ace-footer__bottom p { margin: 0; }
+
+@media (max-width: 980px) {
+  .ace-footer__inner { grid-template-columns: 1fr 1fr; }
+  .ace-footer__mascot-wrap { display: none; }
 }
 
-.footer-column {
-  flex: 1;
-  min-width: 200px;
-}
-
-.footer-column h4 {
-  font-family: var(--font-heading);
-  color: var(--color-off-white);
-  margin-bottom: 1rem;
-}
-
-.footer-links {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.footer-links a {
-  color: var(--color-cool-gray);
-  font-weight: 500;
-}
-
-.footer-links a:hover {
-  color: var(--color-orange);
-  text-decoration: none !important;
-}
-
-.footer-bottom {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--color-deep-navy);
-  text-align: center;
-  color: var(--color-cool-gray);
-}
-
-/* Mobile responsive styles */
-@media (max-width: 768px) {
-  .app-footer {
-    padding: 2.5rem 1.5rem;
-    margin-top: 3rem;
-  }
-
-  .footer-container {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .footer-column {
-    min-width: 100%;
-  }
-
-  .footer-column h4 {
-    margin-bottom: 0.75rem;
-    font-size: 1.1rem;
-  }
-
-  .footer-links {
-    gap: 0.5rem;
-  }
-
-  .footer-bottom {
-    margin-top: 1.5rem;
-    padding-top: 1.25rem;
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .app-footer {
-    padding: 2rem 1rem;
-    margin-top: 2rem;
-  }
-
-  .footer-container {
-    gap: 1.25rem;
-  }
-
-  .footer-column h4 {
-    font-size: 1rem;
-  }
-
-  .footer-links {
-    font-size: 0.9rem;
-  }
-
-  .footer-bottom {
-    font-size: 0.85rem;
-  }
+@media (max-width: 680px) {
+  .ace-footer { padding: 58px 18px 22px; }
+  .ace-footer__inner { grid-template-columns: 1fr; gap: 40px; }
+  .ace-footer__bottom { flex-direction: column; }
 }

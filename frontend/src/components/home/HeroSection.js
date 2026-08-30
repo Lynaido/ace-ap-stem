@@ -1,75 +1,69 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaArrowRight, FaCheck, FaPause, FaPlay } from 'react-icons/fa';
+import {
+  FaArrowRight,
+  FaAtom,
+  FaCode,
+  FaFlask,
+  FaSquareRootAlt,
+} from 'react-icons/fa';
 import { useAppContext } from '../../context/AppContext';
 import './HeroSection.css';
-import VideoSlideshow from './VideoSlideshow';
 
-const demoVideos = [
-  {
-    title: 'Upload Problem',
-    url: '/videos/uploadProblem.mp4',
-  },
-  {
-    title: 'Hint & Concept Note',
-    url: '/videos/hintAndConceptNote.mp4',
-  },
-  {
-    title: 'Study Mode',
-    url: '/videos/studyMode.mp4',
-  },
+const subjectTiles = [
+  { label: 'AP Physics', icon: FaAtom, tone: 'blue' },
+  { label: 'AP Chemistry', icon: FaFlask, tone: 'pink' },
+  { label: 'AP Calculus', icon: FaSquareRootAlt, tone: 'orange' },
+  { label: 'AP Computer Science', icon: FaCode, tone: 'green' },
 ];
 
 const HeroSection = () => {
   const { isAuthenticated } = useAppContext();
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  const togglePlay = () => {
-    setIsPlaying(!isPlaying);
-  };
 
   return (
-    <section className="hero-section">
-      <div className="hero-container">
-        <div className="hero-content">
-          <p className="hero-eyebrow">BUILT FOR AP STEM LEARNING</p>
-          <h1 className="hero-title">Understand the exact part that has you stuck.</h1>
-          <p className="hero-tagline">
-            Upload a problem, choose the question or sub-part, and keep the solution, hints, and concept notes focused on the same learning goal.
+    <section className="ace-hero" aria-labelledby="ace-hero-title">
+      <div className="ace-hero__glow ace-hero__glow--one" aria-hidden="true" />
+      <div className="ace-hero__glow ace-hero__glow--two" aria-hidden="true" />
+
+      <div className="ace-hero__inner">
+        <div className="ace-hero__copy">
+          <p className="ace-section-kicker">Your AP STEM study companion</p>
+          <h1 id="ace-hero-title">
+            Master AP STEM <span className="ace-gradient-text">with an AI companion.</span>
+          </h1>
+          <p className="ace-hero__lede">
+            Choose a question, get focused guidance, and keep every solution, hint, and concept note connected.
           </p>
-          <div className="hero-buttons">
-            {isAuthenticated ? (
-              <Link to="/solve-problems" className="btn btn-primary">Open your workspace <FaArrowRight /></Link>
-            ) : (
-              <Link to="/sign-up" className="btn btn-primary">Start learning <FaArrowRight /></Link>
-            )}
-            <a href="#how-it-works" className="hero-text-link">See how it works</a>
+
+          <div className="ace-hero__actions">
+            <Link className="ace-hero__primary" to={isAuthenticated ? '/solve-problems' : '/sign-up'}>
+              {isAuthenticated ? 'Open your workspace' : 'Start learning'}
+              <FaArrowRight aria-hidden="true" />
+            </Link>
+            <a className="ace-hero__secondary" href="#ace-demo">Watch the product tour</a>
           </div>
-          <ul className="hero-proof" aria-label="Product highlights">
-            <li><FaCheck /> Question and sub-part selection</li>
-            <li><FaCheck /> Connected hints, solutions, and notes</li>
-            <li><FaCheck /> Saved learning history</li>
-          </ul>
+
+          <div className="ace-hero__trust" aria-label="Available learning flow">
+            <span>Upload or type</span>
+            <span>Choose the exact part</span>
+            <span>Learn and save</span>
+          </div>
         </div>
-        <div className="hero-mockup-wrapper">
-          <div className="hero-demo-heading">
-            <span>PRODUCT TOUR</span>
-            <strong>{demoVideos[currentSlide].title}</strong>
-          </div>
-          <div className="hero-mockup">
-            <VideoSlideshow 
-              videos={demoVideos} 
-              isPlaying={isPlaying} 
-              onIsPlayingChange={setIsPlaying} 
-              onSlideChange={setCurrentSlide}
-            />
-          </div>
-          <div className="watch-demo-container">
-            <button className="btn-play" onClick={togglePlay}>
-              {isPlaying ? <FaPause aria-hidden="true" /> : <FaPlay aria-hidden="true" />}
-              {isPlaying ? 'Pause Demo' : 'Watch Demo'}
-            </button>
+
+        <div className="ace-hero__visual" aria-label="ACE study companion supports AP STEM subjects">
+          <div className="ace-hero__orbit" aria-hidden="true" />
+          <div className="ace-sprite ace-sprite--wave ace-hero__mascot" aria-hidden="true" />
+
+          {subjectTiles.map(({ label, icon: Icon, tone }, index) => (
+            <div key={label} className={`ace-hero__subject ace-hero__subject--${index + 1} ace-hero__subject--${tone}`}>
+              <span><Icon aria-hidden="true" /></span>
+              <strong>{label}</strong>
+            </div>
+          ))}
+
+          <div className="ace-hero__speech">
+            <span aria-hidden="true">✦</span>
+            <p>Hi, I am ACE. What are we learning today?</p>
           </div>
         </div>
       </div>

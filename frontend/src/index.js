@@ -1,9 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import '@fontsource-variable/nunito-sans';
 import './index.css';
 import 'katex/dist/katex.min.css';
 import App from './App';
+import './styles/ace-overrides.css';
 import reportWebVitals from './reportWebVitals';
+
+document.documentElement.style.setProperty(
+  '--ace-sprite-image',
+  "url('/images/ace-sprite-v2.png')"
+);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

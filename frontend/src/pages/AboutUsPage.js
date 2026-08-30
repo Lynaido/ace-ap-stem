@@ -1,85 +1,68 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { FaArrowRight, FaBrain, FaExternalLinkAlt, FaHeart, FaLightbulb } from 'react-icons/fa';
 import './AboutUsPage.css';
 
-const AboutUsPage = () => {
-  return (
-    <div className="about-us-page">
-      <div className="container">
-        {/* Header Section */}
-        <section className="about-header">
-          <h1 className="page-title">About Us</h1>
-          <p className="page-subtitle">
-            Empowering students to excel in AP STEM courses through innovative learning solutions
-          </p>
-        </section>
-
-        {/* Main Content */}
-        <div className="about-content">
-          {/* Founder Section */}
-          <section className="founder-section">
-            <div className="founder-content">
-              <div className="founder-text">
-                <h2 className="section-title">Meet the Founder</h2>
-                <h3 className="founder-name">Linh Ai Do – Lyna</h3>
-
-                <div className="founder-story">
-                  <div className="story-section">
-                    <h4 className="story-title">Inspiration</h4>
-                    <p className="story-text">
-                      The foundation of AAS, Ace AP STEM, is sparked from my passion for STEM and my personal experience with AP STEM courses. As a high school student myself, I understand the challenges that come with mastering these rigorous subjects. I vividly recall the difficulty of grasping complex concepts. Attending lectures alone was often insufficient, and additional practice at home became frustrating, especially when I encountered roadblocks and was unsure of how to proceed. However, what frustrated me the most was the tendency to quickly search for answers without truly understanding the material. While finding a quick solution can be tempting, I recognized that it would not lead to long-term mastery. I realized that I needed to find a way to engage more deeply with the content and develop my problem-solving skills, rather than simply finding the answer.
-                    </p>
-                  </div>
-
-                  <div className="story-section">
-                    <h4 className="story-title">Critical Thinking with AI</h4>
-                    <p className="story-text">
-                      My personal experience eventually led to the creation of AAS – a platform designed to foster independent learning while promoting critical thinking. One of the most common concerns regarding artificial intelligence is its potential to diminish human critical thinking by providing instant answers. To address this, AAS takes a unique approach. Instead of offering direct solutions to problems, the platform includes several features that guide students through the learning process. One of the most notable features is the "Generate Concept Note," which provides relevant foundational knowledge and hints when students upload a problem. This helps them work through challenges independently, allowing them to build critical thinking and problem-solving skills. By offering this kind of support, AAS encourages deeper engagement with the material, helping students develop the skills necessary for academic success.
-                    </p>
-                  </div>
-
-                  <div className="story-section">
-                    <h4 className="story-title">LYNAE - Heart & Hardware</h4>
-                    <p className="story-text">
-                      In addition to my work on AAS, I am also the founder of LYNAE, a nonprofit organization dedicated to using STEM to support mental health initiatives for children. LYNAE combines technology with compassion, designing 3D-printed therapeutic toys such as stress-relieving clickers. Each Kindness Kit is accompanied by a personalized motivational card to uplift children, particularly those in underserved communities and those facing mental health issues. Feel free to explore more about LYNAE and please consider supporting us to bring support to those who need it most. Your involvement can make a huge difference in the lives of children facing mental health issues!
-                    </p>
-                    <div className="lynae-links">
-                      <a href="https://lynae.org/" target="_blank" rel="noopener noreferrer" className="external-link">
-                        Website: https://lynae.org/
-                      </a>
-                      <a href="https://instagram.com/lynae_heartware" target="_blank" rel="noopener noreferrer" className="external-link">
-                        Instagram: @lynae_heartware
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="founder-image">
-                <img
-                  src="/About Us Image.JPG"
-                  alt="Linh Ai Do - Lyna, Founder of AAS and LYNAE"
-                  className="founder-photo"
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Mission Section */}
-          <section className="mission-section">
-            <div className="mission-card">
-              <h3 className="mission-title">Our Mission</h3>
-              <p className="mission-text">
-                At AAS, we believe in empowering students to become independent learners and critical thinkers.
-                Our platform bridges the gap between traditional learning methods and modern technology,
-                providing the support students need to excel in their AP STEM courses while developing
-                essential problem-solving skills for lifelong success.
-              </p>
-            </div>
-          </section>
+const AboutUsPage = () => (
+  <div className="ace-about">
+    <section className="ace-about__hero" aria-labelledby="about-title">
+      <div className="ace-about__hero-copy">
+        <p className="ace-about__eyebrow">Our story</p>
+        <h1 id="about-title">A learning tool shaped by a student who needed one.</h1>
+        <p>ACE AP STEM was created to help students move through difficult problems with stronger understanding, not just faster answers.</p>
+        <Link to="/solve-problems" className="ace-about__primary">Try guided problem solving <FaArrowRight aria-hidden="true" /></Link>
+      </div>
+      <div className="ace-about__portrait-wrap">
+        <div className="ace-about__portrait-frame">
+          <img src="/About Us Image.JPG" alt="Linh Ai Do, founder of ACE AP STEM and LYNAE" className="ace-about__portrait" />
+        </div>
+        <div className="ace-about__portrait-note">
+          <strong>Linh Ai Do, Lyna</strong>
+          <span>Founder of ACE AP STEM and LYNAE</span>
         </div>
       </div>
-    </div>
-  );
-};
+    </section>
+
+    <section className="ace-about__origin" aria-labelledby="origin-title">
+      <div className="ace-about__origin-heading">
+        <FaLightbulb aria-hidden="true" />
+        <h2 id="origin-title">The problem behind the platform</h2>
+      </div>
+      <div className="ace-about__origin-copy">
+        <p>ACE AP STEM began with Lyna's passion for STEM and her own experience in demanding AP courses. Lectures did not always make complex ideas click, and independent practice became frustrating when a problem reached a roadblock.</p>
+        <p>Quick searches could reveal an answer, but they did not build lasting mastery. That gap inspired a platform where students can engage with the reasoning, strengthen problem-solving skills, and stay active in the learning process.</p>
+      </div>
+    </section>
+
+    <section className="ace-about__principles" aria-label="What guides ACE AP STEM">
+      <article className="ace-about__principle ace-about__principle--violet">
+        <div className="ace-about__icon"><FaBrain aria-hidden="true" /></div>
+        <p>Learning approach</p>
+        <h2>Use AI to support critical thinking.</h2>
+        <span>Concept notes, hints, and guided steps help students build the knowledge needed to work through a challenge independently.</span>
+      </article>
+
+      <article className="ace-about__principle ace-about__principle--pink">
+        <div className="ace-about__icon"><FaHeart aria-hidden="true" /></div>
+        <p>Beyond the classroom</p>
+        <h2>Connect technology with compassion.</h2>
+        <span>Lyna also founded LYNAE, a nonprofit that uses STEM projects such as 3D-printed therapeutic toys to support children's mental health initiatives.</span>
+        <div className="ace-about__links">
+          <a href="https://lynae.org/" target="_blank" rel="noopener noreferrer">Visit LYNAE <FaExternalLinkAlt aria-hidden="true" /></a>
+          <a href="https://instagram.com/lynae_heartware" target="_blank" rel="noopener noreferrer">Instagram <FaExternalLinkAlt aria-hidden="true" /></a>
+        </div>
+      </article>
+    </section>
+
+    <section className="ace-about__mission" aria-labelledby="mission-title">
+      <div className="ace-about__mission-mascot" aria-hidden="true" />
+      <div>
+        <p>Our mission</p>
+        <h2 id="mission-title">Help students become independent learners and confident problem solvers.</h2>
+      </div>
+      <Link to="/sign-up" className="ace-about__secondary">Start learning with ACE <FaArrowRight aria-hidden="true" /></Link>
+    </section>
+  </div>
+);
 
 export default AboutUsPage;

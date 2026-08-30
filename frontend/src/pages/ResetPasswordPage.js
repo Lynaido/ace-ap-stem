@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { authAPI } from '../utils/api';
+import { FaArrowRight, FaCheckCircle, FaLock } from 'react-icons/fa';
+import './AuthPages.css';
 
 const ResetPasswordPage = () => {
   const [searchParams] = useSearchParams();
@@ -111,36 +113,22 @@ const ResetPasswordPage = () => {
 
   if (isSuccess) {
     return (
-      <section className="signin-section">
-        <div className="signin-container">
-          <div className="signin-header">
-            <h1>Password Reset!</h1>
-            <p>Your password has been successfully changed</p>
-          </div>
-
-          <div className="signin-card">
-            <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="64"
-                height="64"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#22c55e"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ marginBottom: '1rem' }}
-              >
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
-              </svg>
-              <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
-                Redirecting you to sign in...
-              </p>
-              <Link to="/sign-in" className="btn-signin" style={{ textAlign: 'center', display: 'block', width: '100%', boxSizing: 'border-box' }}>
-                Sign In Now
-              </Link>
+      <section className="ace-auth" aria-labelledby="reset-success-title">
+        <div className="ace-auth__shell">
+          <AuthStory />
+          <div className="ace-auth__content">
+            <div className="ace-auth__content-inner">
+              <header className="ace-auth__header">
+                <h1 id="reset-success-title">Password updated</h1>
+                <p>Your new password is ready to use.</p>
+              </header>
+              <div className="ace-auth__success-panel" role="status">
+                <FaCheckCircle aria-hidden="true" />
+                <p>Redirecting you to sign in...</p>
+                <div className="ace-auth__success-actions">
+                  <Link to="/sign-in" className="ace-auth__primary">Sign in now <FaArrowRight aria-hidden="true" /></Link>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -149,17 +137,19 @@ const ResetPasswordPage = () => {
   }
 
   return (
-    <section className="signin-section">
-      <div className="signin-container">
-        <div className="signin-header">
-          <h1>Create New Password</h1>
-          <p>Enter your new password below</p>
-        </div>
-
-        <div className="signin-card">
-          <form onSubmit={handleSubmit} className="signin-form">
-            <div className="form-group">
-              <label htmlFor="password">New Password *</label>
+    <section className="ace-auth" aria-labelledby="reset-title">
+      <div className="ace-auth__shell">
+        <AuthStory />
+        <div className="ace-auth__content">
+          <div className="ace-auth__content-inner">
+            <header className="ace-auth__header">
+              <h1 id="reset-title">Create a new password</h1>
+              <p>Choose a password with at least 6 characters.</p>
+            </header>
+            {errors.general && <div className="ace-auth__error-banner" role="alert">{errors.general}</div>}
+            <form onSubmit={handleSubmit} className="ace-auth__form" noValidate>
+              <div className="ace-auth__field">
+                <label htmlFor="password">New password</label>
               <input
                 id="password"
                 name="password"
@@ -167,15 +157,16 @@ const ResetPasswordPage = () => {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Enter new password"
-                className={errors.password ? 'error' : ''}
+                aria-invalid={Boolean(errors.password)}
+                aria-describedby={errors.password ? 'reset-password-error' : undefined}
                 required
                 autoComplete="new-password"
               />
-              {errors.password && <span className="error-message">{errors.password}</span>}
+                {errors.password && <span className="ace-auth__field-error" id="reset-password-error">{errors.password}</span>}
             </div>
 
-            <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm New Password *</label>
+              <div className="ace-auth__field">
+                <label htmlFor="confirmPassword">Confirm new password</label>
               <input
                 id="confirmPassword"
                 name="confirmPassword"
@@ -183,33 +174,54 @@ const ResetPasswordPage = () => {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 placeholder="Confirm new password"
-                className={errors.confirmPassword ? 'error' : ''}
+                aria-invalid={Boolean(errors.confirmPassword)}
+                aria-describedby={errors.confirmPassword ? 'reset-confirm-error' : undefined}
                 required
                 autoComplete="new-password"
               />
-              {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+                {errors.confirmPassword && <span className="ace-auth__field-error" id="reset-confirm-error">{errors.confirmPassword}</span>}
             </div>
 
             <button
               type="submit"
-              className="btn-signin"
+                className="ace-auth__primary"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Resetting...' : 'Reset Password'}
+                {isSubmitting ? 'Updating...' : <><span>Update password</span><FaArrowRight aria-hidden="true" /></>}
             </button>
           </form>
 
-          <div className="signin-divider">
+            <div className="ace-auth__divider">
             <span>Changed your mind?</span>
           </div>
 
-          <Link to="/sign-in" className="btn-signup">
+            <Link to="/sign-in" className="ace-auth__secondary">
             Back to Sign In
           </Link>
+          </div>
         </div>
       </div>
     </section>
   );
 };
+
+const AuthStory = () => (
+  <aside className="ace-auth__story">
+    <Link to="/" className="ace-auth__brand" aria-label="ACE AP STEM home">
+      <img src="/logo.png" alt="" width="40" height="40" />
+      <span>ACE AP STEM</span>
+    </Link>
+    <div className="ace-auth__story-copy">
+      <span>Account security</span>
+      <h2>A fresh password, then back to progress.</h2>
+      <p>Complete this last step to return to your ACE learning space.</p>
+    </div>
+    <ul className="ace-auth__benefits">
+      <li><FaLock aria-hidden="true" /> Protected password reset</li>
+      <li><FaCheckCircle aria-hidden="true" /> Your study flow stays familiar</li>
+    </ul>
+    <div className="ace-auth__mascot" aria-hidden="true" />
+  </aside>
+);
 
 export default ResetPasswordPage;

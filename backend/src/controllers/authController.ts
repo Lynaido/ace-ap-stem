@@ -285,25 +285,30 @@ export const logout = async (req: Request, res: Response, next: NextFunction) =>
   try {
     const { refreshToken } = req.cookies;
 
+    // Logout is intentionally idempotent. Clear the browser cookie even when
+    // the stored token is already expired or no longer has a matching session.
+    res.clearCookie('refreshToken', clearRefreshCookieOptions());
+
     if (refreshToken) {
       // Delete session
       await prisma.session.deleteMany({
         where: { refreshToken },
       });
 
-      // Log event
-      const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as { userId: string };
-      await prisma.event.create({
-        data: {
-          type: 'AUTH_LOGOUT',
-          userId: decoded.userId,
-          data: {},
-        },
-      });
+      try {
+        const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as { userId: string };
+        await prisma.event.create({
+          data: {
+            type: 'AUTH_LOGOUT',
+            userId: decoded.userId,
+            data: {},
+          },
+        });
+      } catch (tokenError) {
+        logger.warn('Logout completed without an audit event because the refresh token was invalid or expired.');
+      }
     }
 
-    // Clear cookie
-    res.clearCookie('refreshToken', clearRefreshCookieOptions());
     res.json({ message: 'Logout successful' });
   } catch (error) {
     logger.error('Logout error:', error);

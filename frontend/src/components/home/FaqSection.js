@@ -21,7 +21,7 @@ const FAQ_ITEMS = [
   },
   {
     question: 'Is there a mobile app available?',
-    answer: 'ACE AP STEM works in modern mobile and desktop browsers. An iOS version is also available through the official App Store listing.'
+    answer: 'ACE AP STEM works directly in modern mobile and desktop browsers. Open the website on your phone to use the current experience without installing a separate app.'
   }
 ];
 

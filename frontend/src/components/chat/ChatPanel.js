@@ -291,7 +291,7 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
           <span className="chat-subtitle">Conversational guidance for every step</span>
         </div>
       </div>
-      <div className="chat-messages">
+      <div className="chat-messages" aria-live="polite" aria-busy={isLoading || isStreaming}>
         {messages.map((msg) => (
           <div key={msg.id} className={`message ${msg.role}`}>
             <div className="message-content">
@@ -309,13 +309,14 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
         <div ref={messagesEndRef} />
       </div>
       <div className="chat-input-area">
-        <form onSubmit={handleSendMessage} className="chat-form">
+        <form onSubmit={handleSendMessage} className="chat-form" aria-label="Message the AI Tutor">
           <div className="chat-input-shell">
             <Input
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Ask a follow-up question..."
+              aria-label="Message to AI Tutor"
               className="chat-input"
               disabled={isLoading || !user}
             />
@@ -324,6 +325,7 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
               variant="primary"
               className="send-button"
               disabled={isLoading || !user}
+              aria-label={isLoading ? 'Sending message' : 'Send message'}
             >
               {isLoading ? 'Sending...' : 'Send'}
             </Button>

@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { Request, Response, NextFunction } from 'express';
 import config from '../config/environment';
+import { AppError } from './errorHandler';
 
 // CORS configuration
 export const corsOptions: cors.CorsOptions = {
@@ -29,12 +30,12 @@ export const corsOptions: cors.CorsOptions = {
       }
 
       // Allow localhost for development
-      if (config.nodeEnv === 'development' && origin.includes('localhost')) {
+      if (config.nodeEnv === 'development' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
         return callback(null, true);
       }
 
       // Reject other origins
-      return callback(new Error('Not allowed by CORS'), false);
+      return callback(new AppError('Not allowed by CORS', 403), false);
     } catch (error) {
       console.error('CORS error:', error);
       return callback(null, false);

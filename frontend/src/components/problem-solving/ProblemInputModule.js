@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import { FaBolt, FaEye, FaRegLightbulb } from 'react-icons/fa';
 import { useAppContext } from '../../context/AppContext';
 import Button from '../primitives/Button';
-import Select from '../primitives/Select';
 import Card from '../primitives/Card';
 import './ProblemInputModule.css';
 
@@ -34,9 +33,9 @@ const ProblemInputModule = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [inputMode, setInputMode] = useState('upload');
+  const fileInputRef = useRef(null);
 
   const trimmedProblem = problemText.trim();
-  const subjectLabel = AP_SUBJECTS.find((subject) => subject.value === selectedSubject)?.label || 'this AP subject';
   const formIncomplete = !trimmedProblem || !selectedSubject;
   const isBusy = isSubmitting || isUploading || loading;
 
@@ -163,7 +162,27 @@ const ProblemInputModule = () => {
 
       <div className="upload-zone" role="region" aria-live="polite">
         {inputMode === 'upload' ? (
-          <div className="image-drop-area" tabIndex={0} role="button" aria-label="Upload an image of the problem">
+          <div
+            className="image-drop-area"
+            tabIndex={0}
+            role="button"
+            aria-label="Upload an image of the problem"
+            onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,application/pdf"
+              hidden
+              multiple
+              onChange={handleFileUpload}
+            />
             <div className="drop-content">
               <div className="document-icon">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" focusable="false" aria-hidden="true">

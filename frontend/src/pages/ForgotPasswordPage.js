@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { authAPI } from '../utils/api';
+import { FaArrowRight, FaCheckCircle, FaEnvelopeOpenText } from 'react-icons/fa';
+import './AuthPages.css';
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
@@ -65,51 +67,31 @@ const ForgotPasswordPage = () => {
 
   if (isSuccess) {
     return (
-      <section className="signin-section">
-        <div className="signin-container">
-          <div className="signin-header">
-            <h1>Check Your Email</h1>
-            <p>We've sent a password reset link to <strong>{email}</strong></p>
-          </div>
-
-          <div className="signin-card" style={{ minHeight: 'auto' }}>
-            <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="64"
-                height="64"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#f97316"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ marginBottom: '1rem' }}
-              >
-                <rect width="20" height="16" x="2" y="4" rx="2"/>
-                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
-              </svg>
-              <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
-                The link will expire in 1 hour. If you don't see the email, check your spam folder.
-              </p>
+      <section className="ace-auth" aria-labelledby="forgot-success-title">
+        <div className="ace-auth__shell">
+          <AuthStory />
+          <div className="ace-auth__content">
+            <div className="ace-auth__content-inner">
+              <header className="ace-auth__header">
+                <h1 id="forgot-success-title">Check your email</h1>
+                <p>We sent a password reset link to <strong>{email}</strong>.</p>
+              </header>
+              <div className="ace-auth__success-panel" role="status">
+                <FaEnvelopeOpenText aria-hidden="true" />
+                <p>The link expires in 1 hour. Check your spam folder if it does not appear.</p>
+                <div className="ace-auth__success-actions">
               <button
                 onClick={() => {
                   setIsSuccess(false);
                   setEmail('');
                 }}
-                className="btn-signup"
-                style={{ marginBottom: '1rem', width: '100%' }}
+                    className="ace-auth__secondary"
               >
                 Send Another Link
               </button>
-
-              <div className="signin-divider">
-                <span>Or</span>
+                  <Link to="/sign-in" className="ace-auth__primary">Back to sign in <FaArrowRight aria-hidden="true" /></Link>
+                </div>
               </div>
-
-              <Link to="/sign-in" className="btn-signin" style={{ textAlign: 'center', display: 'block', width: '100%', boxSizing: 'border-box' }}>
-                Back to Sign In
-              </Link>
             </div>
           </div>
         </div>
@@ -118,56 +100,77 @@ const ForgotPasswordPage = () => {
   }
 
   return (
-    <section className="signin-section">
-      <div className="signin-container">
-        <div className="signin-header">
-          <h1>Forgot Password?</h1>
-          <p>Enter your email and we'll send you a link to reset your password</p>
-        </div>
-
-        <div className="signin-card">
-          <form onSubmit={handleSubmit} className="signin-form">
-            <div className="form-group">
-              <label htmlFor="email">Email Address *</label>
+    <section className="ace-auth" aria-labelledby="forgot-title">
+      <div className="ace-auth__shell">
+        <AuthStory />
+        <div className="ace-auth__content">
+          <div className="ace-auth__content-inner">
+            <header className="ace-auth__header">
+              <h1 id="forgot-title">Reset your password</h1>
+              <p>Enter your email and we will send you a secure reset link.</p>
+            </header>
+            {errors.general && <div className="ace-auth__error-banner" role="alert">{errors.general}</div>}
+            <form onSubmit={handleSubmit} className="ace-auth__form" noValidate>
+              <div className="ace-auth__field">
+                <label htmlFor="email">Email address</label>
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                className={errors.email ? 'error' : ''}
+                aria-invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? 'forgot-email-error' : undefined}
                 required
                 autoComplete="email"
               />
-              {errors.email && <span className="error-message">{errors.email}</span>}
+                {errors.email && <span className="ace-auth__field-error" id="forgot-email-error">{errors.email}</span>}
             </div>
 
             <button
               type="submit"
-              className="btn-signin"
+                className="ace-auth__primary"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Sending...' : 'Send Reset Link'}
+                {isSubmitting ? 'Sending...' : <><span>Send reset link</span><FaArrowRight aria-hidden="true" /></>}
             </button>
           </form>
 
-          <div className="signin-divider">
+            <div className="ace-auth__divider">
             <span>Remember your password?</span>
           </div>
 
-          <Link to="/sign-in" className="btn-signup">
+            <Link to="/sign-in" className="ace-auth__secondary">
             Back to Sign In
           </Link>
-        </div>
 
-        <div className="signin-footer">
-          <p>
+            <p className="ace-auth__legal">
             Need help? <Link to="/contact">Contact Support</Link>
           </p>
+          </div>
         </div>
       </div>
     </section>
   );
 };
+
+const AuthStory = () => (
+  <aside className="ace-auth__story">
+    <Link to="/" className="ace-auth__brand" aria-label="ACE AP STEM home">
+      <img src="/logo.png" alt="" width="40" height="40" />
+      <span>ACE AP STEM</span>
+    </Link>
+    <div className="ace-auth__story-copy">
+      <span>Account access</span>
+      <h2>Get back to learning with confidence.</h2>
+      <p>We will help you restore access without losing your study momentum.</p>
+    </div>
+    <ul className="ace-auth__benefits">
+      <li><FaCheckCircle aria-hidden="true" /> Secure email reset flow</li>
+      <li><FaCheckCircle aria-hidden="true" /> Return to your learning space</li>
+    </ul>
+    <div className="ace-auth__mascot" aria-hidden="true" />
+  </aside>
+);
 
 export default ForgotPasswordPage;
