@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
-import MascotShowcase, { OUTFITS } from './MascotShowcase';
+import * as THREE from 'three';
+import MascotShowcase, { getCuffAnchorFromPoints, OUTFITS } from './MascotShowcase';
 
 jest.mock('three/examples/jsm/loaders/FBXLoader.js', () => ({ FBXLoader: jest.fn() }));
 jest.mock('three/examples/jsm/loaders/GLTFLoader.js', () => ({ GLTFLoader: jest.fn() }));
@@ -23,7 +24,7 @@ afterEach(() => {
 test('renders complete mascot personalization controls', () => {
   render(<MascotShowcase />);
 
-  expect(screen.getByRole('heading', { name: /meet ace/i })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /make ace feel like your own/i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /outfit/i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /^mood$/i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /study reactions/i })).toBeInTheDocument();
@@ -53,6 +54,32 @@ test('restores valid saved outfit and mood preferences', () => {
 
   render(<MascotShowcase />);
 
-  expect(screen.getByRole('button', { name: 'Doctor' })).toHaveAttribute('aria-pressed', 'true');
+  expect(screen.getByRole('button', { name: 'Healthcare' })).toHaveAttribute('aria-pressed', 'true');
   expect(screen.getByRole('button', { name: 'Cheerful' })).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('uses the real outer sleeve edge as the wrist anchor on both sides', () => {
+  const rightPoints = [
+    new THREE.Vector3(22, 18, 0),
+    new THREE.Vector3(45, 17, -2),
+    new THREE.Vector3(48, 18, 0),
+    new THREE.Vector3(49, 19, 2),
+    new THREE.Vector3(49.5, 18.5, 0.5),
+  ];
+  const leftPoints = rightPoints.map((point) => new THREE.Vector3(-point.x, point.y, point.z));
+
+  const right = getCuffAnchorFromPoints(rightPoints, 'right');
+  const left = getCuffAnchorFromPoints(leftPoints, 'left');
+
+  expect(right.x).toBeGreaterThan(48);
+  expect(left.x).toBeLessThan(-48);
+  expect(right.y).toBeCloseTo(left.y);
+  expect(right.z).toBeCloseTo(left.z);
+});
+
+test('exposes the approved ten outfit names and skips tech and gamer', () => {
+  expect(OUTFITS.map((outfit) => outfit.label)).toEqual([
+    'Engineer', 'Healthcare', 'Scientist', 'Business', 'Creative',
+    'Performer', 'Fashion', 'Scholar', 'Cozy', 'Fantasy',
+  ]);
 });

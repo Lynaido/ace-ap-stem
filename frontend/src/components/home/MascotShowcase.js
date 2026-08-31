@@ -7,49 +7,45 @@ import './MascotShowcase.css';
 
 export const OUTFITS = [
   {
-    id: 'hoodie', label: 'Hoodie', type: 'glb', url: '/mascot/outfits/hoodie.glb', unitScale: 100,
-    wristTuck: 2.2, armPose: { shoulderX: 16.1, shoulderY: 19.45, outerMin: 45 },
-  },
-  {
-    id: 'doctor', label: 'Doctor', type: 'glb', url: '/mascot/outfits/doctor.glb', unitScale: 100,
-    wristTuck: 1.8, armPose: { shoulderX: 19, shoulderY: 18.8, outerMin: 45 },
-  },
-  {
-    id: 'classic', label: 'Classic', type: 'glb', url: '/mascot/outfits/classic.glb', unitScale: 100,
+    id: 'classic', number: '01', label: 'Engineer', type: 'glb', url: '/mascot/outfits/classic.glb', unitScale: 100,
     showBaseArms: true, armPose: { shoulderX: 19, shoulderY: 18.6, outerMin: 24 },
   },
   {
-    id: 'artist', label: 'Artist', type: 'glb', url: '/mascot/outfits/artist.glb', unitScale: 100,
+    id: 'doctor', number: '02', label: 'Healthcare', type: 'glb', url: '/mascot/outfits/doctor.glb', unitScale: 100,
+    cuffOverlap: 1.8, armPose: { shoulderX: 19, shoulderY: 18.8, outerMin: 45 },
+  },
+  {
+    id: 'long-vest', number: '03', label: 'Scientist', type: 'glb', url: '/mascot/outfits/long-vest.glb', unitScale: 100,
+    cuffOverlap: 1.8, armPose: { shoulderX: 19.3, shoulderY: 18.3, outerMin: 43 },
+  },
+  {
+    id: 'vest', number: '05', label: 'Business', type: 'glb', url: '/mascot/outfits/vest.glb', unitScale: 100,
+    cuffOverlap: 1.6, armPose: { shoulderX: 18.3, shoulderY: 18.6, outerMin: 45 },
+  },
+  {
+    id: 'artist', number: '06', label: 'Creative', type: 'glb', url: '/mascot/outfits/artist.glb', unitScale: 100,
     showBaseArms: true, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 24 },
   },
   {
-    id: 'cloak', label: 'Cloak', type: 'glb', url: '/mascot/outfits/cloak.glb', unitScale: 100,
-    wristTuck: 1.8, armPose: { shoulderX: 16.3, shoulderY: 19.45, outerMin: 45 },
+    id: 'activewear', number: '07', label: 'Performer', type: 'glb', url: '/mascot/outfits/activewear.glb', unitScale: 100,
+    cuffOverlap: 1.6, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 45 },
   },
   {
-    id: 'wizard', label: 'Wizard', type: 'glb', url: '/mascot/outfits/wizard.glb', unitScale: 100,
-    wristTuck: 1.8, armPose: { shoulderX: 15.3, shoulderY: 15.25, outerMin: 45 },
+    id: 'cloak', number: '08', label: 'Fashion', type: 'glb', url: '/mascot/outfits/cloak.glb', unitScale: 100,
+    cuffOverlap: 1.7, armPose: { shoulderX: 16.3, shoulderY: 19.45, outerMin: 45 },
   },
   {
-    id: 'graduation',
-    label: 'Graduation',
-    type: 'fbx',
-    url: '/mascot/outfits/graduation/graduation.fbx',
-    unitScale: 1,
-    wristTuck: 1.8,
+    id: 'graduation', number: '10', label: 'Scholar', type: 'fbx',
+    url: '/mascot/outfits/graduation/graduation.fbx', unitScale: 1, cuffOverlap: 1.8,
     armPose: { shoulderX: 21.1, shoulderY: 18.8, outerMin: 45 },
   },
   {
-    id: 'activewear', label: 'Activewear', type: 'glb', url: '/mascot/outfits/activewear.glb', unitScale: 100,
-    wristTuck: 1.8, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 45 },
+    id: 'hoodie', number: '11', label: 'Cozy', type: 'glb', url: '/mascot/outfits/hoodie.glb', unitScale: 100,
+    cuffOverlap: 1.9, armPose: { shoulderX: 16.1, shoulderY: 19.45, outerMin: 45 },
   },
   {
-    id: 'vest', label: 'Vest', type: 'glb', url: '/mascot/outfits/vest.glb', unitScale: 100,
-    wristTuck: 1.8, armPose: { shoulderX: 18.3, shoulderY: 18.6, outerMin: 45 },
-  },
-  {
-    id: 'long-vest', label: 'Long vest', type: 'glb', url: '/mascot/outfits/long-vest.glb', unitScale: 100,
-    wristTuck: 1.8, armPose: { shoulderX: 19.3, shoulderY: 18.3, outerMin: 43 },
+    id: 'wizard', number: '12', label: 'Fantasy', type: 'glb', url: '/mascot/outfits/wizard.glb', unitScale: 100,
+    cuffOverlap: 1.8, armPose: { shoulderX: 15.3, shoulderY: 15.25, outerMin: 45 },
   },
 ];
 
@@ -65,7 +61,7 @@ const ACTIONS = [
   { id: 'celebrate', label: 'Celebrate', message: 'ACE is celebrating your progress.' },
 ];
 
-const DEFAULT_OUTFIT_ID = 'hoodie';
+const DEFAULT_OUTFIT_ID = 'classic';
 const DEFAULT_MOOD_ID = 'ready';
 const PREFERENCES_KEY = 'ace-mascot-preferences-v1';
 
@@ -428,6 +424,47 @@ const copyMeshPresentation = (source, target) => {
   target.receiveShadow = true;
 };
 
+const percentile = (values, ratio) => {
+  if (!values.length) return 0;
+  const sorted = [...values].sort((first, second) => first - second);
+  const index = Math.min(sorted.length - 1, Math.max(0, Math.floor((sorted.length - 1) * ratio)));
+  return sorted[index];
+};
+
+// Locate the centre of a sleeve opening from the sleeve's actual vertices.
+// This fits the hand to every supplied garment instead of applying one visual
+// offset that can only be correct for a subset of the models.
+export const getCuffAnchorFromPoints = (points, side) => {
+  if (!points?.length) return null;
+  const sign = side === 'right' ? 1 : -1;
+  const outwardValues = points.map((point) => point.x * sign);
+  const outerBandStart = percentile(outwardValues, 0.82);
+  const cuffPoints = points.filter((point) => (point.x * sign) >= outerBandStart);
+  if (!cuffPoints.length) return null;
+
+  return new THREE.Vector3(
+    sign * percentile(cuffPoints.map((point) => point.x * sign), 0.55),
+    percentile(cuffPoints.map((point) => point.y), 0.5),
+    percentile(cuffPoints.map((point) => point.z), 0.5)
+  );
+};
+
+const getWorldPoints = (meshes) => {
+  const points = [];
+  const point = new THREE.Vector3();
+
+  meshes.forEach((mesh) => {
+    const positions = mesh.geometry?.getAttribute('position');
+    if (!positions) return;
+    const stride = Math.max(1, Math.floor(positions.count / 12000));
+    for (let index = 0; index < positions.count; index += stride) {
+      points.push(point.fromBufferAttribute(positions, index).applyMatrix4(mesh.matrixWorld).clone());
+    }
+  });
+
+  return points;
+};
+
 const createOutfitArmRigs = (model, armPose) => {
   const sourceMeshes = [];
   model.traverse((node) => {
@@ -436,6 +473,7 @@ const createOutfitArmRigs = (model, armPose) => {
   model.updateMatrixWorld(true);
 
   const rigs = {};
+  const sleeveMeshes = { left: [], right: [] };
   ['left', 'right'].forEach((side) => {
     const sign = side === 'right' ? 1 : -1;
     const rig = new THREE.Group();
@@ -465,6 +503,7 @@ const createOutfitArmRigs = (model, armPose) => {
       node.parent.add(sleeve);
       model.updateMatrixWorld(true);
       rigs[side].attach(sleeve);
+      sleeveMeshes[side].push(sleeve);
     });
 
     const bodyGeometry = createTriangleGeometry(sourceGeometry, buckets.body);
@@ -473,7 +512,12 @@ const createOutfitArmRigs = (model, armPose) => {
     sourceGeometry.dispose();
   });
 
+  model.updateMatrixWorld(true);
   model.userData.armRigs = rigs;
+  model.userData.cuffAnchors = {
+    left: getCuffAnchorFromPoints(getWorldPoints(sleeveMeshes.left), 'left'),
+    right: getCuffAnchorFromPoints(getWorldPoints(sleeveMeshes.right), 'right'),
+  };
   return rigs;
 };
 
@@ -524,10 +568,12 @@ const addArmAndHand = (model, hand, side) => {
   model.updateMatrixWorld(true);
   wrist.attach(hand);
 
-  return { arm, shoulder, wrist, handCenter };
+  const handBounds = hand.geometry.boundingBox;
+  const handHalfWidth = Math.max(Math.abs(handBounds.min.x), Math.abs(handBounds.max.x));
+  return { arm, shoulder, wrist, handCenter, handHalfWidth };
 };
 
-const configureBaseArmRigs = (model, outfit) => {
+const configureBaseArmRigs = (model, outfit, outfitModel) => {
   const rigs = model?.userData.armRigs;
   if (!rigs) return;
 
@@ -538,8 +584,14 @@ const configureBaseArmRigs = (model, outfit) => {
     const shoulderX = outfit.armPose.shoulderX;
     const shoulderY = outfit.armPose.shoulderY;
     rig.shoulder.position.set(sign * shoulderX, shoulderY, outfit.armPose.shoulderZ || 0);
-    const handTarget = rig.handCenter.clone();
-    handTarget.x -= sign * (outfit.wristTuck || 0);
+    const cuffAnchor = outfitModel?.userData.cuffAnchors?.[side];
+    const handTarget = cuffAnchor
+      ? cuffAnchor.clone().add(new THREE.Vector3(
+        sign * Math.max(0, rig.handHalfWidth - (outfit.cuffOverlap || 1.7)),
+        outfit.handOffsetY || 0,
+        outfit.handOffsetZ || 0
+      ))
+      : rig.handCenter.clone();
     rig.wrist.position.copy(handTarget).sub(rig.shoulder.position);
     rig.arm.position.set(
       sign * (37.5 - shoulderX),
@@ -817,7 +869,7 @@ const MascotShowcase = () => {
         model.visible = true;
         visibleOutfit = model;
         const baseModel = contentRoot.getObjectByName('ACEWebReadyBase');
-        configureBaseArmRigs(baseModel, outfit);
+        configureBaseArmRigs(baseModel, outfit, model);
         setOutfitStatus('ready');
         setOutfitProgress(null);
         setAnnouncement(`ACE is now wearing the ${outfit.label.toLowerCase()} outfit.`);
@@ -1016,57 +1068,83 @@ const MascotShowcase = () => {
     <section className="mascot-showcase" id="meet-ace" ref={sectionRef}>
       <div className="mascot-showcase__container">
         <div className="mascot-showcase__copy">
-          <p className="mascot-showcase__eyebrow">Your interactive study companion</p>
-          <h2>Meet ACE, your study companion.</h2>
+          <p className="mascot-showcase__eyebrow">Meet your study buddy</p>
+          <h2>Make ACE feel like your own.</h2>
           <p>
-            Choose a look, set a mood, and let ACE respond as you focus, learn, and celebrate
-            progress. Your choices stay ready for the next visit on this device.
+            Pick a role, set the mood, and let ACE react as you learn. Every outfit stays fitted
+            while ACE rests, waves hello, focuses with you, and celebrates progress.
           </p>
           <div className="mascot-showcase__notes" aria-label="Mascot features">
-            <span>10 outfits fitted as one system</span>
-            <span>Natural idle and study reactions</span>
-            <span>Preferences saved on this device</span>
+            <span>10 character roles</span>
+            <span>3 moods and study reactions</span>
+            <span>Your choice is remembered</span>
           </div>
         </div>
 
         <div className="mascot-showcase__experience">
-          <div
-            className={`mascot-stage mascot-stage--${activeMoodId}`}
-            ref={stageRef}
-            role="img"
-            aria-label={`Interactive 3D model of ACE wearing the ${activeOutfit.label.toLowerCase()} outfit and feeling ${activeMoodId}`}
-          >
-            <canvas ref={canvasRef} className="mascot-stage__canvas" />
-
-            {!shouldLoad && (
-              <div className="mascot-stage__skeleton" aria-hidden="true">
-                <div className="mascot-stage__skeleton-figure" />
+          <div className="mascot-companion-bar">
+            <div className="mascot-companion-bar__identity">
+              <span className="mascot-companion-bar__signal" aria-hidden="true" />
+              <div>
+                <strong>ACE is here</strong>
+                <span>Your personal AP STEM study buddy</span>
               </div>
-            )}
-
-            {isLoading && (
-              <div className="mascot-stage__loading" role="status" aria-live="polite">
-                <span>
-                  {baseStatus === 'loading'
-                    ? 'Preparing ACE'
-                    : `Changing to ${activeOutfit.label.toLowerCase()}`}
-                </span>
-                {outfitProgress !== null && <strong>{outfitProgress}%</strong>}
-              </div>
-            )}
-
-            {errorMessage && (
-              <div className="mascot-stage__error" role="alert">
-                <strong>ACE needs a quick reset.</strong>
-                <span>{errorMessage}</span>
-                <button type="button" onClick={retryScene}>Try again</button>
-              </div>
-            )}
-
-            <p className="mascot-stage__hint">Drag to turn. Pinch or scroll to zoom.</p>
+            </div>
+            <div className="mascot-companion-bar__chat" aria-label="ACE status">
+              <span>ACE</span>
+              <p>{announcement}</p>
+            </div>
+            <div className="mascot-companion-bar__topics" aria-label="What ACE can help with">
+              <span>Homework questions</span>
+              <span>Concept explanations</span>
+              <span>Practice and review</span>
+            </div>
           </div>
 
-          <div className="mascot-controls">
+          <div className="mascot-showcase__workspace">
+            <div className="mascot-stage-shell">
+              <div className="mascot-stage-shell__label">
+                <span>Interactive 3D companion</span>
+                <strong>{activeOutfit.number} · {activeOutfit.label}</strong>
+              </div>
+              <div
+                className={`mascot-stage mascot-stage--${activeMoodId}`}
+                ref={stageRef}
+                role="img"
+                aria-label={`Interactive 3D model of ACE wearing the ${activeOutfit.label.toLowerCase()} outfit and feeling ${activeMoodId}`}
+              >
+                <canvas ref={canvasRef} className="mascot-stage__canvas" />
+
+                {!shouldLoad && (
+                  <div className="mascot-stage__skeleton" aria-hidden="true">
+                    <div className="mascot-stage__skeleton-figure" />
+                  </div>
+                )}
+
+                {isLoading && (
+                  <div className="mascot-stage__loading" role="status" aria-live="polite">
+                    <span>
+                      {baseStatus === 'loading'
+                        ? 'Preparing ACE'
+                        : `Changing to ${activeOutfit.label.toLowerCase()}`}
+                    </span>
+                    {outfitProgress !== null && <strong>{outfitProgress}%</strong>}
+                  </div>
+                )}
+
+                {errorMessage && (
+                  <div className="mascot-stage__error" role="alert">
+                    <strong>ACE needs a quick reset.</strong>
+                    <span>{errorMessage}</span>
+                    <button type="button" onClick={retryScene}>Try again</button>
+                  </div>
+                )}
+
+                <p className="mascot-stage__hint">Drag to turn. Pinch or scroll to zoom.</p>
+              </div>
+            </div>
+
+            <div className="mascot-controls">
             <div className="mascot-controls__heading">
               <div>
                 <h3>Customize ACE</h3>
@@ -1087,7 +1165,8 @@ const MascotShowcase = () => {
                     disabled={!controlsReady}
                     onClick={() => setActiveOutfitId(outfit.id)}
                   >
-                    {outfit.label}
+                    <span className="mascot-choice__number" aria-hidden="true">{outfit.number}</span>
+                    <span>{outfit.label}</span>
                   </button>
                 ))}
               </div>
@@ -1128,6 +1207,7 @@ const MascotShowcase = () => {
                   ))}
                 </div>
               </fieldset>
+            </div>
             </div>
           </div>
         </div>
