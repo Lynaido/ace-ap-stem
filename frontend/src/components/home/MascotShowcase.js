@@ -8,11 +8,11 @@ import './MascotShowcase.css';
 export const OUTFITS = [
   {
     id: 'hoodie', label: 'Hoodie', type: 'glb', url: '/mascot/outfits/hoodie.glb', unitScale: 100,
-    armPose: { shoulderX: 16.1, shoulderY: 19.45, outerMin: 45 },
+    wristTuck: 2.2, armPose: { shoulderX: 16.1, shoulderY: 19.45, outerMin: 45 },
   },
   {
     id: 'doctor', label: 'Doctor', type: 'glb', url: '/mascot/outfits/doctor.glb', unitScale: 100,
-    armPose: { shoulderX: 19, shoulderY: 18.8, outerMin: 45 },
+    wristTuck: 1.8, armPose: { shoulderX: 19, shoulderY: 18.8, outerMin: 45 },
   },
   {
     id: 'classic', label: 'Classic', type: 'glb', url: '/mascot/outfits/classic.glb', unitScale: 100,
@@ -24,11 +24,11 @@ export const OUTFITS = [
   },
   {
     id: 'cloak', label: 'Cloak', type: 'glb', url: '/mascot/outfits/cloak.glb', unitScale: 100,
-    armPose: { shoulderX: 16.3, shoulderY: 19.45, outerMin: 45 },
+    wristTuck: 1.8, armPose: { shoulderX: 16.3, shoulderY: 19.45, outerMin: 45 },
   },
   {
     id: 'wizard', label: 'Wizard', type: 'glb', url: '/mascot/outfits/wizard.glb', unitScale: 100,
-    armPose: { shoulderX: 15.3, shoulderY: 15.25, outerMin: 45 },
+    wristTuck: 1.8, armPose: { shoulderX: 15.3, shoulderY: 15.25, outerMin: 45 },
   },
   {
     id: 'graduation',
@@ -36,19 +36,20 @@ export const OUTFITS = [
     type: 'fbx',
     url: '/mascot/outfits/graduation/graduation.fbx',
     unitScale: 1,
+    wristTuck: 1.8,
     armPose: { shoulderX: 21.1, shoulderY: 18.8, outerMin: 45 },
   },
   {
     id: 'activewear', label: 'Activewear', type: 'glb', url: '/mascot/outfits/activewear.glb', unitScale: 100,
-    armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 45 },
+    wristTuck: 1.8, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 45 },
   },
   {
     id: 'vest', label: 'Vest', type: 'glb', url: '/mascot/outfits/vest.glb', unitScale: 100,
-    armPose: { shoulderX: 18.3, shoulderY: 18.6, outerMin: 45 },
+    wristTuck: 1.8, armPose: { shoulderX: 18.3, shoulderY: 18.6, outerMin: 45 },
   },
   {
     id: 'long-vest', label: 'Long vest', type: 'glb', url: '/mascot/outfits/long-vest.glb', unitScale: 100,
-    armPose: { shoulderX: 19.3, shoulderY: 18.3, outerMin: 43 },
+    wristTuck: 1.8, armPose: { shoulderX: 19.3, shoulderY: 18.3, outerMin: 43 },
   },
 ];
 
@@ -91,6 +92,30 @@ const configureModel = (model) => {
     const materials = Array.isArray(node.material) ? node.material : [node.material];
     materials.filter(Boolean).forEach((material) => {
       if (material.map) material.map.colorSpace = THREE.SRGBColorSpace;
+      const materialName = (material.name || '').toLowerCase();
+      const shouldStayGlossy = /eye|glass|lens|kinh|pupil/.test(materialName);
+
+      // The supplied files mix very glossy and very dark material defaults.
+      // Bring fabrics and painted surfaces into one soft, toy-like finish while
+      // keeping the eyes and glasses crisp.
+      if (!shouldStayGlossy && Number.isFinite(material.roughness)) {
+        material.roughness = Math.max(material.roughness, 0.52);
+      }
+      if (!shouldStayGlossy && Number.isFinite(material.metalness)) {
+        material.metalness = Math.min(material.metalness, 0.18);
+      }
+      if (!shouldStayGlossy && material.color?.isColor) {
+        const color = {};
+        material.color.getHSL(color);
+        const softenedSaturation = Math.min(color.s, 0.68);
+        const softenedLightness = color.s > 0.18 && color.l < 0.38
+          ? 0.38 + (color.l * 0.12)
+          : color.l;
+        material.color.setHSL(color.h, softenedSaturation, softenedLightness);
+      }
+      if (Number.isFinite(material.emissiveIntensity)) {
+        material.emissiveIntensity = Math.min(material.emissiveIntensity, 0.32);
+      }
       material.needsUpdate = true;
     });
   });
@@ -207,14 +232,14 @@ const createStaticMesh = (node, geometry, name) => {
 };
 
 const REST_ARM_ANGLES = {
-  left: THREE.MathUtils.degToRad(30),
-  right: THREE.MathUtils.degToRad(-34),
+  left: THREE.MathUtils.degToRad(42),
+  right: THREE.MathUtils.degToRad(-45),
 };
 
 const ACTION_ARM_ANGLES = {
-  hello: { left: REST_ARM_ANGLES.left, right: THREE.MathUtils.degToRad(48) },
-  focus: { left: THREE.MathUtils.degToRad(37), right: THREE.MathUtils.degToRad(-39) },
-  celebrate: { left: THREE.MathUtils.degToRad(-28), right: THREE.MathUtils.degToRad(28) },
+  hello: { left: REST_ARM_ANGLES.left, right: THREE.MathUtils.degToRad(50) },
+  focus: { left: THREE.MathUtils.degToRad(50), right: THREE.MathUtils.degToRad(-52) },
+  celebrate: { left: THREE.MathUtils.degToRad(-26), right: THREE.MathUtils.degToRad(27) },
 };
 
 const getAttributeValue = (attribute, index, item) => {
@@ -513,7 +538,9 @@ const configureBaseArmRigs = (model, outfit) => {
     const shoulderX = outfit.armPose.shoulderX;
     const shoulderY = outfit.armPose.shoulderY;
     rig.shoulder.position.set(sign * shoulderX, shoulderY, outfit.armPose.shoulderZ || 0);
-    rig.wrist.position.copy(rig.handCenter).sub(rig.shoulder.position);
+    const handTarget = rig.handCenter.clone();
+    handTarget.x -= sign * (outfit.wristTuck || 0);
+    rig.wrist.position.copy(handTarget).sub(rig.shoulder.position);
     rig.arm.position.set(
       sign * (37.5 - shoulderX),
       rig.handCenter.y - shoulderY - 0.7,
@@ -710,44 +737,44 @@ const MascotShowcase = () => {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.08;
+    renderer.toneMappingExposure = 0.94;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
 
     const camera = new THREE.PerspectiveCamera(34, 1, 0.01, 100);
-    camera.position.set(0, 0.08, 5.6);
+    camera.position.set(0, 0.02, 6.2);
 
     const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
     controls.enablePan = false;
-    controls.minDistance = 4.2;
-    controls.maxDistance = 8;
+    controls.minDistance = 4.8;
+    controls.maxDistance = 8.8;
     controls.minPolarAngle = Math.PI * 0.25;
     controls.maxPolarAngle = Math.PI * 0.72;
-    controls.target.set(0, 0, 0);
+    controls.target.set(0, -0.12, 0);
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xe2e8f0, 2.5));
+    scene.add(new THREE.HemisphereLight(0xfffbff, 0xded8f4, 1.65));
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 4.2);
+    const keyLight = new THREE.DirectionalLight(0xfffbff, 2.7);
     keyLight.position.set(3.5, 5.5, 4);
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.set(1024, 1024);
     scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0xffedd5, 2.2);
+    const fillLight = new THREE.DirectionalLight(0xded8ff, 1.25);
     fillLight.position.set(-4, 2, 3);
     scene.add(fillLight);
 
-    const rimLight = new THREE.DirectionalLight(0xf97316, 1.4);
+    const rimLight = new THREE.DirectionalLight(0xffd9ef, 0.82);
     rimLight.position.set(-2, 3, -4);
     scene.add(rimLight);
 
     const floor = new THREE.Mesh(
-      new THREE.CircleGeometry(2.05, 64),
-      new THREE.ShadowMaterial({ color: 0x9a3412, opacity: 0.16 })
+      new THREE.CircleGeometry(2.15, 64),
+      new THREE.ShadowMaterial({ color: 0x6c3df4, opacity: 0.11 })
     );
     floor.rotation.x = -Math.PI / 2;
-    floor.position.y = -1.38;
+    floor.position.y = -1.94;
     floor.receiveShadow = true;
     scene.add(floor);
 
@@ -839,7 +866,10 @@ const MascotShowcase = () => {
         if (size.y > 0) {
           const scale = 2.6 / size.y;
           contentRoot.scale.setScalar(scale);
-          contentRoot.position.set(-center.x * scale, -center.y * scale - 0.04, -center.z * scale);
+          // Frame the complete outfit, not only the base head mesh. The extra
+          // lift keeps long garments inside the viewport and visually joins
+          // the clothes, hands and body into one character.
+          contentRoot.position.set(-center.x * scale, -center.y * scale + 0.2, -center.z * scale);
         }
 
         setBaseStatus('ready');
@@ -867,6 +897,12 @@ const MascotShowcase = () => {
       let turn = 0;
       const armAngles = { ...REST_ARM_ANGLES };
       let wristWave = 0;
+
+      if (!currentAction && !reduceMotion) {
+        const relaxedMotion = Math.sin(elapsed * 0.82) * THREE.MathUtils.degToRad(0.8);
+        armAngles.left += relaxedMotion;
+        armAngles.right -= relaxedMotion;
+      }
 
       if (currentAction && !reduceMotion) {
         const actionElapsed = elapsed - currentAction.startedAt;
