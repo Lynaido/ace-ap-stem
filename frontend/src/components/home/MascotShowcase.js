@@ -12,15 +12,15 @@ export const OUTFITS = [
   },
   {
     id: 'doctor', number: '02', label: 'Healthcare', type: 'glb', url: '/mascot/outfits/doctor.glb', unitScale: 100,
-    cuffOverlap: 1.8, armPose: { shoulderX: 19, shoulderY: 18.8, outerMin: 45 },
+    cuffOverlap: 3.4, armPose: { shoulderX: 19, shoulderY: 18.8, outerMin: 45 },
   },
   {
     id: 'long-vest', number: '03', label: 'Scientist', type: 'glb', url: '/mascot/outfits/long-vest.glb', unitScale: 100,
-    cuffOverlap: 1.8, armPose: { shoulderX: 19.3, shoulderY: 18.3, outerMin: 43 },
+    cuffOverlap: 3.4, armPose: { shoulderX: 19.3, shoulderY: 18.3, outerMin: 43 },
   },
   {
     id: 'vest', number: '05', label: 'Business', type: 'glb', url: '/mascot/outfits/vest.glb', unitScale: 100,
-    cuffOverlap: 1.6, armPose: { shoulderX: 18.3, shoulderY: 18.6, outerMin: 45 },
+    cuffOverlap: 3.2, armPose: { shoulderX: 18.3, shoulderY: 18.6, outerMin: 45 },
   },
   {
     id: 'artist', number: '06', label: 'Creative', type: 'glb', url: '/mascot/outfits/artist.glb', unitScale: 100,
@@ -28,24 +28,24 @@ export const OUTFITS = [
   },
   {
     id: 'activewear', number: '07', label: 'Performer', type: 'glb', url: '/mascot/outfits/activewear.glb', unitScale: 100,
-    cuffOverlap: 1.6, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 45 },
+    cuffOverlap: 3.2, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 45 },
   },
   {
     id: 'cloak', number: '08', label: 'Fashion', type: 'glb', url: '/mascot/outfits/cloak.glb', unitScale: 100,
-    cuffOverlap: 1.7, armPose: { shoulderX: 16.3, shoulderY: 19.45, outerMin: 45 },
+    cuffOverlap: 3.2, armPose: { shoulderX: 16.3, shoulderY: 19.45, outerMin: 45 },
   },
   {
     id: 'graduation', number: '10', label: 'Scholar', type: 'fbx',
-    url: '/mascot/outfits/graduation/graduation.fbx', unitScale: 1, cuffOverlap: 1.8,
+    url: '/mascot/outfits/graduation/graduation.fbx', unitScale: 1, cuffOverlap: 3.4,
     armPose: { shoulderX: 21.1, shoulderY: 18.8, outerMin: 45 },
   },
   {
     id: 'hoodie', number: '11', label: 'Cozy', type: 'glb', url: '/mascot/outfits/hoodie.glb', unitScale: 100,
-    cuffOverlap: 1.9, armPose: { shoulderX: 16.1, shoulderY: 19.45, outerMin: 45 },
+    cuffOverlap: 3.4, armPose: { shoulderX: 16.1, shoulderY: 19.45, outerMin: 45 },
   },
   {
     id: 'wizard', number: '12', label: 'Fantasy', type: 'glb', url: '/mascot/outfits/wizard.glb', unitScale: 100,
-    cuffOverlap: 1.8, armPose: { shoulderX: 15.3, shoulderY: 15.25, outerMin: 45 },
+    cuffOverlap: 3.4, armPose: { shoulderX: 15.3, shoulderY: 15.25, outerMin: 45 },
   },
 ];
 
@@ -438,7 +438,10 @@ export const getCuffAnchorFromPoints = (points, side) => {
   if (!points?.length) return null;
   const sign = side === 'right' ? 1 : -1;
   const outwardValues = points.map((point) => point.x * sign);
-  const outerBandStart = percentile(outwardValues, 0.82);
+  // The distal 10% of the sleeve is the most reliable representation of the
+  // actual cuff opening. A wider band can include the sloping upper sleeve
+  // and make the hand appear to float when the model is viewed from the side.
+  const outerBandStart = percentile(outwardValues, 0.9);
   const cuffPoints = points.filter((point) => (point.x * sign) >= outerBandStart);
   if (!cuffPoints.length) return null;
 
@@ -719,6 +722,8 @@ const MascotShowcase = () => {
     () => OUTFITS.find((outfit) => outfit.id === activeOutfitId) || OUTFITS[0],
     [activeOutfitId]
   );
+  const activeOutfitRef = useRef(activeOutfit);
+  activeOutfitRef.current = activeOutfit;
 
   useEffect(() => {
     try {
@@ -769,6 +774,7 @@ const MascotShowcase = () => {
     const companionRoot = new THREE.Group();
     const contentRoot = new THREE.Group();
     const outfitCache = new Map();
+    const outfitRequests = new Map();
     companionRoot.add(contentRoot);
     scene.add(companionRoot);
 
@@ -851,17 +857,31 @@ const MascotShowcase = () => {
       try {
         let model = outfitCache.get(outfit.id);
         if (!model) {
-          model = await loadOutfitModel(outfit, (event) => {
-            if (requestId === outfitRequest) setOutfitProgress(getProgress(event));
-          });
-          if (disposed) {
-            disposeModel(model);
-            return;
+          let request = outfitRequests.get(outfit.id);
+          if (!request) {
+            request = loadOutfitModel(outfit, (event) => {
+              if (requestId === outfitRequest) setOutfitProgress(getProgress(event));
+            }).then((loadedModel) => {
+              if (disposed) {
+                disposeModel(loadedModel);
+                return null;
+              }
+              prepareOutfitModel(loadedModel, outfit);
+              loadedModel.visible = false;
+              outfitCache.set(outfit.id, loadedModel);
+              contentRoot.add(loadedModel);
+              return loadedModel;
+            });
+            outfitRequests.set(outfit.id, request);
           }
-          prepareOutfitModel(model, outfit);
-          model.visible = false;
-          outfitCache.set(outfit.id, model);
-          contentRoot.add(model);
+          try {
+            model = await request;
+          } finally {
+            if (outfitRequests.get(outfit.id) === request) {
+              outfitRequests.delete(outfit.id);
+            }
+          }
+          if (!model || disposed) return;
         }
 
         if (requestId !== outfitRequest) return;
@@ -895,7 +915,10 @@ const MascotShowcase = () => {
 
     sceneApiRef.current = { showOutfit, setMood, playAction };
     setBaseStatus('loading');
-    setOutfitStatus('idle');
+    setOutfitStatus('loading');
+    // Start the first outfit request immediately so its network transfer and
+    // parsing overlap with the body FBX request instead of running serially.
+    showOutfit(activeOutfitRef.current);
 
     const baseLoader = new FBXLoader();
     baseLoader.setPath('/mascot/body/');
