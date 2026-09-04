@@ -533,8 +533,40 @@ const createSkinMaterial = (hand) => {
   });
 };
 
+// The hand mesh is centred for clean re-parenting, but the sleeve joins the
+// hand at its proximal edge rather than at the hand's visual centre. Measure
+// that edge from the supplied geometry so every outfit gets the same natural
+// wrist fit without relying on a guessed global x-offset.
+const getHandWristOffset = (hand, side) => {
+  const positions = hand.geometry?.getAttribute('position');
+  if (!positions?.count) return new THREE.Vector3();
+
+  const sign = side === 'right' ? 1 : -1;
+  const outwardValues = [];
+  for (let index = 0; index < positions.count; index += 1) {
+    outwardValues.push(positions.getX(index) * sign);
+  }
+  const proximalLimit = percentile(outwardValues, 0.16);
+  const proximalPoints = [];
+  for (let index = 0; index < positions.count; index += 1) {
+    if (positions.getX(index) * sign > proximalLimit) continue;
+    proximalPoints.push(new THREE.Vector3(
+      positions.getX(index),
+      positions.getY(index),
+      positions.getZ(index)
+    ));
+  }
+  if (!proximalPoints.length) return new THREE.Vector3();
+
+  const localPoint = new THREE.Vector3(
+    percentile(proximalPoints.map((point) => point.x), 0.5),
+    percentile(proximalPoints.map((point) => point.y), 0.5),
+    percentile(proximalPoints.map((point) => point.z), 0.5)
+  );
+  return localPoint.multiply(hand.scale).applyQuaternion(hand.quaternion);
+};
+
 const addArmAndHand = (model, hand, side) => {
-  hand.geometry.computeBoundingBox();
   const sign = side === 'right' ? 1 : -1;
   const handCenter = hand.position.clone();
   const shoulderX = 19;
@@ -571,9 +603,8 @@ const addArmAndHand = (model, hand, side) => {
   model.updateMatrixWorld(true);
   wrist.attach(hand);
 
-  const handBounds = hand.geometry.boundingBox;
-  const handHalfWidth = Math.max(Math.abs(handBounds.min.x), Math.abs(handBounds.max.x));
-  return { arm, shoulder, wrist, handCenter, handHalfWidth };
+  const handWristOffset = getHandWristOffset(hand, side);
+  return { arm, shoulder, wrist, handCenter, handWristOffset };
 };
 
 const configureBaseArmRigs = (model, outfit, outfitModel) => {
@@ -588,13 +619,20 @@ const configureBaseArmRigs = (model, outfit, outfitModel) => {
     const shoulderY = outfit.armPose.shoulderY;
     rig.shoulder.position.set(sign * shoulderX, shoulderY, outfit.armPose.shoulderZ || 0);
     const cuffAnchor = outfitModel?.userData.cuffAnchors?.[side];
-    const handTarget = cuffAnchor
+    const hasAuthoredSleeve = !outfit.showBaseArms && cuffAnchor && rig.handWristOffset;
+    const wristTarget = hasAuthoredSleeve
       ? cuffAnchor.clone().add(new THREE.Vector3(
-        sign * Math.max(0, rig.handHalfWidth - (outfit.cuffOverlap || 1.7)),
+        -sign * (outfit.cuffOverlap || 2.4),
         outfit.handOffsetY || 0,
         outfit.handOffsetZ || 0
       ))
       : rig.handCenter.clone();
+    const handTarget = hasAuthoredSleeve
+      ? wristTarget.clone().sub(rig.handWristOffset)
+      : wristTarget;
+    // Both the sleeve and hand rigs rotate around their authored shoulder
+    // origins. Keep the wrist in the same neutral model coordinate space so
+    // the next resting/action rotation moves the two pieces together.
     rig.wrist.position.copy(handTarget).sub(rig.shoulder.position);
     rig.arm.position.set(
       sign * (37.5 - shoulderX),
