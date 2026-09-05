@@ -5,6 +5,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import './MascotShowcase.css';
 
+// handOffsetY values compensate for slanted or flared sleeve caps whose
+// vertex medians differ from the area-weighted centre of the real opening.
 export const OUTFITS = [
   {
     id: 'classic', number: '01', label: 'Engineer', type: 'glb', url: '/mascot/outfits/classic.glb', unitScale: 100,
@@ -16,7 +18,8 @@ export const OUTFITS = [
   },
   {
     id: 'long-vest', number: '03', label: 'Scientist', type: 'glb', url: '/mascot/outfits/long-vest.glb', unitScale: 100,
-    cuffOverlap: 3.4, armPose: { shoulderX: 19.3, shoulderY: 18.3, outerMin: 43 },
+    cuffOverlap: 3.4, handOffsetY: -2.24,
+    armPose: { shoulderX: 19.3, shoulderY: 18.3, outerMin: 43 },
   },
   {
     id: 'vest', number: '05', label: 'Business', type: 'glb', url: '/mascot/outfits/vest.glb', unitScale: 100,
@@ -36,7 +39,8 @@ export const OUTFITS = [
   },
   {
     id: 'graduation', number: '10', label: 'Scholar', type: 'fbx',
-    url: '/mascot/outfits/graduation/graduation.fbx', unitScale: 1, cuffOverlap: 3.4,
+    url: '/mascot/outfits/graduation/graduation.fbx', unitScale: 1,
+    cuffOverlap: 3.4, handOffsetY: 3.49,
     armPose: { shoulderX: 21.1, shoulderY: 18.8, outerMin: 45 },
   },
   {
@@ -45,7 +49,8 @@ export const OUTFITS = [
   },
   {
     id: 'wizard', number: '12', label: 'Fantasy', type: 'glb', url: '/mascot/outfits/wizard.glb', unitScale: 100,
-    cuffOverlap: 3.4, armPose: { shoulderX: 15.3, shoulderY: 15.25, outerMin: 45 },
+    cuffOverlap: 3.4, handOffsetY: 5.03,
+    armPose: { shoulderX: 15.3, shoulderY: 15.25, outerMin: 45 },
   },
 ];
 

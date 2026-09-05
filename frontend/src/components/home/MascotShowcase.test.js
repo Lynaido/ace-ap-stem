@@ -77,6 +77,18 @@ test('uses the real outer sleeve edge as the wrist anchor on both sides', () => 
   expect(right.z).toBeCloseTo(left.z);
 });
 
+test('applies measured vertical cuff corrections to the three slanted sleeves', () => {
+  const offsets = Object.fromEntries(
+    OUTFITS.map((outfit) => [outfit.number, outfit.handOffsetY || 0])
+  );
+
+  expect(offsets).toMatchObject({
+    '03': -2.24,
+    '10': 3.49,
+    '12': 5.03,
+  });
+});
+
 test('exposes the approved ten outfit names and skips tech and gamer', () => {
   expect(OUTFITS.map((outfit) => outfit.label)).toEqual([
     'Engineer', 'Healthcare', 'Scientist', 'Business', 'Creative',
