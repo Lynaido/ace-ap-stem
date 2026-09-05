@@ -5,6 +5,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import './MascotShowcase.css';
 
+const MASCOT_FLOOR_Y = -1.94;
+
 // handOffsetY values compensate for slanted or flared sleeve caps whose
 // vertex medians differ from the area-weighted centre of the real opening.
 export const OUTFITS = [
@@ -23,7 +25,11 @@ export const OUTFITS = [
   },
   {
     id: 'vest', number: '05', label: 'Business', type: 'glb', url: '/mascot/outfits/vest.glb', unitScale: 100,
-    cuffOverlap: 3.2, armPose: { shoulderX: 18.3, shoulderY: 18.6, outerMin: 45 },
+    // The supplied vest ends well below the mascot's chin. Lift the complete
+    // garment and its authored shoulder pivots together so the collar, cuffs,
+    // hands and action poses remain one connected character.
+    modelOffsetY: 17,
+    cuffOverlap: 3.2, armPose: { shoulderX: 18.3, shoulderY: 35.6, outerMin: 45 },
   },
   {
     id: 'artist', number: '06', label: 'Creative', type: 'glb', url: '/mascot/outfits/artist.glb', unitScale: 100,
@@ -713,12 +719,17 @@ const releaseSourceMeshes = (source) => {
 
 const prepareOutfitModel = (model, outfit) => {
   if (outfit.unitScale !== 1) model.scale.multiplyScalar(outfit.unitScale);
+  if (outfit.modelOffsetY) model.position.y += outfit.modelOffsetY;
   model.name = `ACEOutfit-${outfit.id}`;
   createOutfitArmRigs(model, outfit.armPose);
   setArmPose(model, REST_ARM_ANGLES);
   configureModel(model);
   return model;
 };
+
+export const getOutfitFloorY = (outfit, contentScale) => (
+  MASCOT_FLOOR_Y + ((outfit?.modelOffsetY || 0) * (contentScale || 0))
+);
 
 const loadOutfitModel = (outfit, onProgress) => new Promise((resolve, reject) => {
   if (outfit.type === 'fbx') {
@@ -875,7 +886,7 @@ const MascotShowcase = () => {
       new THREE.ShadowMaterial({ color: 0x6c3df4, opacity: 0.11 })
     );
     floor.rotation.x = -Math.PI / 2;
-    floor.position.y = -1.94;
+    floor.position.y = MASCOT_FLOOR_Y;
     floor.receiveShadow = true;
     scene.add(floor);
 
@@ -890,6 +901,12 @@ const MascotShowcase = () => {
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(stage);
     resize();
+
+    let contentScale = 0;
+    let floorTargetY = MASCOT_FLOOR_Y;
+    const syncFloorTarget = (outfit) => {
+      floorTargetY = getOutfitFloorY(outfit, contentScale);
+    };
 
     const showOutfit = async (outfit) => {
       const requestId = ++outfitRequest;
@@ -933,6 +950,7 @@ const MascotShowcase = () => {
         visibleOutfit = model;
         const baseModel = contentRoot.getObjectByName('ACEWebReadyBase');
         configureBaseArmRigs(baseModel, outfit, model);
+        syncFloorTarget(outfit);
         setOutfitStatus('ready');
         setOutfitProgress(null);
         setAnnouncement(`ACE is now wearing the ${outfit.label.toLowerCase()} outfit.`);
@@ -983,11 +1001,13 @@ const MascotShowcase = () => {
 
         if (size.y > 0) {
           const scale = 2.6 / size.y;
+          contentScale = scale;
           contentRoot.scale.setScalar(scale);
           // Frame the complete outfit, not only the base head mesh. The extra
           // lift keeps long garments inside the viewport and visually joins
           // the clothes, hands and body into one character.
           contentRoot.position.set(-center.x * scale, -center.y * scale + 0.2, -center.z * scale);
+          syncFloorTarget(activeOutfitRef.current);
         }
 
         setBaseStatus('ready');
@@ -1055,6 +1075,7 @@ const MascotShowcase = () => {
       companionRoot.position.y = y;
       companionRoot.rotation.z = tilt;
       companionRoot.rotation.y = turn;
+      floor.position.y = THREE.MathUtils.lerp(floor.position.y, floorTargetY, 0.16);
 
       const baseModel = contentRoot.getObjectByName('ACEWebReadyBase');
       setArmPose(baseModel, armAngles, wristWave);

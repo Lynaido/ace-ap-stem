@@ -1,6 +1,10 @@
 import { render, screen, within } from '@testing-library/react';
 import * as THREE from 'three';
-import MascotShowcase, { getCuffAnchorFromPoints, OUTFITS } from './MascotShowcase';
+import MascotShowcase, {
+  getCuffAnchorFromPoints,
+  getOutfitFloorY,
+  OUTFITS,
+} from './MascotShowcase';
 
 jest.mock('three/examples/jsm/loaders/FBXLoader.js', () => ({ FBXLoader: jest.fn() }));
 jest.mock('three/examples/jsm/loaders/GLTFLoader.js', () => ({ GLTFLoader: jest.fn() }));
@@ -87,6 +91,14 @@ test('applies measured vertical cuff corrections to the three slanted sleeves', 
     '10': 3.49,
     '12': 5.03,
   });
+});
+
+test('lifts the business outfit as one rig and keeps its feet on the floor', () => {
+  const business = OUTFITS.find((outfit) => outfit.id === 'vest');
+
+  expect(business.modelOffsetY).toBe(17);
+  expect(business.armPose.shoulderY).toBeCloseTo(18.6 + business.modelOffsetY);
+  expect(getOutfitFloorY(business, 0.02616)).toBeCloseTo(-1.495, 2);
 });
 
 test('exposes the approved ten outfit names and skips tech and gamer', () => {
