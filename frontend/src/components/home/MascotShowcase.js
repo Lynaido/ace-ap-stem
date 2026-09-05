@@ -12,14 +12,17 @@ const MASCOT_FLOOR_Y = -1.94;
 export const OUTFITS = [
   {
     id: 'classic', number: '01', label: 'Engineer', type: 'glb', url: '/mascot/outfits/classic.glb', unitScale: 100,
+    modelOffsetY: 11.65,
     showBaseArms: true, armPose: { shoulderX: 19, shoulderY: 18.6, outerMin: 24 },
   },
   {
     id: 'doctor', number: '02', label: 'Healthcare', type: 'glb', url: '/mascot/outfits/doctor.glb', unitScale: 100,
+    modelOffsetY: 18.84,
     cuffOverlap: 3.4, armPose: { shoulderX: 19, shoulderY: 18.8, outerMin: 45 },
   },
   {
     id: 'long-vest', number: '03', label: 'Scientist', type: 'glb', url: '/mascot/outfits/long-vest.glb', unitScale: 100,
+    modelOffsetY: 18.84,
     cuffOverlap: 3.4, handOffsetY: -2.24,
     armPose: { shoulderX: 19.3, shoulderY: 18.3, outerMin: 43 },
   },
@@ -29,36 +32,49 @@ export const OUTFITS = [
     // garment and its authored shoulder pivots together so the collar, cuffs,
     // hands and action poses remain one connected character.
     modelOffsetY: 17,
-    cuffOverlap: 3.2, armPose: { shoulderX: 18.3, shoulderY: 35.6, outerMin: 45 },
+    cuffOverlap: 3.2, armPose: { shoulderX: 18.3, shoulderY: 18.6, outerMin: 45 },
   },
   {
     id: 'artist', number: '06', label: 'Creative', type: 'glb', url: '/mascot/outfits/artist.glb', unitScale: 100,
+    modelOffsetY: 17.66,
     showBaseArms: true, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 24 },
   },
   {
     id: 'activewear', number: '07', label: 'Performer', type: 'glb', url: '/mascot/outfits/activewear.glb', unitScale: 100,
+    modelOffsetY: 16.14,
     cuffOverlap: 3.2, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 45 },
   },
   {
     id: 'cloak', number: '08', label: 'Fashion', type: 'glb', url: '/mascot/outfits/cloak.glb', unitScale: 100,
+    modelOffsetY: 12.46, integratedHood: true,
     cuffOverlap: 3.2, armPose: { shoulderX: 16.3, shoulderY: 19.45, outerMin: 45 },
   },
   {
     id: 'graduation', number: '10', label: 'Scholar', type: 'fbx',
     url: '/mascot/outfits/graduation/graduation.fbx', unitScale: 1,
+    modelOffsetY: 17,
     cuffOverlap: 3.4, handOffsetY: 3.49,
     armPose: { shoulderX: 21.1, shoulderY: 18.8, outerMin: 45 },
   },
   {
     id: 'hoodie', number: '11', label: 'Cozy', type: 'glb', url: '/mascot/outfits/hoodie.glb', unitScale: 100,
+    modelOffsetY: 15.72,
     cuffOverlap: 3.4, armPose: { shoulderX: 16.1, shoulderY: 19.45, outerMin: 45 },
   },
   {
     id: 'wizard', number: '12', label: 'Fantasy', type: 'glb', url: '/mascot/outfits/wizard.glb', unitScale: 100,
+    modelOffsetY: 17.12,
     cuffOverlap: 3.4, handOffsetY: 5.03,
     armPose: { shoulderX: 15.3, shoulderY: 15.25, outerMin: 45 },
   },
 ];
+
+// Store pivots in the original asset coordinates, then apply the same lift
+// to the clothing and both hand rigs. This also covers short-sleeved outfits.
+export const getOutfitArmPose = (outfit) => ({
+  ...outfit.armPose,
+  shoulderY: outfit.armPose.shoulderY + (outfit.modelOffsetY || 0),
+});
 
 const MOODS = [
   { id: 'ready', label: 'Ready' },
@@ -621,14 +637,16 @@ const addArmAndHand = (model, hand, side) => {
 const configureBaseArmRigs = (model, outfit, outfitModel) => {
   const rigs = model?.userData.armRigs;
   if (!rigs) return;
+  const armPose = getOutfitArmPose(outfit);
+  const liftY = outfit.modelOffsetY || 0;
 
   ['left', 'right'].forEach((side) => {
     const rig = rigs[side];
     if (!rig) return;
     const sign = side === 'right' ? 1 : -1;
-    const shoulderX = outfit.armPose.shoulderX;
-    const shoulderY = outfit.armPose.shoulderY;
-    rig.shoulder.position.set(sign * shoulderX, shoulderY, outfit.armPose.shoulderZ || 0);
+    const shoulderX = armPose.shoulderX;
+    const shoulderY = armPose.shoulderY;
+    rig.shoulder.position.set(sign * shoulderX, shoulderY, armPose.shoulderZ || 0);
     const cuffAnchor = outfitModel?.userData.cuffAnchors?.[side];
     const hasAuthoredSleeve = !outfit.showBaseArms && cuffAnchor && rig.handWristOffset;
     const wristTarget = hasAuthoredSleeve
@@ -637,7 +655,7 @@ const configureBaseArmRigs = (model, outfit, outfitModel) => {
         outfit.handOffsetY || 0,
         outfit.handOffsetZ || 0
       ))
-      : rig.handCenter.clone();
+      : rig.handCenter.clone().add(new THREE.Vector3(0, liftY, 0));
     const handTarget = hasAuthoredSleeve
       ? wristTarget.clone().sub(rig.handWristOffset)
       : wristTarget;
@@ -647,7 +665,7 @@ const configureBaseArmRigs = (model, outfit, outfitModel) => {
     rig.wrist.position.copy(handTarget).sub(rig.shoulder.position);
     rig.arm.position.set(
       sign * (37.5 - shoulderX),
-      rig.handCenter.y - shoulderY - 0.7,
+      rig.handCenter.y + liftY - shoulderY - 0.7,
       rig.handCenter.z - 1.5
     );
     rig.arm.visible = Boolean(outfit.showBaseArms);
@@ -717,11 +735,46 @@ const releaseSourceMeshes = (source) => {
   });
 };
 
+// Head accessories and clothing can share a mesh in the supplied files. The
+// empty band between them lets us preserve hats while lifting the garment.
+// Fashion's hood is continuous with its coat, so blend through the neck band.
+export const liftOutfitGarment = (model, liftY, integratedHood = false) => {
+  if (!liftY) return;
+  model.updateMatrixWorld(true);
+  const point = new THREE.Vector3();
+  model.traverse((node) => {
+    if (!node.isMesh) return;
+    const positions = node.geometry?.getAttribute('position');
+    if (!positions) return;
+    const inverse = node.matrixWorld.clone().invert();
+    let changed = false;
+    for (let index = 0; index < positions.count; index += 1) {
+      point.fromBufferAttribute(positions, index).applyMatrix4(node.matrixWorld);
+      const headWeight = integratedHood
+        ? THREE.MathUtils.smoothstep(point.y, 30, 60)
+        : Number(point.y >= 45);
+      if (!headWeight) continue;
+      point.y -= liftY * headWeight;
+      point.applyMatrix4(inverse);
+      positions.setXYZ(index, point.x, point.y, point.z);
+      changed = true;
+    }
+    if (changed) {
+      positions.needsUpdate = true;
+      if (integratedHood) node.geometry.computeVertexNormals();
+      node.geometry.computeBoundingBox();
+      node.geometry.computeBoundingSphere();
+    }
+  });
+  model.position.y += liftY;
+  model.updateMatrixWorld(true);
+};
+
 const prepareOutfitModel = (model, outfit) => {
   if (outfit.unitScale !== 1) model.scale.multiplyScalar(outfit.unitScale);
-  if (outfit.modelOffsetY) model.position.y += outfit.modelOffsetY;
+  liftOutfitGarment(model, outfit.modelOffsetY, outfit.integratedHood);
   model.name = `ACEOutfit-${outfit.id}`;
-  createOutfitArmRigs(model, outfit.armPose);
+  createOutfitArmRigs(model, getOutfitArmPose(outfit));
   setArmPose(model, REST_ARM_ANGLES);
   configureModel(model);
   return model;

@@ -2,7 +2,9 @@ import { render, screen, within } from '@testing-library/react';
 import * as THREE from 'three';
 import MascotShowcase, {
   getCuffAnchorFromPoints,
+  getOutfitArmPose,
   getOutfitFloorY,
+  liftOutfitGarment,
   OUTFITS,
 } from './MascotShowcase';
 
@@ -97,8 +99,48 @@ test('lifts the business outfit as one rig and keeps its feet on the floor', () 
   const business = OUTFITS.find((outfit) => outfit.id === 'vest');
 
   expect(business.modelOffsetY).toBe(17);
-  expect(business.armPose.shoulderY).toBeCloseTo(18.6 + business.modelOffsetY);
+  expect(getOutfitArmPose(business).shoulderY).toBeCloseTo(18.6 + business.modelOffsetY);
   expect(getOutfitFloorY(business, 0.02616)).toBeCloseTo(-1.495, 2);
+});
+
+test('lifts clothing while keeping a hat in place even when they share a scaled mesh', () => {
+  const model = new THREE.Group();
+  model.scale.setScalar(100);
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    0, 0.2, 0, 0.1, 0.2, 0, 0, 0.25, 0,
+    0, 0.8, 0, 0.1, 0.8, 0, 0, 0.85, 0,
+  ], 3));
+  const mesh = new THREE.Mesh(geometry);
+  model.add(mesh);
+
+  liftOutfitGarment(model, 17);
+  const point = new THREE.Vector3();
+  const positions = geometry.getAttribute('position');
+  expect(point.fromBufferAttribute(positions, 0).applyMatrix4(mesh.matrixWorld).y).toBeCloseTo(37);
+  expect(point.fromBufferAttribute(positions, 3).applyMatrix4(mesh.matrixWorld).y).toBeCloseTo(80);
+});
+
+test('keeps an integrated hood continuous between the lifted collar and fixed head', () => {
+  const model = new THREE.Group();
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    0, 30, 0, 1, 45, 0, 0, 60, 0,
+  ], 3));
+  const mesh = new THREE.Mesh(geometry);
+  model.add(mesh);
+
+  liftOutfitGarment(model, 12.46, true);
+  const point = new THREE.Vector3();
+  const positions = geometry.getAttribute('position');
+  const heights = [0, 1, 2].map((index) => (
+    point.fromBufferAttribute(positions, index).applyMatrix4(mesh.matrixWorld).y
+  ));
+  expect(heights[0]).toBeCloseTo(42.46);
+  expect(heights[1]).toBeCloseTo(51.23);
+  expect(heights[2]).toBeCloseTo(60);
+  expect(heights[0]).toBeLessThan(heights[1]);
+  expect(heights[1]).toBeLessThan(heights[2]);
 });
 
 test('exposes the approved ten outfit names and skips tech and gamer', () => {
