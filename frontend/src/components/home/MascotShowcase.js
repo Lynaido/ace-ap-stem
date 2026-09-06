@@ -13,7 +13,10 @@ export const OUTFITS = [
   {
     id: 'classic', number: '01', label: 'Engineer', type: 'glb', url: '/mascot/outfits/classic.glb', unitScale: 100,
     modelOffsetY: 11.65,
-    shoulderOverlap: 1.4,
+    // The supplied sleeve root already sits 0.6 units inside the torso.
+    // Moving its pivot farther inward makes the resting rotation pull the
+    // visible shoulder edge away from the body, so preserve its authored pivot.
+    shoulderOverlap: 0,
     // The helmet's brim begins at y=64.5 while the base hair begins at
     // y=71.2. Hide the brain entirely rather than allowing a stray curl
     // to show through this sealed hard-hat.
@@ -56,7 +59,9 @@ export const OUTFITS = [
   {
     id: 'activewear', number: '07', label: 'Performer', type: 'glb', url: '/mascot/outfits/activewear.glb', unitScale: 100,
     modelOffsetY: 16.14,
-    shoulderOverlap: 1.6,
+    // Keep the native sleeve-to-torso overlap at its original pivot. This
+    // prevents the pink sleeves from opening a V-shaped seam when they rest.
+    shoulderOverlap: 0,
     outfitTint: '#ecb3cb',
     cuffOverlap: 3.2, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 45 },
   },
@@ -708,6 +713,12 @@ const getHandWristOffset = (hand, side) => {
   return localPoint.multiply(hand.scale).applyQuaternion(hand.quaternion);
 };
 
+// The synthetic base arms used by short-sleeve outfits must begin inside the
+// garment's shoulder volume. Their former 20.5 inner edge began outside the
+// Engineer/Creative torso (about 19.6), leaving a visible strip of background.
+const BASE_ARM_INNER_X = 17;
+const BASE_ARM_OUTER_X = 50.5;
+
 const addArmAndHand = (model, hand, side) => {
   const sign = side === 'right' ? 1 : -1;
   const handCenter = hand.position.clone();
@@ -715,8 +726,8 @@ const addArmAndHand = (model, hand, side) => {
   const shoulderY = 18.6;
   // Sink the base arm under the outfit shoulder so no skin-colored gap is
   // visible when a short-sleeve outfit is raised to the neck.
-  const armStartX = 20.5;
-  const armEndX = 50.5;
+  const armStartX = BASE_ARM_INNER_X;
+  const armEndX = BASE_ARM_OUTER_X;
   const radius = 5.1;
   const totalLength = armEndX - armStartX;
   const shoulder = new THREE.Group();
@@ -781,7 +792,7 @@ const configureBaseArmRigs = (model, outfit, outfitModel) => {
     // the next resting/action rotation moves the two pieces together.
     rig.wrist.position.copy(handTarget).sub(rig.shoulder.position);
     rig.arm.position.set(
-      sign * (((20.5 + 50.5) / 2) - shoulderX),
+      sign * (((BASE_ARM_INNER_X + BASE_ARM_OUTER_X) / 2) - shoulderX),
       rig.handCenter.y + liftY - shoulderY - 0.7,
       rig.handCenter.z - 1.5
     );
@@ -979,6 +990,19 @@ const MascotShowcase = () => {
   );
   const activeOutfitRef = useRef(activeOutfit);
   activeOutfitRef.current = activeOutfit;
+
+  // LandingPage may receive /#meet-ace before this code-split component has
+  // mounted. Reassert the anchor once the real section exists so a direct
+  // visit cannot remain at the Home hero while the 3D companion finishes
+  // loading.
+  useEffect(() => {
+    if (window.location.hash !== '#meet-ace' || !sectionRef.current) return undefined;
+
+    const timer = window.setTimeout(() => {
+      sectionRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     try {

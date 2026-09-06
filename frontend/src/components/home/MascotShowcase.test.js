@@ -221,6 +221,16 @@ test('applies the calibrated shoulder overlap to every outfit rig', () => {
   });
 });
 
+test('preserves the native shoulder pivots for Engineer and Performer sleeves', () => {
+  ['classic', 'activewear'].forEach((outfitId) => {
+    const outfit = OUTFITS.find((candidate) => candidate.id === outfitId);
+    const pose = getOutfitArmPose(outfit);
+
+    expect(outfit.shoulderOverlap).toBe(0);
+    expect(pose.shoulderX).toBeCloseTo(outfit.armPose.shoulderX);
+  });
+});
+
 test('exposes the approved ten outfit names and skips tech and gamer', () => {
   expect(OUTFITS.map((outfit) => outfit.label)).toEqual([
     'Engineer', 'Healthcare', 'Scientist', 'Business', 'Creative',

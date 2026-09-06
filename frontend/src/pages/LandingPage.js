@@ -31,7 +31,13 @@ const LandingPage = () => {
       <HeroSection />
       <HowItWorks />
       <FeatureCards />
-      <Suspense fallback={<div style={{ minHeight: '640px', background: '#f5f1ff' }} aria-hidden="true" />}>
+      <Suspense
+        // Keep the study-buddy anchor available while its code-split 3D
+        // section is loading. Without this target, a direct /#meet-ace visit
+        // can run the hash scroll before MascotShowcase has mounted and leave
+        // the visitor at the Home hero.
+        fallback={<div id="meet-ace" style={{ minHeight: '640px', background: '#f5f1ff' }} aria-hidden="true" />}
+      >
         <MascotShowcase />
       </Suspense>
       <Testimonials />

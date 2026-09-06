@@ -57,13 +57,25 @@ const Header = () => {
     }
   };
 
-  const renderLinks = (className) => navigationLinks.map(({ to, label, end }) => (
-    to.includes('#') ? (
-      <Link key={to} to={to} className={className}>{label}</Link>
+  const getPublicAnchorClassName = (to, className) => {
+    const isHome = to === '/';
+    const isHashLink = to.includes('#');
+    const isActive = isHome
+      ? location.pathname === '/' && !location.hash
+      : isHashLink && location.pathname === '/' && location.hash === to.slice(to.indexOf('#'));
+
+    return `${className}${isActive ? ' active' : ''}`;
+  };
+
+  const renderLinks = (className) => navigationLinks.map(({ to, label, end }) => {
+    const isPublicAnchor = !isAuthenticated && (to === '/' || to.includes('#'));
+
+    return isPublicAnchor ? (
+      <Link key={to} to={to} className={getPublicAnchorClassName(to, className)}>{label}</Link>
     ) : (
       <NavLink key={to} to={to} end={end} className={className}>{label}</NavLink>
-    )
-  ));
+    );
+  });
 
   return (
     <header className="ace-public-nav">
