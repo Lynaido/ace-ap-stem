@@ -55,6 +55,38 @@ test('keeps a calibrated shoulder pose for every supplied outfit', () => {
   ).toEqual(['classic', 'artist']);
 });
 
+test('uses material-matched, deeply underlapped shrouds for the base-arm outfits', () => {
+  const shroudedOutfits = OUTFITS.filter((outfit) => outfit.shoulderShroud);
+
+  expect(shroudedOutfits.map((outfit) => outfit.id)).toEqual(['classic', 'artist']);
+  expect(shroudedOutfits.map((outfit) => outfit.shoulderShroud.materialName)).toEqual([
+    'ao_trong_1001',
+    'lambert14_1001',
+  ]);
+
+  shroudedOutfits.forEach((outfit) => {
+    const shroud = outfit.shoulderShroud;
+    expect(outfit.showBaseArms).toBe(true);
+    // The shroud begins inside the torso, reaches beyond the capsule's former
+    // visible root, and stays wider than the synthetic arm at its cuff.
+    expect(shroud.innerX).toBeLessThan(17);
+    expect(shroud.outerX).toBeGreaterThan(24);
+    expect(shroud.shoulderRadius).toBeGreaterThan(shroud.cuffRadius);
+    expect(shroud.cuffRadius).toBeGreaterThan(5.1);
+  });
+});
+
+test('gives Performer a moving sleeve shroud instead of a static shoulder patch', () => {
+  const performer = OUTFITS.find((outfit) => outfit.id === 'activewear');
+  const shroud = performer.outfitArmShroud;
+
+  expect(shroud.materialName).toBe('ao_trong');
+  expect(shroud.innerX).toBeLessThan(getOutfitArmPose(performer).shoulderX);
+  expect(shroud.outerX).toBeGreaterThan(performer.armPose.shoulderX);
+  expect(shroud.shoulderRadius).toBeGreaterThan(shroud.cuffRadius);
+  expect(shroud.cuffRadius).toBeGreaterThan(5.1);
+});
+
 test('restores valid saved outfit and mood preferences', () => {
   localStorage.setItem(
     'ace-mascot-preferences-v1',

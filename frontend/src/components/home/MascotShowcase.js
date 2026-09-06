@@ -21,6 +21,13 @@ export const OUTFITS = [
     // y=71.2. Hide the brain entirely rather than allowing a stray curl
     // to show through this sealed hard-hat.
     headwearHairCutoffY: 70,
+    // The short utility shirt ends above the exposed base arm. A tapered
+    // fabric shroud follows the arm pivot and overlaps both pieces, keeping
+    // the rear shoulder as a sleeve transition rather than a bare tube.
+    shoulderShroud: {
+      materialName: 'ao_trong_1001', innerX: 8, outerX: 27,
+      shoulderRadius: 6.6, cuffRadius: 5.6,
+    },
     showBaseArms: true, armPose: { shoulderX: 19, shoulderY: 18.6, outerMin: 24 },
   },
   {
@@ -62,6 +69,12 @@ export const OUTFITS = [
     // The beret's opening shows the base hair as pale patches in its inner
     // cavity. Treat it as a fitted hat and keep the crown fully covered.
     headwearHairCutoffY: 70,
+    // Match the supplied cream artist shirt at the exposed upper arm. This
+    // is a real garment-material sleeve cap, not a skin-coloured patch.
+    shoulderShroud: {
+      materialName: 'lambert14_1001', innerX: 8, outerX: 25,
+      shoulderRadius: 6.3, cuffRadius: 5.5,
+    },
     showBaseArms: true, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 24 },
   },
   {
@@ -74,6 +87,13 @@ export const OUTFITS = [
     shoulderPivotInset: 1.6,
     shoulderCutOverlap: 0,
     outfitTint: '#ecb3cb',
+    // The pink top is a connected mesh while the dark bib stays fixed. A
+    // moving, open sleeve shroud uses the same source cloth to bridge their
+    // joint without leaving a U-shaped socket at the rear shoulder.
+    outfitArmShroud: {
+      materialName: 'ao_trong', innerX: 13.5, outerX: 31,
+      shoulderRadius: 6.2, cuffRadius: 5.55,
+    },
     cuffOverlap: 3.2, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 45 },
   },
   {
@@ -752,10 +772,123 @@ const getHandWristOffset = (hand, side) => {
 };
 
 // The synthetic base arms used by short-sleeve outfits must begin inside the
-// garment's shoulder volume. Their former 20.5 inner edge began outside the
-// Engineer/Creative torso (about 19.6), leaving a visible strip of background.
-const BASE_ARM_INNER_X = 17;
+// garment's shoulder volume. Start the capsule deeply inside the torso so its
+// rounded root remains completely under the garment shroud at every yaw.
+const BASE_ARM_INNER_X = 8;
 const BASE_ARM_OUTER_X = 50.5;
+
+const disposeShoulderShroud = (shroud) => {
+  if (!shroud) return;
+  shroud.removeFromParent();
+  shroud.geometry?.dispose();
+  const materials = Array.isArray(shroud.material) ? shroud.material : [shroud.material];
+  // Material clones share the source texture with the outfit. Dispose only
+  // the clone so changing outfits cannot invalidate the still-visible model.
+  materials.filter(Boolean).forEach((material) => material.dispose());
+};
+
+const findOutfitMaterial = (outfitModel, materialName) => {
+  let match = null;
+  outfitModel?.traverse((node) => {
+    if (match || !node.isMesh) return;
+    const materials = Array.isArray(node.material) ? node.material : [node.material];
+    match = materials.find((material) => material?.name === materialName) || null;
+  });
+  return match;
+};
+
+// Connected garments such as Performer retain a fixed bib while their sleeves
+// move with the shoulder rig. Cover the geometric split with a short, tapered
+// section of the actual sleeve cloth. Unlike a static bridge, this follows the
+// arm through every action and cannot become a horizontal rear protrusion.
+const addOutfitArmShrouds = (model, outfit) => {
+  const profile = outfit.outfitArmShroud;
+  const rigs = model.userData.armRigs;
+  if (!profile || !rigs) return;
+
+  const sourceMaterial = findOutfitMaterial(model, profile.materialName);
+  const length = profile.outerX - profile.innerX;
+  if (!sourceMaterial || !(length > 0)) return;
+
+  const pose = getOutfitArmPose(outfit);
+  const localScale = model.scale.x || outfit.unitScale || 1;
+
+  ['left', 'right'].forEach((side) => {
+    const rig = rigs[side];
+    if (!rig) return;
+    disposeShoulderShroud(rig.userData.outfitArmShroud);
+
+    const sign = side === 'right' ? 1 : -1;
+    const shroud = new THREE.Mesh(
+      new THREE.CylinderGeometry(
+        profile.cuffRadius / localScale,
+        profile.shoulderRadius / localScale,
+        length / localScale,
+        20,
+        4,
+        true
+      ),
+      cloneMaterial(sourceMaterial)
+    );
+    shroud.name = `ACE-${side}-moving-garment-shoulder-shroud`;
+    shroud.rotation.z = sign * -Math.PI / 2;
+    shroud.position.set(
+      sign * ((((profile.innerX + profile.outerX) / 2) - pose.shoulderX) / localScale),
+      (profile.yOffset || 0) / localScale,
+      (profile.zOffset || 0) / localScale
+    );
+    shroud.castShadow = true;
+    shroud.receiveShadow = true;
+    rig.add(shroud);
+    rig.userData.outfitArmShroud = shroud;
+  });
+};
+
+// Short-sleeve outfits use the base model's articulated arms. A small tapered
+// section of their own cloth, attached to that same pivot, gives the arm a
+// natural sleeve-to-skin transition from every viewing angle. It starts well
+// inside the static shell and finishes over the base-arm capsule, so neither
+// the shroud nor the skin can expose a circular root at the rear shoulder.
+const syncShoulderShroud = (rig, outfit, outfitModel, side, shoulderX, shoulderY, liftY) => {
+  disposeShoulderShroud(rig.shoulderShroud);
+  rig.shoulderShroud = null;
+
+  const profile = outfit.showBaseArms && outfit.shoulderShroud;
+  if (!profile) return;
+
+  const sourceMaterial = findOutfitMaterial(outfitModel, profile.materialName);
+  if (!sourceMaterial) return;
+
+  const sign = side === 'right' ? 1 : -1;
+  const length = profile.outerX - profile.innerX;
+  if (!(length > 0)) return;
+
+  const shroud = new THREE.Mesh(
+    new THREE.CylinderGeometry(
+      profile.cuffRadius,
+      profile.shoulderRadius,
+      length,
+      20,
+      4,
+      true
+    ),
+    cloneMaterial(sourceMaterial)
+  );
+  shroud.name = `ACE-${side}-garment-shoulder-shroud`;
+  // CylinderGeometry is vertical by default. Its +Y opening maps to the
+  // outward side for both arms; open ends avoid a visible circular plug while
+  // the narrower cuff remains safely over the base arm.
+  shroud.rotation.z = sign * -Math.PI / 2;
+  shroud.position.set(
+    sign * (((profile.innerX + profile.outerX) / 2) - shoulderX),
+    rig.handCenter.y + liftY - shoulderY - 0.7 + (profile.yOffset || 0),
+    rig.handCenter.z - 1.5 + (profile.zOffset || 0)
+  );
+  shroud.castShadow = true;
+  shroud.receiveShadow = true;
+  rig.shoulder.add(shroud);
+  rig.shoulderShroud = shroud;
+};
 
 const addArmAndHand = (model, hand, side) => {
   const sign = side === 'right' ? 1 : -1;
@@ -835,6 +968,7 @@ const configureBaseArmRigs = (model, outfit, outfitModel) => {
       rig.handCenter.z - 1.5
     );
     rig.arm.visible = Boolean(outfit.showBaseArms);
+    syncShoulderShroud(rig, outfit, outfitModel, side, shoulderX, shoulderY, liftY);
   });
 };
 
@@ -981,6 +1115,9 @@ const prepareOutfitModel = (model, outfit) => {
       });
     });
   }
+  // This runs after the color treatment so the shroud clones the exact
+  // displayed sleeve material rather than an untinted source color.
+  addOutfitArmShrouds(model, outfit);
   return model;
 };
 
