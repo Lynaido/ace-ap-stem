@@ -14,18 +14,24 @@ export const OUTFITS = [
     id: 'classic', number: '01', label: 'Engineer', type: 'glb', url: '/mascot/outfits/classic.glb', unitScale: 100,
     modelOffsetY: 11.65,
     shoulderOverlap: 1.4,
+    // The helmet's brim begins at y=64.5 while the base hair begins at
+    // y=71.2. Hide the brain entirely rather than allowing a stray curl
+    // to show through this sealed hard-hat.
+    headwearHairCutoffY: 70,
     showBaseArms: true, armPose: { shoulderX: 19, shoulderY: 18.6, outerMin: 24 },
   },
   {
     id: 'doctor', number: '02', label: 'Healthcare', type: 'glb', url: '/mascot/outfits/doctor.glb', unitScale: 100,
     modelOffsetY: 18.84,
     shoulderOverlap: 1.6,
+    outfitTint: '#c5e7e1',
     cuffOverlap: 3.4, armPose: { shoulderX: 19, shoulderY: 18.8, outerMin: 45 },
   },
   {
     id: 'long-vest', number: '03', label: 'Scientist', type: 'glb', url: '/mascot/outfits/long-vest.glb', unitScale: 100,
     modelOffsetY: 18.84,
     shoulderOverlap: 1.6,
+    outfitTint: '#c8d0f1',
     cuffOverlap: 3.4, handOffsetY: -2.24,
     armPose: { shoulderX: 19.3, shoulderY: 18.3, outerMin: 43 },
   },
@@ -42,18 +48,29 @@ export const OUTFITS = [
     id: 'artist', number: '06', label: 'Creative', type: 'glb', url: '/mascot/outfits/artist.glb', unitScale: 100,
     modelOffsetY: 17.66,
     shoulderOverlap: 1.4,
+    // The beret's opening shows the base hair as pale patches in its inner
+    // cavity. Treat it as a fitted hat and keep the crown fully covered.
+    headwearHairCutoffY: 70,
     showBaseArms: true, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 24 },
   },
   {
     id: 'activewear', number: '07', label: 'Performer', type: 'glb', url: '/mascot/outfits/activewear.glb', unitScale: 100,
     modelOffsetY: 16.14,
     shoulderOverlap: 1.6,
+    outfitTint: '#ecb3cb',
     cuffOverlap: 3.2, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 45 },
   },
   {
     id: 'cloak', number: '08', label: 'Fashion', type: 'glb', url: '/mascot/outfits/cloak.glb', unitScale: 100,
-    modelOffsetY: 13.5, integratedHood: 'liftAll',
+    // Measured hood peak is 102.46 versus the base-hair peak 116.40.
+    // This 15.44 lift supplies a 1.5-unit safety clearance at the crown.
+    modelOffsetY: 15.44, integratedHood: 'liftAll',
     shoulderOverlap: 1.4,
+    // The hood and coat are one connected mesh. Its inner opening reaches
+    // y=70 after the calibrated lift, so no base-brain triangle can show
+    // through the hood cavity.
+    headwearHairCutoffY: 70,
+    outfitTint: '#e8b5d3',
     cuffOverlap: 3.2, armPose: { shoulderX: 16.3, shoulderY: 19.45, outerMin: 45 },
   },
   {
@@ -61,7 +78,10 @@ export const OUTFITS = [
     url: '/mascot/outfits/graduation/graduation.fbx', unitScale: 1,
     modelOffsetY: 17,
     shoulderOverlap: 1.6,
-    outfitTint: '#b59ae8',
+    // The mortarboard begins at y=98. A 96 y cutoff leaves a neat fringe
+    // below the cap while removing every hair triangle that could poke up.
+    headwearHairCutoffY: 96,
+    outfitTint: '#7867c6',
     cuffOverlap: 3.4, handOffsetY: 3.49,
     armPose: { shoulderX: 21.1, shoulderY: 18.8, outerMin: 45 },
   },
@@ -69,12 +89,19 @@ export const OUTFITS = [
     id: 'hoodie', number: '11', label: 'Cozy', type: 'glb', url: '/mascot/outfits/hoodie.glb', unitScale: 100,
     modelOffsetY: 15.72,
     shoulderOverlap: 1.6,
+    outfitTint: '#c8b7e8',
     cuffOverlap: 3.4, armPose: { shoulderX: 16.1, shoulderY: 19.45, outerMin: 45 },
   },
   {
     id: 'wizard', number: '12', label: 'Fantasy', type: 'glb', url: '/mascot/outfits/wizard.glb', unitScale: 100,
     modelOffsetY: 17.12,
     shoulderOverlap: 1.6,
+    // The witch-hat brim ends at y=75.1. Keep only the fringe below it so
+    // the crown cannot emerge through the pointed hat from any camera angle.
+    headwearHairCutoffY: 74.5,
+    // The source wizard material is already very dark; blend toward violet
+    // instead of multiplying it to preserve a rich, readable fantasy tone.
+    outfitTint: '#a25bdf', outfitTintBlend: 0.42,
     cuffOverlap: 3.4, handOffsetY: 5.03,
     armPose: { shoulderX: 15.3, shoulderY: 15.25, outerMin: 45 },
   },
@@ -157,6 +184,19 @@ const configureModel = (model) => {
 };
 
 const disposeModel = (model) => {
+  const hairMask = model?.userData?.hairMask;
+  if (hairMask?.variants) {
+    // The visible geometry is disposed by the normal traversal below. Dispose
+    // cached, inactive crops as well so switching outfits cannot retain GPU
+    // buffers after the 3D preview is unmounted.
+    hairMask.variants.forEach((geometry) => {
+      if (geometry !== hairMask.mesh?.geometry) geometry.dispose();
+    });
+    if (hairMask.baseGeometry !== hairMask.mesh?.geometry) {
+      hairMask.baseGeometry?.dispose();
+    }
+  }
+
   model.traverse((node) => {
     if (!node.isMesh) return;
     node.geometry?.dispose();
@@ -335,6 +375,69 @@ const createTriangleGeometry = (source, triangles) => {
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   return geometry;
+};
+
+// Headwear in the supplied assets is designed to sit over ACE's brain-shaped
+// hair mesh. The hair is a separate base-model mesh, however, so it can still
+// draw through a helmet, cap, hood, or hat even when the accessory itself is
+// perfectly placed. Keep only whole hair triangles below the measured inner
+// edge of each headwear item. Keeping whole triangles avoids a visible sliced
+// surface, and the remaining edge is safely tucked behind the accessory.
+export const createCoveredHairGeometry = (hairMesh, cutoffY, sourceGeometry = hairMesh?.geometry) => {
+  if (!hairMesh || !sourceGeometry || !Number.isFinite(cutoffY)) return null;
+
+  hairMesh.updateMatrix();
+  const positions = sourceGeometry.getAttribute('position');
+  const sourceIndex = sourceGeometry.getIndex();
+  if (!positions) return null;
+
+  const triangleCount = Math.floor((sourceIndex?.count || positions.count) / 3);
+  const retainedTriangles = [];
+  const point = new THREE.Vector3();
+
+  for (let triangle = 0; triangle < triangleCount; triangle += 1) {
+    let topY = -Infinity;
+    for (let corner = 0; corner < 3; corner += 1) {
+      const offset = (triangle * 3) + corner;
+      const vertex = sourceIndex ? sourceIndex.getX(offset) : offset;
+      point.fromBufferAttribute(positions, vertex).applyMatrix4(hairMesh.matrix);
+      topY = Math.max(topY, point.y);
+    }
+    if (topY <= cutoffY) retainedTriangles.push(triangle);
+  }
+
+  return createTriangleGeometry(sourceGeometry, retainedTriangles);
+};
+
+export const applyHeadwearHairMask = (baseModel, outfit) => {
+  const hairMask = baseModel?.userData?.hairMask;
+  if (!hairMask?.mesh || !hairMask.baseGeometry) return;
+
+  const cutoffY = outfit?.headwearHairCutoffY;
+  if (!Number.isFinite(cutoffY)) {
+    hairMask.mesh.geometry = hairMask.baseGeometry;
+    hairMask.mesh.visible = true;
+    return;
+  }
+
+  const key = String(cutoffY);
+  let maskedGeometry = hairMask.variants.get(key);
+  if (!maskedGeometry) {
+    const croppedGeometry = createCoveredHairGeometry(hairMask.mesh, cutoffY, hairMask.baseGeometry);
+    if (croppedGeometry) {
+      hairMask.variants.set(key, croppedGeometry);
+      maskedGeometry = croppedGeometry;
+    } else {
+      // A sealed helmet/hood can legitimately cover the entire hair mesh.
+      // Avoid falling back to the original geometry, which would reintroduce
+      // the exact crown leak this guard exists to prevent.
+      hairMask.mesh.visible = false;
+      return;
+    }
+  }
+
+  hairMask.mesh.geometry = maskedGeometry;
+  hairMask.mesh.visible = true;
 };
 
 const findArmTriangles = (node, armPose) => {
@@ -706,6 +809,7 @@ export const createWebReadyBase = (source) => {
   staticModel.name = 'ACEWebReadyBase';
   const faceTargets = {};
   const hands = {};
+  let hairMesh = null;
 
   source.traverse((node) => {
     if (!node.isMesh) return;
@@ -726,10 +830,18 @@ export const createWebReadyBase = (source) => {
       if (part.id === 'rightHand') hands.right = mesh;
       if (node.name === 'polySurface1008') faceTargets.mouth = mesh;
       if (node.name === 'polySurface1007') faceTargets.eyes = mesh;
+      if (node.name === 'polySurface1009') hairMesh = mesh;
     });
   });
 
   staticModel.userData.faceTargets = faceTargets;
+  if (hairMesh) {
+    staticModel.userData.hairMask = {
+      mesh: hairMesh,
+      baseGeometry: hairMesh.geometry,
+      variants: new Map(),
+    };
+  }
   if (hands.left && hands.right) {
     const left = addArmAndHand(staticModel, hands.left, 'left');
     const right = addArmAndHand(staticModel, hands.right, 'right');
@@ -803,7 +915,11 @@ const prepareOutfitModel = (model, outfit) => {
       const materials = Array.isArray(node.material) ? node.material : [node.material];
       materials.filter(Boolean).forEach((material) => {
         if (material.color?.isColor) {
-          material.color.multiply(tint);
+          if (Number.isFinite(outfit.outfitTintBlend)) {
+            material.color.lerp(tint, outfit.outfitTintBlend);
+          } else {
+            material.color.multiply(tint);
+          }
           material.needsUpdate = true;
         }
       });
@@ -1034,6 +1150,7 @@ const MascotShowcase = () => {
         model.visible = true;
         visibleOutfit = model;
         const baseModel = contentRoot.getObjectByName('ACEWebReadyBase');
+        applyHeadwearHairMask(baseModel, outfit);
         configureBaseArmRigs(baseModel, outfit, model);
         syncFloorTarget(outfit);
         setOutfitStatus('ready');
@@ -1093,6 +1210,13 @@ const MascotShowcase = () => {
           // the clothes, hands and body into one character.
           contentRoot.position.set(-center.x * scale, -center.y * scale + 0.2, -center.z * scale);
           syncFloorTarget(activeOutfitRef.current);
+        }
+
+        // The first outfit can finish loading before the base FBX. Reapply
+        // its calibrated arm pose and hair occlusion once both models exist.
+        if (visibleOutfit) {
+          applyHeadwearHairMask(model, activeOutfitRef.current);
+          configureBaseArmRigs(model, activeOutfitRef.current, visibleOutfit);
         }
 
         setBaseStatus('ready');

@@ -1,6 +1,8 @@
 import { render, screen, within } from '@testing-library/react';
 import * as THREE from 'three';
 import MascotShowcase, {
+  applyHeadwearHairMask,
+  createCoveredHairGeometry,
   getCuffAnchorFromPoints,
   getOutfitArmPose,
   getOutfitFloorY,
@@ -141,6 +143,82 @@ test('keeps an integrated hood continuous between the lifted collar and fixed he
   expect(heights[2]).toBeCloseTo(60);
   expect(heights[0]).toBeLessThan(heights[1]);
   expect(heights[1]).toBeLessThan(heights[2]);
+});
+
+test('moves a one-piece Fashion hood above the base crown as one garment', () => {
+  const baseCrownY = 116.4;
+  const model = new THREE.Group();
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    0, -18.44, 0,
+    0, 45, 0,
+    0, 102.46, 0,
+  ], 3));
+  const mesh = new THREE.Mesh(geometry);
+  model.add(mesh);
+
+  liftOutfitGarment(model, 15.44, 'liftAll');
+  model.updateMatrixWorld(true);
+  const point = new THREE.Vector3();
+
+  expect(point.fromBufferAttribute(geometry.getAttribute('position'), 0).applyMatrix4(mesh.matrixWorld).y).toBeCloseTo(-3);
+  expect(point.fromBufferAttribute(geometry.getAttribute('position'), 1).applyMatrix4(mesh.matrixWorld).y).toBeCloseTo(60.44);
+  expect(point.fromBufferAttribute(geometry.getAttribute('position'), 2).applyMatrix4(mesh.matrixWorld).y).toBeGreaterThanOrEqual(baseCrownY);
+});
+
+test('trims the base hair at calibrated headwear edges and restores it afterward', () => {
+  const base = new THREE.Group();
+  const originalGeometry = new THREE.BufferGeometry();
+  originalGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    -2, 70, 0, 2, 70, 0, 0, 72, 0,
+    -2, 90, 0, 2, 90, 0, 0, 92, 0,
+  ], 3));
+  const hair = new THREE.Mesh(originalGeometry);
+  base.add(hair);
+  base.updateMatrixWorld(true);
+
+  const cropped = createCoveredHairGeometry(hair, 80, originalGeometry);
+  expect(cropped.getAttribute('position').count).toBe(3);
+
+  base.userData.hairMask = {
+    mesh: hair,
+    baseGeometry: originalGeometry,
+    variants: new Map(),
+  };
+  applyHeadwearHairMask(base, { headwearHairCutoffY: 80 });
+  expect(hair.geometry.getAttribute('position').count).toBe(3);
+  expect(hair.visible).toBe(true);
+
+  applyHeadwearHairMask(base, { headwearHairCutoffY: 60 });
+  expect(hair.visible).toBe(false);
+
+  applyHeadwearHairMask(base, {});
+  expect(hair.geometry).toBe(originalGeometry);
+  expect(hair.visible).toBe(true);
+});
+
+test('uses full headwear masks only for the supplied headwear outfits', () => {
+  const masks = Object.fromEntries(
+    OUTFITS
+      .filter((outfit) => Number.isFinite(outfit.headwearHairCutoffY))
+      .map((outfit) => [outfit.number, outfit.headwearHairCutoffY])
+  );
+
+  expect(masks).toEqual({
+    '01': 70,
+    '06': 70,
+    '08': 70,
+    '10': 96,
+    '12': 74.5,
+  });
+});
+
+test('applies the calibrated shoulder overlap to every outfit rig', () => {
+  OUTFITS.forEach((outfit) => {
+    const pose = getOutfitArmPose(outfit);
+    expect(pose.shoulderX).toBeCloseTo(outfit.armPose.shoulderX - (outfit.shoulderOverlap || 0));
+    expect(pose.shoulderY).toBeCloseTo(outfit.armPose.shoulderY + (outfit.modelOffsetY || 0));
+  });
 });
 
 test('exposes the approved ten outfit names and skips tech and gamer', () => {
