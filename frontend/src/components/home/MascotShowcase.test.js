@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import MascotShowcase, {
   applyHeadwearHairMask,
   createCoveredHairGeometry,
+  findArmTriangles,
   getCuffAnchorFromPoints,
   getOutfitArmPose,
   getOutfitFloorY,
@@ -83,6 +84,27 @@ test('uses the real outer sleeve edge as the wrist anchor on both sides', () => 
   expect(left.x).toBeLessThan(-48);
   expect(right.y).toBeCloseTo(left.y);
   expect(right.z).toBeCloseTo(left.z);
+});
+
+test('keeps yoke-only mesh fragments fixed instead of detaching them as arms', () => {
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    18.6, 18, 0, 20.2, 18, 0, 19.4, 20, 0,
+    -18.6, 18, 0, -20.2, 18, 0, -19.4, 20, 0,
+  ], 3));
+  const mesh = new THREE.Mesh(geometry);
+  mesh.updateMatrixWorld(true);
+
+  const buckets = findArmTriangles(mesh, {
+    shoulderX: 19,
+    shoulderY: 18.6,
+    sleeveCutX: 19,
+    outerMin: 24,
+  });
+
+  expect(buckets.left).toEqual([]);
+  expect(buckets.right).toEqual([]);
+  expect(buckets.body).toEqual([0, 1]);
 });
 
 test('applies measured vertical cuff corrections to the three slanted sleeves', () => {

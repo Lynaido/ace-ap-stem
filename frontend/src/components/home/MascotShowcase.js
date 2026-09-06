@@ -464,7 +464,7 @@ export const applyHeadwearHairMask = (baseModel, outfit) => {
   hairMask.mesh.visible = true;
 };
 
-const findArmTriangles = (node, armPose) => {
+export const findArmTriangles = (node, armPose) => {
   const geometry = node.geometry;
   const positions = geometry.getAttribute('position');
   const sourceIndex = geometry.getIndex();
@@ -549,6 +549,21 @@ const findArmTriangles = (node, armPose) => {
   ['left', 'right'].forEach((side) => {
     if (buckets[side].length) return;
     const sign = side === 'right' ? 1 : -1;
+    const fallbackOuterMin = armPose.fallbackOuterMin ?? armPose.outerMin;
+
+    // A mesh containing only a yoke, epaulette or trim can have triangles at
+    // the shoulder line without containing an arm at all. Splitting those
+    // fragments made them rotate independently and is the source of the
+    // visible shoulder spikes in three-quarter views. Only use the connected
+    // garment fallback if that *same mesh* genuinely reaches the outer arm.
+    const hasReachableSleeve = buckets.body.some((triangle) => {
+      for (let corner = 0; corner < 3; corner += 1) {
+        if ((worldPoint(triangle, corner).x * sign) >= fallbackOuterMin) return true;
+      }
+      return false;
+    });
+    if (!hasReachableSleeve) return;
+
     const bodyTriangles = [];
 
     buckets.body.forEach((triangle) => {
@@ -939,8 +954,15 @@ const prepareOutfitModel = (model, outfit) => {
   if (outfit.unitScale !== 1) model.scale.multiplyScalar(outfit.unitScale);
   liftOutfitGarment(model, outfit.modelOffsetY, outfit.integratedHood);
   model.name = `ACEOutfit-${outfit.id}`;
-  createOutfitArmRigs(model, getOutfitArmPose(outfit));
-  setArmPose(model, REST_ARM_ANGLES);
+  // Engineer and Creative deliberately use the base model's animated arms.
+  // Their supplied garments are short-sleeve/static shells, so splitting
+  // their shoulder trim into a second moving rig only creates loose flaps at
+  // oblique angles. Leave those garments whole and keep the synthetic arm
+  // socket tucked beneath the static sleeve opening instead.
+  if (!outfit.showBaseArms) {
+    createOutfitArmRigs(model, getOutfitArmPose(outfit));
+    setArmPose(model, REST_ARM_ANGLES);
+  }
   configureModel(model);
   if (outfit.outfitTint) {
     const tint = new THREE.Color(outfit.outfitTint);
