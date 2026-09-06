@@ -213,21 +213,34 @@ test('uses full headwear masks only for the supplied headwear outfits', () => {
   });
 });
 
-test('applies the calibrated shoulder overlap to every outfit rig', () => {
+test('applies the calibrated shoulder pivot and sleeve-cut positions to every outfit rig', () => {
   OUTFITS.forEach((outfit) => {
     const pose = getOutfitArmPose(outfit);
-    expect(pose.shoulderX).toBeCloseTo(outfit.armPose.shoulderX - (outfit.shoulderOverlap || 0));
+    const pivotInset = outfit.shoulderPivotInset ?? outfit.shoulderOverlap ?? 0;
+    const cutInset = outfit.shoulderCutOverlap ?? pivotInset;
+
+    expect(pose.shoulderX).toBeCloseTo(outfit.armPose.shoulderX - pivotInset);
+    expect(pose.sleeveCutX).toBeCloseTo(outfit.armPose.shoulderX - cutInset);
     expect(pose.shoulderY).toBeCloseTo(outfit.armPose.shoulderY + (outfit.modelOffsetY || 0));
   });
 });
 
-test('preserves the native shoulder pivots for Engineer and Performer sleeves', () => {
-  ['classic', 'activewear'].forEach((outfitId) => {
+test('preserves separated Scientist sleeve roots and gives connected sleeves a measured underlap', () => {
+  ['classic', 'long-vest'].forEach((outfitId) => {
     const outfit = OUTFITS.find((candidate) => candidate.id === outfitId);
     const pose = getOutfitArmPose(outfit);
 
     expect(outfit.shoulderOverlap).toBe(0);
     expect(pose.shoulderX).toBeCloseTo(outfit.armPose.shoulderX);
+  });
+
+  ['artist', 'activewear'].forEach((outfitId) => {
+    const outfit = OUTFITS.find((candidate) => candidate.id === outfitId);
+    const pose = getOutfitArmPose(outfit);
+
+    expect(pose.sleeveCutX).toBeCloseTo(outfit.armPose.shoulderX);
+    expect(pose.shoulderX).toBeLessThan(pose.sleeveCutX);
+    expect(pose.sleeveCutX - pose.shoulderX).toBeCloseTo(outfit.shoulderPivotInset);
   });
 });
 

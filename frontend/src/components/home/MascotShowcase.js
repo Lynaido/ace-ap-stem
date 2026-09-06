@@ -33,7 +33,10 @@ export const OUTFITS = [
   {
     id: 'long-vest', number: '03', label: 'Scientist', type: 'glb', url: '/mascot/outfits/long-vest.glb', unitScale: 100,
     modelOffsetY: 18.84,
-    shoulderOverlap: 1.6,
+    // Each pink sleeve is a separate supplied mesh whose inner edge begins
+    // exactly at x=19.3. Keep the rotation centre on that edge: an inset
+    // pivots the edge down and exposes the body at a three-quarter view.
+    shoulderOverlap: 0,
     outfitTint: '#c8d0f1',
     cuffOverlap: 3.4, handOffsetY: -2.24,
     armPose: { shoulderX: 19.3, shoulderY: 18.3, outerMin: 43 },
@@ -50,7 +53,12 @@ export const OUTFITS = [
   {
     id: 'artist', number: '06', label: 'Creative', type: 'glb', url: '/mascot/outfits/artist.glb', unitScale: 100,
     modelOffsetY: 17.66,
-    shoulderOverlap: 1.4,
+    // The short-sleeve shoulder has to be cut at its authored outside edge,
+    // while its rotation centre stays under the bib. Decoupling those two
+    // positions gives the sleeve a real underlap instead of a visible seam
+    // at side angles.
+    shoulderPivotInset: 1.4,
+    shoulderCutOverlap: 0,
     // The beret's opening shows the base hair as pale patches in its inner
     // cavity. Treat it as a fitted hat and keep the crown fully covered.
     headwearHairCutoffY: 70,
@@ -59,9 +67,12 @@ export const OUTFITS = [
   {
     id: 'activewear', number: '07', label: 'Performer', type: 'glb', url: '/mascot/outfits/activewear.glb', unitScale: 100,
     modelOffsetY: 16.14,
-    // Keep the native sleeve-to-torso overlap at its original pivot. This
-    // prevents the pink sleeves from opening a V-shaped seam when they rest.
-    shoulderOverlap: 0,
+    // Its continuous top is split into a moving sleeve and fixed torso at
+    // runtime. Keep that cut at the asset's outer shoulder edge, but tuck the
+    // rotation centre 1.6 units inside the torso. The moving sleeve then stays
+    // beneath the torso through the rest pose and all three-quarter rotations.
+    shoulderPivotInset: 1.6,
+    shoulderCutOverlap: 0,
     outfitTint: '#ecb3cb',
     cuffOverlap: 3.2, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 45 },
   },
@@ -113,12 +124,20 @@ export const OUTFITS = [
 ];
 
 // Store pivots in the original asset coordinates, then apply the same lift
-// to the clothing and both hand rigs. This also covers short-sleeved outfits.
-export const getOutfitArmPose = (outfit) => ({
-  ...outfit.armPose,
-  shoulderX: outfit.armPose.shoulderX - (outfit.shoulderOverlap || 0),
-  shoulderY: outfit.armPose.shoulderY + (outfit.modelOffsetY || 0),
-});
+// to the clothing and both hand rigs. A rig's split line and its rotation
+// centre are normally identical, but a connected garment needs the centre
+// tucked inside the torso while keeping the split at the supplied sleeve edge.
+// That intentional underlap prevents a background slit at three-quarter views.
+export const getOutfitArmPose = (outfit) => {
+  const shoulderPivotInset = outfit.shoulderPivotInset ?? outfit.shoulderOverlap ?? 0;
+  const shoulderCutOverlap = outfit.shoulderCutOverlap ?? shoulderPivotInset;
+  return {
+    ...outfit.armPose,
+    shoulderX: outfit.armPose.shoulderX - shoulderPivotInset,
+    sleeveCutX: outfit.armPose.shoulderX - shoulderCutOverlap,
+    shoulderY: outfit.armPose.shoulderY + (outfit.modelOffsetY || 0),
+  };
+};
 
 const MOODS = [
   { id: 'ready', label: 'Ready' },
@@ -541,9 +560,13 @@ const findArmTriangles = (node, armPose) => {
         triangleBounds.expandByPoint(worldPoint(triangle, corner));
       }
       const center = triangleBounds.getCenter(new THREE.Vector3());
+      // `sleeveCutX` deliberately can differ from the shoulder rotation
+      // centre. Keep the moving geometry under the fixed torso whenever a
+      // connected garment would otherwise open at the shoulder while rotating.
+      const sleeveCutX = armPose.sleeveCutX ?? armPose.shoulderX;
       const entirelyOnSide = sign > 0
-        ? triangleBounds.min.x >= armPose.shoulderX - 0.5
-        : triangleBounds.max.x <= -armPose.shoulderX + 0.5;
+        ? triangleBounds.min.x >= sleeveCutX - 0.5
+        : triangleBounds.max.x <= -sleeveCutX + 0.5;
       const inArmBand = entirelyOnSide
         && Math.abs(center.y - armPose.shoulderY) <= 10.5
         && Math.abs(center.z) <= 8;
