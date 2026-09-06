@@ -13,16 +13,19 @@ export const OUTFITS = [
   {
     id: 'classic', number: '01', label: 'Engineer', type: 'glb', url: '/mascot/outfits/classic.glb', unitScale: 100,
     modelOffsetY: 11.65,
+    shoulderOverlap: 1.4,
     showBaseArms: true, armPose: { shoulderX: 19, shoulderY: 18.6, outerMin: 24 },
   },
   {
     id: 'doctor', number: '02', label: 'Healthcare', type: 'glb', url: '/mascot/outfits/doctor.glb', unitScale: 100,
     modelOffsetY: 18.84,
+    shoulderOverlap: 1.6,
     cuffOverlap: 3.4, armPose: { shoulderX: 19, shoulderY: 18.8, outerMin: 45 },
   },
   {
     id: 'long-vest', number: '03', label: 'Scientist', type: 'glb', url: '/mascot/outfits/long-vest.glb', unitScale: 100,
     modelOffsetY: 18.84,
+    shoulderOverlap: 1.6,
     cuffOverlap: 3.4, handOffsetY: -2.24,
     armPose: { shoulderX: 19.3, shoulderY: 18.3, outerMin: 43 },
   },
@@ -32,38 +35,46 @@ export const OUTFITS = [
     // garment and its authored shoulder pivots together so the collar, cuffs,
     // hands and action poses remain one connected character.
     modelOffsetY: 17,
+    shoulderOverlap: 1.6,
     cuffOverlap: 3.2, armPose: { shoulderX: 18.3, shoulderY: 18.6, outerMin: 45 },
   },
   {
     id: 'artist', number: '06', label: 'Creative', type: 'glb', url: '/mascot/outfits/artist.glb', unitScale: 100,
     modelOffsetY: 17.66,
+    shoulderOverlap: 1.4,
     showBaseArms: true, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 24 },
   },
   {
     id: 'activewear', number: '07', label: 'Performer', type: 'glb', url: '/mascot/outfits/activewear.glb', unitScale: 100,
     modelOffsetY: 16.14,
+    shoulderOverlap: 1.6,
     cuffOverlap: 3.2, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 45 },
   },
   {
     id: 'cloak', number: '08', label: 'Fashion', type: 'glb', url: '/mascot/outfits/cloak.glb', unitScale: 100,
-    modelOffsetY: 12.46, integratedHood: true,
+    modelOffsetY: 13.5, integratedHood: 'liftAll',
+    shoulderOverlap: 1.4,
     cuffOverlap: 3.2, armPose: { shoulderX: 16.3, shoulderY: 19.45, outerMin: 45 },
   },
   {
     id: 'graduation', number: '10', label: 'Scholar', type: 'fbx',
     url: '/mascot/outfits/graduation/graduation.fbx', unitScale: 1,
     modelOffsetY: 17,
+    shoulderOverlap: 1.6,
+    outfitTint: '#b59ae8',
     cuffOverlap: 3.4, handOffsetY: 3.49,
     armPose: { shoulderX: 21.1, shoulderY: 18.8, outerMin: 45 },
   },
   {
     id: 'hoodie', number: '11', label: 'Cozy', type: 'glb', url: '/mascot/outfits/hoodie.glb', unitScale: 100,
     modelOffsetY: 15.72,
+    shoulderOverlap: 1.6,
     cuffOverlap: 3.4, armPose: { shoulderX: 16.1, shoulderY: 19.45, outerMin: 45 },
   },
   {
     id: 'wizard', number: '12', label: 'Fantasy', type: 'glb', url: '/mascot/outfits/wizard.glb', unitScale: 100,
     modelOffsetY: 17.12,
+    shoulderOverlap: 1.6,
     cuffOverlap: 3.4, handOffsetY: 5.03,
     armPose: { shoulderX: 15.3, shoulderY: 15.25, outerMin: 45 },
   },
@@ -73,6 +84,7 @@ export const OUTFITS = [
 // to the clothing and both hand rigs. This also covers short-sleeved outfits.
 export const getOutfitArmPose = (outfit) => ({
   ...outfit.armPose,
+  shoulderX: outfit.armPose.shoulderX - (outfit.shoulderOverlap || 0),
   shoulderY: outfit.armPose.shoulderY + (outfit.modelOffsetY || 0),
 });
 
@@ -598,7 +610,9 @@ const addArmAndHand = (model, hand, side) => {
   const handCenter = hand.position.clone();
   const shoulderX = 19;
   const shoulderY = 18.6;
-  const armStartX = 24.5;
+  // Sink the base arm under the outfit shoulder so no skin-colored gap is
+  // visible when a short-sleeve outfit is raised to the neck.
+  const armStartX = 20.5;
   const armEndX = 50.5;
   const radius = 5.1;
   const totalLength = armEndX - armStartX;
@@ -664,7 +678,7 @@ const configureBaseArmRigs = (model, outfit, outfitModel) => {
     // the next resting/action rotation moves the two pieces together.
     rig.wrist.position.copy(handTarget).sub(rig.shoulder.position);
     rig.arm.position.set(
-      sign * (37.5 - shoulderX),
+      sign * (((20.5 + 50.5) / 2) - shoulderX),
       rig.handCenter.y + liftY - shoulderY - 0.7,
       rig.handCenter.z - 1.5
     );
@@ -740,6 +754,11 @@ const releaseSourceMeshes = (source) => {
 // Fashion's hood is continuous with its coat, so blend through the neck band.
 export const liftOutfitGarment = (model, liftY, integratedHood = false) => {
   if (!liftY) return;
+  if (integratedHood === 'liftAll') {
+    model.position.y += liftY;
+    model.updateMatrixWorld(true);
+    return;
+  }
   model.updateMatrixWorld(true);
   const point = new THREE.Vector3();
   model.traverse((node) => {
@@ -777,6 +796,19 @@ const prepareOutfitModel = (model, outfit) => {
   createOutfitArmRigs(model, getOutfitArmPose(outfit));
   setArmPose(model, REST_ARM_ANGLES);
   configureModel(model);
+  if (outfit.outfitTint) {
+    const tint = new THREE.Color(outfit.outfitTint);
+    model.traverse((node) => {
+      if (!node.isMesh) return;
+      const materials = Array.isArray(node.material) ? node.material : [node.material];
+      materials.filter(Boolean).forEach((material) => {
+        if (material.color?.isColor) {
+          material.color.multiply(tint);
+          material.needsUpdate = true;
+        }
+      });
+    });
+  }
   return model;
 };
 
