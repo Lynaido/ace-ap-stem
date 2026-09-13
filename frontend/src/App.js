@@ -23,10 +23,13 @@ import ContactPage from './pages/ContactPage';
 import FAQPage from './pages/FAQPage';
 import PrivacyPage from './pages/PrivacyPage';
 import PrimitivesTestPage from './pages/PrimitivesTestPage';
+import CustomizeAceyPage from './pages/CustomizeAceyPage';
 
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import AppShell from './components/layout/AppShell';
+import { AceyProvider } from './components/acey/AceyContext';
+import AceyCompanion from './components/acey/AceyCompanion';
 
 // Scroll to top component
 function ScrollToTop() {
@@ -78,6 +81,7 @@ const NotFoundPage = () => (
 function App() {
   return (
     <AppProvider>
+      <AceyProvider>
       <Router>
         <ScrollToTop />
         <Routes>
@@ -88,6 +92,7 @@ function App() {
             <Route path="/notes-hub" element={<ProductLayout><NotesHubPage /></ProductLayout>} />
             <Route path="/study-mode" element={<ProductLayout><StudyModePage /></ProductLayout>} />
             <Route path="/concept-notes" element={<ProductLayout><ConceptNotesPage /></ProductLayout>} />
+            <Route path="/customize-acey" element={<ProductLayout><CustomizeAceyPage /></ProductLayout>} />
             <Route path="/about-us" element={<MarketingLayout><AboutUsPage /></MarketingLayout>} />
             <Route path="/sign-in" element={<MarketingLayout><SignInPage /></MarketingLayout>} />
             <Route path="/sign-up" element={<MarketingLayout><SignUpPage /></MarketingLayout>} />
@@ -99,6 +104,8 @@ function App() {
             <Route path="/primitives-test" element={<ProductLayout><PrimitivesTestPage /></ProductLayout>} />
             <Route path="*" element={<NotFoundPage />} />
         </Routes>
+        {/* Mounted once so Acey's 3D model survives page changes. */}
+        <AceyCompanion />
         <ToastContainer
           position="top-right"
           autoClose={5000}
@@ -112,6 +119,7 @@ function App() {
           theme="light"
         />
       </Router>
+      </AceyProvider>
     </AppProvider>
   );
 }

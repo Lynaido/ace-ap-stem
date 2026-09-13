@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import LatexRenderer from '../primitives/LatexRenderer';
 import Button from '../primitives/Button';
 import Card from '../primitives/Card';
+import { emitAceyEvent } from '../acey/aceyEvents';
 import './HintsDisplay.css';
 
 const HintsDisplay = ({ hints, problemText, onGetSolution, onViewConceptNotes, isGeneratingSolution, isGeneratingConceptNotes }) => {
@@ -20,6 +21,8 @@ const HintsDisplay = ({ hints, problemText, onGetSolution, onViewConceptNotes, i
 
   const handleRevealAnswer = () => {
     setShowAnswer(true);
+    // Working through every hint to the answer completes the problem.
+    emitAceyEvent('problem-completed');
   };
 
   const handleReset = () => {

@@ -9,6 +9,8 @@ import MascotShowcase, {
   getOutfitFloorY,
   liftOutfitGarment,
   OUTFITS,
+  removeArtistBeretCrownNub,
+  shouldShowSharedBase,
 } from './MascotShowcase';
 
 jest.mock('three/examples/jsm/loaders/FBXLoader.js', () => ({ FBXLoader: jest.fn() }));
@@ -37,17 +39,29 @@ test('renders complete mascot personalization controls', () => {
   expect(screen.getByRole('group', { name: /outfit/i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /^mood$/i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /study reactions/i })).toBeInTheDocument();
-  expect(within(screen.getByRole('group', { name: /outfit/i })).getAllByRole('button')).toHaveLength(10);
+  expect(within(screen.getByRole('group', { name: /outfit/i })).getAllByRole('button')).toHaveLength(11);
   expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(2);
 });
 
-test('keeps a calibrated shoulder pose for every supplied outfit', () => {
-  expect(OUTFITS).toHaveLength(10);
-  OUTFITS.forEach((outfit) => {
+test('keeps calibrated shoulder poses for layered outfits and isolates the Technician', () => {
+  expect(OUTFITS).toHaveLength(11);
+  const layeredOutfits = OUTFITS.filter((outfit) => !outfit.fullCharacter);
+  expect(layeredOutfits).toHaveLength(10);
+  layeredOutfits.forEach((outfit) => {
     expect(outfit.armPose.shoulderX).toBeGreaterThan(0);
     expect(outfit.armPose.shoulderY).toBeGreaterThan(0);
     expect(outfit.armPose.outerMin).toBeGreaterThan(0);
   });
+
+  expect(OUTFITS.find((outfit) => outfit.id === 'technician')).toMatchObject({
+    number: '04',
+    label: 'Technician',
+    type: 'glb',
+    url: '/mascot/outfits/technician.glb',
+    fullCharacter: true,
+  });
+  expect(shouldShowSharedBase(OUTFITS.find((outfit) => outfit.id === 'technician'))).toBe(false);
+  expect(shouldShowSharedBase(OUTFITS.find((outfit) => outfit.id === 'classic'))).toBe(true);
 
   expect(OUTFITS.find((outfit) => outfit.id === 'activewear').showBaseArms).not.toBe(true);
   expect(
@@ -246,9 +260,105 @@ test('trims the base hair at calibrated headwear edges and restores it afterward
   applyHeadwearHairMask(base, { headwearHairCutoffY: 60 });
   expect(hair.visible).toBe(false);
 
+  applyHeadwearHairMask(base, { hideBaseHair: true });
+  expect(hair.visible).toBe(false);
+
   applyHeadwearHairMask(base, {});
   expect(hair.geometry).toBe(originalGeometry);
   expect(hair.visible).toBe(true);
+});
+
+test('trims only Creative’s protruding base-body crown under the beret', () => {
+  const base = new THREE.Group();
+  const hairGeometry = new THREE.BufferGeometry();
+  hairGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    -2, 70, 0, 2, 70, 0, 0, 72, 0,
+  ], 3));
+  const bodyGeometry = new THREE.BufferGeometry();
+  bodyGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    -2, 69, 0, 2, 69, 0, 0, 70, 0,
+    -2, 88, 0, 2, 88, 0, 0, 90, 0,
+  ], 3));
+  const hair = new THREE.Mesh(hairGeometry);
+  const body = new THREE.Mesh(bodyGeometry);
+  base.add(hair, body);
+  base.updateMatrixWorld(true);
+  base.userData.hairMask = {
+    mesh: hair,
+    baseGeometry: hairGeometry,
+    variants: new Map(),
+  };
+  base.userData.bodyCrownMask = {
+    mesh: body,
+    baseGeometry: bodyGeometry,
+    variants: new Map(),
+  };
+
+  applyHeadwearHairMask(base, { headwearBodyCutoffY: 70 });
+
+  expect(hair.geometry).toBe(hairGeometry);
+  expect(hair.visible).toBe(true);
+  expect(body.geometry.getAttribute('position').count).toBe(3);
+  expect(body.visible).toBe(true);
+
+  applyHeadwearHairMask(base, {});
+  expect(body.geometry).toBe(bodyGeometry);
+  expect(body.visible).toBe(true);
+});
+
+test('uses the static mesh world orientation when applying a crown cutoff', () => {
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    -2, 0, 10, 2, 0, 10, 0, 0, 10,
+    -2, 0, 30, 2, 0, 30, 0, 0, 30,
+  ], 3));
+  const mesh = new THREE.Mesh(geometry);
+  mesh.position.y = 50;
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.updateMatrix();
+
+  const cropped = createCoveredHairGeometry(mesh, 70, geometry);
+
+  // Rotation maps local Z into world Y: the first triangle reaches y=60,
+  // while the second reaches y=80 and must not survive the cutoff.
+  expect(cropped.getAttribute('position').count).toBe(3);
+});
+
+test('removes only the verified detached crown nub from the Creative beret', () => {
+  const crownVertexCount = 357;
+  const positions = [];
+  for (let index = 0; index < crownVertexCount; index += 1) {
+    const progress = index / (crownVertexCount - 1);
+    positions.push(
+      -3.745 + (5.924 * progress),
+      100.605 + (5.911 * progress),
+      -11.18 + (6.826 * progress)
+    );
+  }
+  // A second, separate triangle represents the main beret, which must remain.
+  positions.push(-12, 72, 0, 12, 72, 0, 0, 98, 5);
+
+  const indices = [];
+  for (let triangle = 0; triangle < 560; triangle += 1) {
+    indices.push(0, 1 + (triangle % 356), 1 + ((triangle + 1) % 356));
+  }
+  indices.push(357, 358, 359);
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setIndex(indices);
+  const material = new THREE.MeshStandardMaterial();
+  material.name = 'openPBR_shader1_1001';
+  const mesh = new THREE.Mesh(geometry, material);
+  const model = new THREE.Group();
+  model.add(mesh);
+  model.updateMatrixWorld(true);
+  const artist = OUTFITS.find((outfit) => outfit.id === 'artist');
+
+  expect(artist.hideBaseHair).toBe(true);
+  expect(artist.headwearBodyCutoffY).toBe(70);
+  expect(removeArtistBeretCrownNub(model, artist)).toBe(true);
+  expect(mesh.geometry.getAttribute('position').count).toBe(3);
 });
 
 test('uses full headwear masks only for the supplied headwear outfits', () => {
@@ -267,8 +377,8 @@ test('uses full headwear masks only for the supplied headwear outfits', () => {
   });
 });
 
-test('applies the calibrated shoulder pivot and sleeve-cut positions to every outfit rig', () => {
-  OUTFITS.forEach((outfit) => {
+test('applies the calibrated shoulder pivot and sleeve-cut positions to every layered outfit rig', () => {
+  OUTFITS.filter((outfit) => !outfit.fullCharacter).forEach((outfit) => {
     const pose = getOutfitArmPose(outfit);
     const pivotInset = outfit.shoulderPivotInset ?? outfit.shoulderOverlap ?? 0;
     const cutInset = outfit.shoulderCutOverlap ?? pivotInset;
@@ -298,9 +408,9 @@ test('preserves separated Scientist sleeve roots and gives connected sleeves a m
   });
 });
 
-test('exposes the approved ten outfit names and skips tech and gamer', () => {
+test('exposes the approved eleven outfit names and skips gamer', () => {
   expect(OUTFITS.map((outfit) => outfit.label)).toEqual([
-    'Engineer', 'Healthcare', 'Scientist', 'Business', 'Creative',
+    'Engineer', 'Healthcare', 'Scientist', 'Technician', 'Business', 'Creative',
     'Performer', 'Fashion', 'Scholar', 'Cozy', 'Fantasy',
   ]);
 });

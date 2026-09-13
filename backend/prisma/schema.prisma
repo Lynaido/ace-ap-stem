@@ -19,6 +19,8 @@ model User {
   avatar    String?
   googleId  String?  @unique
   role      Role     @default(USER)
+  // Acey companion appearance, preferences and onboarding progress.
+  companionProfile Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

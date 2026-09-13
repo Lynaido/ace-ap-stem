@@ -9,6 +9,7 @@ import ConceptNotesDisplay from '../components/problem-solving/ConceptNotesDispl
 import ProblemPartSelector from '../components/problem-solving/ProblemPartSelector';
 import ChatPanel from '../components/chat/ChatPanel';
 import { useAppContext } from '../context/AppContext';
+import { emitAceyEvent } from '../components/acey/aceyEvents';
 import './SolveProblemsPage.css';
 
 const LoadingPanel = ({ title, message }) => (
@@ -240,6 +241,7 @@ const SolveProblemsPage = () => {
 
       const asset = await uploadFile(file, null, `Upload for problem: ${file.name}`);
       setUploadedAsset(asset);
+      emitAceyEvent('problem-uploaded');
 
       // Clear the file input
       event.target.value = '';
@@ -289,12 +291,15 @@ const SolveProblemsPage = () => {
     setProblemViewVisible(true);
 
     const body = focus ? { focus } : {};
+    if (actionType === 'hints') emitAceyEvent('hint-requested');
+    if (actionType === 'concepts') emitAceyEvent('concepts-requested');
     try {
       const { problemAPI } = await import('../utils/api');
       if (actionType === 'solution') {
         const res = await problemAPI.generateSolution(problemId, body);
         if (res.data.solution) {
           setProblemSolution({ ...res.data.solution, id: res.data.solutionId });
+          emitAceyEvent('solution-ready');
         }
       } else if (actionType === 'hints') {
         const res = await problemAPI.generateHints(problemId, body);
@@ -313,6 +318,7 @@ const SolveProblemsPage = () => {
       }
     } catch (err) {
       setError(err.message);
+      emitAceyEvent('request-failed');
     } finally {
       setIsProblemLoading(false);
     }
@@ -450,6 +456,7 @@ const SolveProblemsPage = () => {
     setIsProblemLoading(true);
     try {
       const { problemAPI } = await import('../utils/api');
+      emitAceyEvent('hint-requested');
       const res = await problemAPI.generateHints(problemId, solveFocus ? { focus: solveFocus } : {});
       if (res.data.hints) {
         setProblemHints(res.data.hints);
@@ -502,6 +509,7 @@ const SolveProblemsPage = () => {
   const handleSaveItem = async (saveData) => {
     try {
       await saveItem(saveData);
+      emitAceyEvent('item-saved');
       // Optionally navigate to notes hub
       // navigate('/notes-hub?refresh=true');
     } catch (error) {
@@ -609,7 +617,7 @@ const SolveProblemsPage = () => {
                 </button>
               </div>
 
-              <div className="upload-zone" role="region" aria-live="polite">
+              <div className="upload-zone" role="region" aria-live="polite" data-acey-target="upload-problem">
                 {inputMode === 'upload' ? (
                   <>
                     <input
@@ -703,7 +711,7 @@ const SolveProblemsPage = () => {
                 </div>
               </div>
 
-              <div className="action-row problem-actions">
+              <div className="action-row problem-actions" data-acey-target="learning-options">
                 <Button
                   variant="ghost"
                   size="large"
