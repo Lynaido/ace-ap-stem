@@ -6,12 +6,15 @@ import {
   MASCOT_FLOOR_Y,
   REST_ARM_ANGLES,
   applyHeadwearHairMask,
+  attachPropSet,
   configureBaseArmRigs,
+  detachPropSet,
   createWebReadyBase,
   disposeModel,
   getOutfitFloorY,
   getProgress,
   loadOutfitModel,
+  loadPropSet,
   prepareOutfitModel,
   releaseSourceMeshes,
   setArmPose,
@@ -196,6 +199,32 @@ export const createMascotScene = ({
     model.userData.fittedToBase = true;
   };
 
+  // Props for garment roles live on the shared base's hands. Each set is
+  // loaded once; switching roles swaps the attached copy.
+  const propSets = new Map();
+  let propRequest = 0;
+  const syncProps = async (outfit) => {
+    const requestId = ++propRequest;
+    const baseModel = contentRoot.getObjectByName('ACEWebReadyBase');
+    if (!baseModel) return;
+    detachPropSet(baseModel);
+    const url = outfit?.fullCharacter ? null : outfit?.props?.url;
+    if (!url) return;
+    let request = propSets.get(url);
+    if (!request) {
+      request = loadPropSet(url);
+      propSets.set(url, request);
+      request.catch(() => propSets.delete(url));
+    }
+    try {
+      const template = await request;
+      if (disposed || requestId !== propRequest) return;
+      attachPropSet(baseModel, template);
+    } catch (error) {
+      // Props are optional decoration; the outfit stays usable without them.
+    }
+  };
+
   const showOutfit = async (outfit) => {
     if (!outfit || disposed) return;
     activeOutfit = outfit;
@@ -245,6 +274,7 @@ export const createMascotScene = ({
           configureBaseArmRigs(baseModel, outfit, model);
         }
       }
+      syncProps(outfit);
       syncFloorTarget(outfit);
       onOutfitStatus('ready');
       onOutfitProgress(null);
@@ -307,6 +337,7 @@ export const createMascotScene = ({
           applyHeadwearHairMask(model, activeOutfit);
           configureBaseArmRigs(model, activeOutfit, visibleOutfit);
         }
+        syncProps(activeOutfit);
       }
 
       onBaseStatus('ready');
@@ -429,6 +460,9 @@ export const createMascotScene = ({
     renderer.setAnimationLoop(null);
     timer.dispose();
     controls?.dispose();
+    const baseModel = contentRoot.getObjectByName('ACEWebReadyBase');
+    detachPropSet(baseModel);
+    propSets.forEach((request) => request.then(disposeModel, () => {}));
     disposeModel(contentRoot);
     floor.geometry.dispose();
     floor.material.dispose();

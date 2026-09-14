@@ -2,6 +2,10 @@ import { render, screen, within } from '@testing-library/react';
 import * as THREE from 'three';
 import MascotShowcase, {
   applyHeadwearHairMask,
+  attachPropSet,
+  detachPropSet,
+  getHandTip,
+  setArmPose,
   createCoveredHairGeometry,
   findArmTriangles,
   getCuffAnchorFromPoints,
@@ -57,14 +61,66 @@ test('explains moods and previews every study reaction Acey uses', () => {
   expect(screen.getByRole('button', { name: 'Preview Encourage' })).toHaveAccessibleDescription(/something goes wrong/i);
 });
 
-test('offers roles with props when the chosen role has none', () => {
+test('gives every role props and a switch for them', () => {
   render(<MascotShowcase />);
 
-  const accessories = within(screen.getByRole('group', { name: /accessories/i }));
-  expect(accessories.getByText(/no props for the engineer role yet/i)).toBeInTheDocument();
-  expect(accessories.getAllByRole('button').map((button) => button.textContent)).toEqual(['Technician', 'Cozy', 'Fantasy']);
-  expect(screen.getByRole('button', { name: /^cozy\s*,\s*has props$/i })).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'Healthcare' })).toBeInTheDocument();
+  const outfits = within(screen.getByRole('group', { name: /outfit/i })).getAllByRole('button');
+  outfits.forEach((button) => expect(button).toHaveAccessibleName(/,\s*has props$/i));
+  expect(screen.getByRole('switch', { name: 'Show props: Wrench & power drill' })).toBeChecked();
+});
+
+test('anchors props at Acey’s hand tips and keeps held props upright', () => {
+  const makeHand = (x) => {
+    const geometry = new THREE.BufferGeometry();
+    // A 20-unit wide hand centred on x; its outer fifth is the prop tip.
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute([
+      -10, -2, 0, 10, -2, 0, 10, 2, 0, -10, 2, 0,
+    ], 3));
+    const hand = new THREE.Mesh(geometry);
+    hand.position.set(x, 30, 0);
+    return hand;
+  };
+  const base = new THREE.Group();
+  const rigs = {};
+  [['right', 58], ['left', -58]].forEach(([side, x]) => {
+    const hand = makeHand(x);
+    base.add(hand);
+    const handTip = getHandTip(hand);
+    const shoulder = new THREE.Group();
+    shoulder.position.set(Math.sign(x) * 19, 18.6, 0);
+    base.add(shoulder);
+    const wrist = new THREE.Group();
+    wrist.position.copy(hand.position).sub(shoulder.position);
+    shoulder.add(wrist);
+    base.updateMatrixWorld(true);
+    wrist.attach(hand);
+    rigs[side] = { shoulder, wrist, hand, handCenter: new THREE.Vector3(x, 30, 0), handTip };
+  });
+  base.userData.armRigs = rigs;
+  expect(rigs.right.handTip.x).toBeGreaterThan(58);
+  expect(rigs.left.handTip.x).toBeLessThan(-58);
+
+  const template = new THREE.Group();
+  ['anchor_pos', 'anchor_body', 'ignored'].forEach((name) => {
+    const node = new THREE.Group();
+    node.name = name;
+    template.add(node);
+  });
+
+  const anchors = attachPropSet(base, template);
+  const span = rigs.right.handTip.x - rigs.left.handTip.x;
+  expect(anchors.map((anchor) => anchor.name)).toEqual(['anchor_pos', 'anchor_body']);
+  expect(anchors[0].parent).toBe(rigs.right.wrist);
+  expect(anchors[0].scale.x).toBeCloseTo(span);
+  expect(anchors[1].parent).toBe(base);
+  expect(anchors[1].position.x).toBeCloseTo(0);
+
+  setArmPose(base, { left: 0.7, right: -0.8 }, 0.2);
+  expect(anchors[0].rotation.z).toBeCloseTo(0.6);
+
+  detachPropSet(base);
+  expect(anchors[0].parent).toBeNull();
+  expect(base.userData.propAnchors).toBeNull();
 });
 
 test('shows a props switch that describes what it changes', () => {
@@ -146,7 +202,7 @@ test('restores valid saved outfit and mood preferences', () => {
 
   render(<MascotShowcase />);
 
-  expect(screen.getByRole('button', { name: 'Healthcare' })).toHaveAttribute('aria-pressed', 'true');
+  expect(screen.getByRole('button', { name: /^healthcare/i })).toHaveAttribute('aria-pressed', 'true');
   expect(screen.getByRole('button', { name: 'Cheerful' })).toHaveAttribute('aria-pressed', 'true');
 });
 

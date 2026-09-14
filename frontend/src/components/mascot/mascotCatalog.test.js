@@ -1,6 +1,7 @@
 import {
   OUTFITS,
   POSED_VARIANTS,
+  PROP_SETS,
   REACTIONS,
   REACTION_DURATIONS,
   getOutfitAccessories,
@@ -22,7 +23,7 @@ describe('study reactions', () => {
 const byId = (id) => OUTFITS.find((outfit) => outfit.id === id);
 
 describe('designer poses with accessories', () => {
-  it('only uses corrected re-exports and keeps every other role in its approved garment', () => {
+  it('uses matching posed characters and keeps every other role in its approved garment', () => {
     expect(Object.keys(POSED_VARIANTS)).toEqual(['wizard', 'hoodie']);
     expect(resolveOutfitVariant(byId('wizard'), true)).toMatchObject({
       url: '/mascot/poses/wizard.glb',
@@ -36,8 +37,21 @@ describe('designer poses with accessories', () => {
       variant: 'posed',
     });
     expect(resolveOutfitVariant(byId('hoodie'), false)).toBe(byId('hoodie'));
-    OUTFITS.filter((outfit) => !['wizard', 'hoodie'].includes(outfit.id)).forEach((outfit) => {
-      expect(resolveOutfitVariant(outfit, true)).toBe(outfit);
+    expect(resolveOutfitVariant(byId('technician'), true)).toBe(byId('technician'));
+  });
+
+  it('gives every role accessories, with props on the approved garment where no matching pose exists', () => {
+    OUTFITS.forEach((outfit) => expect(getOutfitAccessories(outfit)).not.toBeNull());
+    expect(Object.keys(PROP_SETS).sort()).toEqual(
+      OUTFITS.filter((outfit) => !outfit.accessories && !POSED_VARIANTS[outfit.id]).map((outfit) => outfit.id).sort()
+    );
+    Object.entries(PROP_SETS).forEach(([id, set]) => {
+      const outfit = byId(id);
+      const shown = resolveOutfitVariant(outfit, true);
+      expect(shown).toMatchObject({ id, url: outfit.url, props: set, variant: 'props' });
+      expect(shown.fullCharacter).toBeFalsy();
+      expect(set.url).toBe(`/mascot/props/${id}.glb`);
+      expect(resolveOutfitVariant(outfit, false)).toBe(outfit);
     });
   });
 
@@ -61,9 +75,9 @@ describe('designer poses with accessories', () => {
 
   it('describes built-in accessories and roles without accessories', () => {
     expect(getOutfitAccessories(byId('technician'))).toEqual({ label: 'Wrench & power drill', builtIn: true });
-    expect(getOutfitAccessories(byId('doctor'))).toBeNull();
+    expect(getOutfitAccessories(byId('doctor'))).toEqual({ label: 'Stethoscope & clipboard', builtIn: false });
     expect(getOutfitAccessories(byId('wizard'))).toEqual({ label: 'Magic wand & spell book', builtIn: false });
     expect(getOutfitAccessories(byId('hoodie'))).toEqual({ label: 'Headphones & game controller', builtIn: false });
-    expect(getOutfitAccessories(byId('vest'))).toBeNull();
+    expect(getOutfitAccessories(byId('vest'))).toEqual({ label: 'Briefcase & coffee mug', builtIn: false });
   });
 });
