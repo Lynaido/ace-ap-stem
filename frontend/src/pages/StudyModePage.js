@@ -6,6 +6,7 @@ import Spinner from '../components/primitives/Spinner';
 import StudyModeGenerator from '../components/study-mode/StudyModeGenerator';
 import { useAppContext } from '../context/AppContext';
 import { studySessionsAPI } from '../utils/api';
+import { emitAceyEvent } from '../components/acey/aceyEvents';
 import { toast } from 'react-toastify';
 import './StudyModePage.css';
 
@@ -142,6 +143,7 @@ const StudyModePage = () => {
   const handleSelectMode = (mode) => {
     setSelectedMode(mode);
     setActiveStep(2);
+    emitAceyEvent('study-started');
   };
 
   const handleSelectProblem = (problem) => {
@@ -197,6 +199,7 @@ const StudyModePage = () => {
 
       setVariants(aiVariants);
       setActiveStep(3);
+      emitAceyEvent('practice-ready');
       toast.success(`Generated ${aiVariants.length} AI-powered practice variants!`);
     } catch (error) {
       console.error('Error generating variants:', error);
@@ -204,6 +207,7 @@ const StudyModePage = () => {
       // Show error message without fallback
       const errorMessage = error.response?.data?.error || error.message || 'Failed to generate variants';
       toast.error(`AI generation failed: ${errorMessage}`);
+      emitAceyEvent('request-failed');
       
       // Don't proceed to step 3, stay on step 2 so user can try again
     } finally {

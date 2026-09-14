@@ -700,10 +700,139 @@
   }
 }
 
+/* Signed-in customizer inside the learning workspace */
+.mascot-showcase--workspace {
+  padding: clamp(1.5rem, 3vw, 2.6rem) 1rem 3rem;
+  background: transparent;
+}
+
+.mascot-showcase--workspace::before,
+.mascot-showcase--workspace::after {
+  display: none;
+}
+
+.mascot-showcase__copy h1 {
+  max-width: 16ch;
+  margin: 0;
+  color: var(--mascot-ink);
+  font-size: clamp(2.3rem, 4.4vw, 3.6rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.mascot-sync-status {
+  justify-self: start;
+  padding: 0.38rem 0.7rem;
+  border-radius: 999px;
+  background: #eefaf5;
+  color: #1c7a57;
+  font-size: 0.72rem;
+  font-weight: 760;
+}
+
+.mascot-sync-status--guest,
+.mascot-sync-status--loading {
+  background: #f5f1ff;
+  color: #5b5574;
+}
+
+.mascot-sync-status--offline {
+  background: #fff7e8;
+  color: #8a5a00;
+}
+
+.mascot-accessory__switch {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--mascot-border);
+  border-radius: 0.9rem;
+  background: #fbfaff;
+  cursor: pointer;
+}
+
+.mascot-accessory__switch.is-built-in {
+  cursor: default;
+}
+
+.mascot-accessory__switch input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.mascot-accessory__track {
+  position: relative;
+  width: 2.6rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: #d9d3ec;
+  transition: background-color 170ms ease;
+}
+
+.mascot-accessory__track::after {
+  position: absolute;
+  top: 0.19rem;
+  left: 0.19rem;
+  width: 1.12rem;
+  height: 1.12rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(40, 25, 90, 0.25);
+  content: '';
+  transition: transform 170ms ease;
+}
+
+.mascot-accessory__switch input:checked + .mascot-accessory__track {
+  background: linear-gradient(135deg, #6840df, #b06fe8);
+}
+
+.mascot-accessory__switch input:checked + .mascot-accessory__track::after {
+  transform: translateX(1.1rem);
+}
+
+.mascot-accessory__switch input:focus-visible + .mascot-accessory__track {
+  outline: 3px solid rgba(109, 74, 255, 0.28);
+  outline-offset: 2px;
+}
+
+.mascot-accessory__switch input:disabled + .mascot-accessory__track {
+  opacity: 0.7;
+}
+
+.mascot-accessory__copy {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.mascot-accessory__copy strong {
+  color: var(--mascot-ink);
+  font-size: 0.82rem;
+}
+
+.mascot-accessory__copy small,
+.mascot-accessory__empty {
+  color: var(--mascot-muted);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.mascot-accessory__empty {
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px dashed var(--mascot-border);
+  border-radius: 0.9rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mascot-stage::before,
   .mascot-choice,
-  .mascot-action {
+  .mascot-action,
+  .mascot-accessory__track,
+  .mascot-accessory__track::after {
     transition: none;
   }
 

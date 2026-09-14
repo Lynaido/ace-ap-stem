@@ -3,6 +3,33 @@ export const API_BASE_URL = process.env.NODE_ENV === 'production'
   ? '/backend'
   : (process.env.REACT_APP_API_URL || 'http://localhost:3001');
 
+// API endpoints historically returned both `{ error: 'message' }` and
+// `{ error: { message: 'message' } }`.  Read only explicitly public message
+// fields so an error object never reaches the UI as `[object Object]` (and do
+// not fall back to internal fields such as a stack trace).
+const readPublicErrorMessage = (value, depth = 0) => {
+  if (typeof value === 'string') {
+    return value.trim();
+  }
+
+  if (!value || typeof value !== 'object' || depth >= 3) {
+    return '';
+  }
+
+  return (
+    readPublicErrorMessage(value.message, depth + 1) ||
+    readPublicErrorMessage(value.error, depth + 1) ||
+    readPublicErrorMessage(value.data, depth + 1)
+  );
+};
+
+export const getApiErrorMessage = (payload, fallback) => (
+  readPublicErrorMessage(payload?.error) ||
+  readPublicErrorMessage(payload?.message) ||
+  readPublicErrorMessage(payload?.data) ||
+  fallback
+);
+
 class ApiClient {
   constructor() {
     this.baseURL = API_BASE_URL;
@@ -87,7 +114,7 @@ class ApiClient {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      throw new Error(getApiErrorMessage(data, `HTTP error! status: ${response.status}`));
     }
 
     return data;
@@ -110,7 +137,7 @@ class ApiClient {
       localStorage.setItem('accessToken', data.accessToken);
       return data;
     } else {
-      throw new Error(data.error || 'Login failed');
+      throw new Error(getApiErrorMessage(data, 'Login failed'));
     }
   }
 
@@ -130,7 +157,7 @@ class ApiClient {
       localStorage.setItem('accessToken', data.accessToken);
       return data;
     } else {
-      throw new Error(data.error || 'Registration failed');
+      throw new Error(getApiErrorMessage(data, 'Registration failed'));
     }
   }
 
@@ -209,7 +236,7 @@ export const authAPI = {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to send password reset email');
+      throw new Error(getApiErrorMessage(data, 'Failed to send password reset email'));
     }
 
     return data;
@@ -226,7 +253,7 @@ export const authAPI = {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to reset password');
+      throw new Error(getApiErrorMessage(data, 'Failed to reset password'));
     }
 
     return data;
@@ -335,6 +362,11 @@ export const chatAPI = {
 
 export const contactAPI = {
   submitMessage: (contactData) => apiClient.post('/api/contact', contactData),
+};
+
+export const companionAPI = {
+  getProfile: () => apiClient.get('/api/companion'),
+  updateProfile: (update) => apiClient.put('/api/companion', update),
 };
 
 export default apiClient;

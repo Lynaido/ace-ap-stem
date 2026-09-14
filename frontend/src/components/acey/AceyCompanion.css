@@ -1,0 +1,341 @@
+.acey-companion {
+  --acey-ink: #1d1a4d;
+  --acey-muted: #625d7e;
+  --acey-violet: #6c43e8;
+  --acey-border: rgba(108, 67, 232, 0.2);
+  position: fixed;
+  z-index: 1200;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  pointer-events: none;
+}
+
+.acey-companion > * {
+  pointer-events: auto;
+}
+
+.acey-companion__body {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.acey-companion__avatar {
+  display: block;
+  width: 104px;
+  height: 128px;
+  padding: 0;
+  border: 0;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 50% 70%, rgba(143, 108, 255, 0.24), transparent 62%),
+    rgba(255, 255, 255, 0.72);
+  box-shadow: 0 16px 34px -20px rgba(60, 34, 150, 0.6);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: width 220ms ease, height 220ms ease, border-radius 220ms ease, transform 160ms ease;
+}
+
+.acey-companion__avatar:hover {
+  transform: translateY(-2px);
+}
+
+.acey-companion__avatar:focus-visible,
+.acey-companion__menu-toggle:focus-visible,
+.acey-button:focus-visible,
+.acey-bubble__close:focus-visible,
+.acey-menu a:focus-visible,
+.acey-menu button:focus-visible {
+  outline: 3px solid rgba(108, 67, 232, 0.4);
+  outline-offset: 2px;
+}
+
+.acey-avatar {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.acey-avatar__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.acey-avatar--sprite .acey-avatar__canvas,
+.acey-avatar--loading .acey-avatar__canvas {
+  opacity: 0;
+}
+
+.acey-avatar__sprite {
+  position: absolute;
+  inset: 6% 4% 0;
+  width: auto;
+  height: auto;
+  animation: acey-idle 3.6s ease-in-out infinite;
+}
+
+.acey-avatar--react-celebrate .acey-avatar__sprite { animation: acey-hop 0.9s ease-in-out 2; }
+.acey-avatar--react-hello .acey-avatar__sprite { animation: acey-wave 0.8s ease-in-out 2; }
+.acey-avatar--react-think .acey-avatar__sprite,
+.acey-avatar--react-encourage .acey-avatar__sprite { animation: acey-tilt 1.2s ease-in-out 1; }
+
+.acey-companion__tools {
+  position: absolute;
+  z-index: 2;
+  top: -6px;
+  right: -6px;
+}
+
+.acey-companion__menu-toggle {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--acey-border);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--acey-violet);
+  box-shadow: 0 6px 14px -8px rgba(60, 34, 150, 0.7);
+  cursor: pointer;
+  font-size: 0.72rem;
+}
+
+.acey-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  display: grid;
+  min-width: 190px;
+  padding: 6px;
+  border: 1px solid var(--acey-border);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 18px 40px -22px rgba(40, 25, 90, 0.55);
+}
+
+.acey-menu a,
+.acey-menu button {
+  display: block;
+  width: 100%;
+  padding: 9px 11px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--acey-ink);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.acey-menu a:hover,
+.acey-menu button:hover {
+  background: #f3efff;
+}
+
+.acey-bubble {
+  position: relative;
+  width: min(290px, calc(100vw - 150px));
+  margin-bottom: 38px;
+  padding: 13px 38px 13px 15px;
+  border: 1px solid var(--acey-border);
+  border-radius: 18px 18px 4px 18px;
+  background: #fff;
+  color: var(--acey-ink);
+  box-shadow: 0 18px 40px -22px rgba(40, 25, 90, 0.55);
+  animation: acey-bubble-in 220ms ease-out;
+}
+
+.acey-bubble--tutorial {
+  width: min(340px, calc(100vw - 150px));
+  border-color: rgba(108, 67, 232, 0.42);
+}
+
+.acey-bubble__text {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.acey-bubble__close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--acey-muted);
+  cursor: pointer;
+  font-size: 0.72rem;
+}
+
+.acey-bubble__close:hover {
+  background: #f3efff;
+}
+
+.acey-bubble__tour {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.acey-bubble__progress {
+  color: var(--acey-muted);
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.acey-bubble__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.acey-button {
+  padding: 7px 10px;
+  border: 1px solid var(--acey-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--acey-violet);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.acey-button--primary {
+  border-color: var(--acey-violet);
+  background: linear-gradient(135deg, #6840df, #9a6ff2);
+  color: #fff;
+}
+
+.acey-companion.is-minimized .acey-companion__avatar {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+}
+
+.acey-companion.is-minimized .acey-companion__tools {
+  top: -8px;
+  right: -8px;
+}
+
+/* A feature Acey is pointing at during the tour or a tip. */
+.acey-highlight {
+  outline: 3px solid rgba(108, 67, 232, 0.75) !important;
+  outline-offset: 5px;
+  box-shadow: 0 0 0 10px rgba(108, 67, 232, 0.14) !important;
+  animation: acey-highlight-pulse 1.8s ease-in-out infinite;
+  scroll-margin: 120px;
+}
+
+body.has-acey-companion .product-footer {
+  padding-bottom: 150px;
+}
+
+/* Account menu entry (the menu itself is styled in AppShell.css). */
+.product-user-menu__panel .product-user-menu__link {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 9px;
+  border-radius: 10px;
+  color: var(--ace-ink);
+  font-size: 0.8rem;
+  font-weight: 760;
+  text-decoration: none;
+}
+
+.product-user-menu__panel .product-user-menu__link:hover {
+  color: var(--ace-violet);
+  background: color-mix(in srgb, var(--ace-purple) 11%, transparent);
+}
+
+@keyframes acey-bubble-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes acey-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes acey-hop {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-12px) rotate(-3deg); }
+}
+
+@keyframes acey-wave {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(-6deg); }
+}
+
+@keyframes acey-tilt {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(7deg); }
+}
+
+@keyframes acey-highlight-pulse {
+  0%, 100% { box-shadow: 0 0 0 6px rgba(108, 67, 232, 0.12); }
+  50% { box-shadow: 0 0 0 12px rgba(108, 67, 232, 0.2); }
+}
+
+@media (max-width: 640px) {
+  .acey-companion {
+    right: 10px;
+    bottom: 10px;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .acey-bubble,
+  .acey-bubble--tutorial {
+    width: min(320px, calc(100vw - 20px));
+    margin-bottom: 0;
+    border-radius: 18px 18px 4px 18px;
+  }
+
+  .acey-companion__avatar {
+    width: 78px;
+    height: 96px;
+    border-radius: 22px;
+  }
+
+  .acey-companion.is-minimized .acey-companion__avatar {
+    width: 54px;
+    height: 54px;
+  }
+
+  body.has-acey-companion .product-footer {
+    padding-bottom: 120px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acey-companion__avatar,
+  .acey-bubble,
+  .acey-avatar__sprite,
+  .acey-highlight {
+    animation: none !important;
+    transition: none;
+  }
+}

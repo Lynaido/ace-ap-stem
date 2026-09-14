@@ -3,6 +3,7 @@ import Button from '../primitives/Button';
 import Input from '../primitives/Input';
 import { chatAPI } from '../../utils/api';
 import { useAppContext } from '../../context/AppContext';
+import { emitAceyEvent } from '../acey/aceyEvents';
 import './ChatPanel.css';
 
 const ChatPanel = ({ threadId = null, problemId = null, initialMessages, className = '' }) => {
@@ -222,6 +223,7 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
     setMessages((prev) => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
+    emitAceyEvent('question-asked');
 
     try {
       // Create thread if needed

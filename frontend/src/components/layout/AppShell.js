@@ -7,6 +7,7 @@ import {
   FaComments,
   FaHome,
   FaLightbulb,
+  FaMagic,
   FaSignOutAlt,
   FaTimes,
   FaUpload,
@@ -14,11 +15,12 @@ import {
 import { useAppContext } from '../../context/AppContext';
 import './AppShell.css';
 
+// aceyTarget lets Acey's tour point at a navigation item.
 const navigation = [
   { to: '/dashboard', label: 'Dashboard', icon: FaHome },
-  { to: '/solve-problems', label: 'Solve', icon: FaUpload },
+  { to: '/solve-problems', label: 'Solve', icon: FaUpload, aceyTarget: 'nav-solve' },
   { to: '/tutor', label: 'AI Tutor', icon: FaComments },
-  { to: '/notes-hub', label: 'Notes Hub', icon: FaBookOpen },
+  { to: '/notes-hub', label: 'Notes Hub', icon: FaBookOpen, aceyTarget: 'notes-hub' },
   { to: '/study-mode', label: 'Study Mode', icon: FaLightbulb },
 ];
 
@@ -56,10 +58,11 @@ const AppShell = ({ children }) => {
           </button>
 
           <nav id={navigationId} className={`product-navigation${menuOpen ? ' is-open' : ''}`} aria-label="Learning workspace">
-            {navigation.map(({ to, label, icon: Icon }) => (
+            {navigation.map(({ to, label, icon: Icon, aceyTarget }) => (
               <NavLink
                 key={to}
                 to={to}
+                data-acey-target={aceyTarget}
                 className={({ isActive }) => `product-navigation__link${isActive ? ' is-active' : ''}`}
               >
                 <Icon aria-hidden="true" />
@@ -83,6 +86,9 @@ const AppShell = ({ children }) => {
             {profileOpen && (
               <div className="product-user-menu__panel" id="product-user-actions">
                 <p>{user?.email || 'Ready to learn'}</p>
+                <Link className="product-user-menu__link" to="/customize-acey">
+                  <FaMagic aria-hidden="true" /> Customize Acey
+                </Link>
                 <button type="button" onClick={logout}><FaSignOutAlt aria-hidden="true" /> Sign out</button>
               </div>
             )}
