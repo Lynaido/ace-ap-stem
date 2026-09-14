@@ -50,6 +50,9 @@ const DashboardPage = () => {
             <div className="dashboard-hero__actions">
               <Link to="/solve-problems?create=true">Solve a problem <FaArrowRight aria-hidden="true" /></Link>
               <Link className="dashboard-hero__secondary" to="/notes-hub">Open your notes</Link>
+              <Link className="dashboard-hero__secondary" to="/customize-acey" data-acey-target="customize-acey">
+                <FaMagic aria-hidden="true" /> Customize Acey
+              </Link>
             </div>
           </div>
           <div className="dashboard-ace-stage" aria-label="ACE is ready to study with you">

@@ -43,6 +43,43 @@ test('renders complete mascot personalization controls', () => {
   expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(2);
 });
 
+test('explains moods and previews every study reaction Acey uses', () => {
+  render(<MascotShowcase />);
+
+  const moods = within(screen.getByRole('group', { name: /^mood$/i })).getAllByRole('button');
+  expect(moods.map((button) => button.getAttribute('aria-label'))).toEqual(['Ready', 'Curious', 'Cheerful']);
+  expect(screen.getByRole('button', { name: 'Curious' })).toHaveAccessibleDescription('Tilts and looks around');
+
+  const reactions = within(screen.getByRole('group', { name: /study reactions/i })).getAllByRole('button');
+  expect(reactions.map((button) => button.getAttribute('aria-label'))).toEqual([
+    'Preview Hello', 'Preview Think', 'Preview Focus', 'Preview Celebrate', 'Preview Encourage', 'Preview Break',
+  ]);
+  expect(screen.getByRole('button', { name: 'Preview Encourage' })).toHaveAccessibleDescription(/something goes wrong/i);
+});
+
+test('offers roles with props when the chosen role has none', () => {
+  render(<MascotShowcase />);
+
+  const accessories = within(screen.getByRole('group', { name: /accessories/i }));
+  expect(accessories.getByText(/no props for the engineer role yet/i)).toBeInTheDocument();
+  expect(accessories.getAllByRole('button').map((button) => button.textContent)).toEqual(['Technician', 'Cozy', 'Fantasy']);
+  expect(screen.getByRole('button', { name: /^cozy\s*,\s*has props$/i })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Healthcare' })).toBeInTheDocument();
+});
+
+test('shows a props switch that describes what it changes', () => {
+  localStorage.setItem(
+    'ace-mascot-preferences-v1',
+    JSON.stringify({ outfitId: 'hoodie', moodId: 'ready', accessoriesEnabled: false })
+  );
+
+  render(<MascotShowcase />);
+
+  const toggle = screen.getByRole('switch', { name: 'Show props: Headphones & game controller' });
+  expect(toggle).not.toBeChecked();
+  expect(toggle).toHaveAccessibleDescription('Off: shows the Cozy outfit without props.');
+});
+
 test('keeps calibrated shoulder poses for layered outfits and isolates the Technician', () => {
   expect(OUTFITS).toHaveLength(11);
   const layeredOutfits = OUTFITS.filter((outfit) => !outfit.fullCharacter);

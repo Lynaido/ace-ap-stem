@@ -104,6 +104,14 @@ export const EVENT_MESSAGES = {
   'question-asked': { id: 'event-question-asked', text: 'Great question. Let’s work through it.', reaction: ACEY_REACTIONS.THINK },
   'long-session': { id: 'event-long-session', text: "You've been working hard. Want to take a little break?", reaction: ACEY_REACTIONS.REST, ambient: true },
   idle: { id: 'event-idle', text: "I'm ready whenever you are! 👋", reaction: ACEY_REACTIONS.HELLO, ambient: true },
+  // Shown once to learners who finished the tour before customization existed.
+  'customize-intro': {
+    id: 'event-customize-intro',
+    text: 'New! You can pick my outfit, accessories and mood. Tap “Customize Acey” to make me yours! ✨',
+    reaction: ACEY_REACTIONS.CELEBRATE,
+    highlight: 'customize-acey',
+    cta: 'customize',
+  },
 };
 
 export const TUTORIAL_STEPS = [
@@ -111,6 +119,7 @@ export const TUTORIAL_STEPS = [
   { id: 'upload', text: "First, you can upload any AP STEM problem you're stuck on.", reaction: ACEY_REACTIONS.FOCUS, route: '/solve-problems', target: 'upload-problem' },
   { id: 'learn', text: 'Then, you can choose how you want to learn: step-by-step hints, concept notes, or the full solution.', reaction: ACEY_REACTIONS.THINK, route: '/solve-problems', target: 'learning-options' },
   { id: 'notes', text: 'You can also save useful explanations to your Notes Hub!', reaction: ACEY_REACTIONS.FOCUS, target: 'notes-hub' },
+  { id: 'customize', text: 'Want to make me yours? Pick my outfit, accessories and mood here! ✨', reaction: ACEY_REACTIONS.CELEBRATE, route: '/dashboard', target: 'customize-acey' },
   { id: 'done', text: "That's it! I'm here whenever you need me. 💜", reaction: ACEY_REACTIONS.CELEBRATE },
 ];
 

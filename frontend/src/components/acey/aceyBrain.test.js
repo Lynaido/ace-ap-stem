@@ -117,6 +117,6 @@ describe('message helpers', () => {
 
   it('covers every tour step the brief asked for', () => {
     expect(TUTORIAL_STEPS.map((step) => step.target).filter(Boolean))
-      .toEqual(['upload-problem', 'learning-options', 'notes-hub']);
+      .toEqual(['upload-problem', 'learning-options', 'notes-hub', 'customize-acey']);
   });
 });
