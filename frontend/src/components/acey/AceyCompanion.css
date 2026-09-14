@@ -167,6 +167,29 @@
   line-height: 1.45;
 }
 
+.acey-bubble__link {
+  display: inline-flex;
+  margin-top: 9px;
+  padding: 6px 10px;
+  border: 1px solid var(--acey-border);
+  border-radius: 10px;
+  background: #f5f1ff;
+  color: var(--acey-violet);
+  font-size: 0.78rem;
+  font-weight: 760;
+  text-decoration: none;
+}
+
+.acey-bubble__link:hover {
+  background: #ece5ff;
+}
+
+a.acey-button {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
 .acey-bubble__close {
   position: absolute;
   top: 8px;

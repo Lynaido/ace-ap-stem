@@ -74,7 +74,47 @@ not use the garment sleeve-splitting path.
 All other `pose_fbx` files remain source deliveries until they receive the same
 asset-specific review and web optimization.
 
-### Designer poses with accessories (2026-09-13)
+### Corrected re-exports
+
+| Delivery | Role | Web asset | Review |
+| --- | --- | --- | --- |
+| `phu_thuy.glb` (2026-09-14) | 12 Fantasy | `poses/wizard.glb` | Hat, robe, belt and shoes match `outfits/wizard.glb`; no Technician overalls; props: magic wand + open spell book. Embedded body textures are correct, but the exporter left `metallic=1, roughness=1` on `body`, `mat`, `mieng`, `toc` and `mat_kinh`, which rendered the face grey. The web copy sets those five to `metallic=0, roughness=0.55`. At the client's request the props were coloured (wand: brown wood shaft with a gold tip; book: brown leather cover, cream pages) and the right hand was curled into a fist (middle/ring/pinky phalanges ~70°, small thumb curl) with the wand re-seated through it. Built by `tmp/wizard-props.mjs` from the untouched delivery. |
+| `body_AO_hoodi2.glb` (2026-09-14) | 11 Cozy | `poses/hoodie.glb` | Purple ribbed hoodie and shoes match `outfits/hoodie.glb` (rendered colours within a few RGB steps); no Technician overalls; props: over-ear headphones + game controller. Embedded textures, no `cs_*`/`tripo_*`, finite bounds, no metallic fix needed. The hair material (`Material.002`) was exported as `BLEND`, which drew its inner layers as shards; the web copy sets it to `OPAQUE` like the other deliveries' hair. Built by `tmp/posed-export-fix.mjs`. |
+
+Held back from the same 2026-09-14 batch (garment kept, 3D team to re-export):
+
+| Delivery | Role | Reason |
+| --- | --- | --- |
+| `body_AO_BS2.glb` | 02 Healthcare | Teal scrub top without the white shirt and blue tie; darker trousers and shoes than `outfits/doctor.glb`. |
+| `body_AO_vest_Dai_doctor.glb` | 03 Scientist | Wrong outfit: grey doctor coat instead of the pink long blazer; still has `Mascot_T`/`Mascot_T.001`/`glass` Technician materials; flask prop ~3.2M vertices (93 MB). |
+| `body_AO_vest2.glb` | 05 Business | Suit renders dark slate (≈#283041) instead of the royal navy garment (≈#0A2460); black shoes instead of brown. |
+| `BODY_AO_HoaSi2.glb` | 06 Creative | Contains a `Mascot_T` material; overalls darker blue than the garment. |
+| `body_AO_TT2.glb` | 07 Performer | Wrong outfit: Technician hard hat and white tool belt/harness; `cs_*` controller meshes. |
+| `body_rig_AO_casi2.glb` | (singer) | Not mapped to a role; pink blazer does not match Performer; `Mascot_T` materials and `cs_*` meshes. |
+| `body_AoKhoacTrumDau2.glb` | 08 Fashion | Hair pokes through holes in the hood at side/back views; `cs_*` controller meshes. |
+
+Engineer (`CT`) and Scholar (`TOT_NGHIEP`) were not in this batch. `phu_thuy.glb` is byte-identical to the delivery already live as `poses/wizard.glb`.
+
+### Status 2026-09-14: posed roles withdrawn (only Technician ships)
+
+Comparing each posed export with its approved garment in `outfits/` showed the
+wrong clothes on every role except Technician:
+
+- every `pose_fbx` file is built on the Technician body, so each role also
+  wears the Technician's work overalls and tool belt;
+- the FBX files do not include their outfit textures, so berets, hoodies,
+  coats and tops lose their colours (e.g. Creative's brown beret and blue
+  overalls render grey/navy, Cozy's purple hoodie renders white, Performer
+  loses its pink top).
+
+Healthcare had been live briefly and was reverted to its garment. The
+Accessories control now appears only for the Technician. Request from the 3D
+team, per role: the pose + props on **that role's own outfit** (no Technician
+overalls/belt), exported as **GLB with embedded textures** (or FBX plus every
+outfit texture). Then register the role in `POSED_VARIANTS` after a
+side-by-side check against its garment.
+
+### Designer poses with accessories (2026-09-13, superseded above)
 
 The 3D team confirmed that the `pose_fbx` exports carry each role's pose and
 props. Rendering them (with a skeleton-aware clone) shows:
@@ -83,7 +123,20 @@ props. Rendering them (with a skeleton-aware clone) shows:
 | --- | --- | --- | --- |
 | `mascot_Rig_CN2.fbx` | 04 Technician | wrench + yellow power drill | `outfits/technician.glb` (4.24 MB) |
 | `body_AO_BS2.fbx` | 02 Healthcare | stethoscope, raised clipboard, pen | `poses/healthcare.glb` (3.39 MB) |
-| `body_rig_AO_casi2.fbx` | 07 Performer | headphones, raised microphone | **held back** (see below) |
+| `BODY_AO_HoaSi2.fbx` | 06 Creative | beret, paintbrush, palette | `poses/artist.glb` |
+| `body_AO_TT2.fbx` | 07 Performer | raised handbag | `poses/activewear.glb` |
+| `body_AO_hoodi2.fbx` | 11 Cozy | headphones, game controller | `poses/hoodie.glb` |
+| `body_AO_PhuThuy2.fbx` | 12 Fantasy | wizard hat, magic wand, spell book | `poses/wizard.glb` |
+| `body_AO_CT2.fbx` | 01 Engineer | wrench, power drill | **held back**: two primitives reference invalid joints (NaN bounds) |
+| `body_AO_vest2.fbx` | 05 Business | briefcase | **held back**: `Material.00x` face materials, no matching textures |
+| `body_AO_Vestdai_doctor.fbx` | 03 Scientist | hand-held prop | **held back**: prop is ~2.7M vertices; needs decimation |
+| `body_AO_Totnghiep2.fbx` | 10 Scholar | — | not downloaded yet |
+| `body_rig_AO_casi2.fbx` | (singer) | headphones, raised microphone | **held back** (see below) |
+
+Roles map to outfits by their original `trang_phuc_mascot` folder (AO_CT →
+Engineer, AO_TT → Performer, AO_HOASI → Creative, …), not by the posed file's
+theme. Files using the web base body's material names (`body`, `mat`,
+`mat_kinh`, `mieng`, `Material`) are textured from `public/mascot/body`.
 
 Performer is not shipped yet: this export splits the face and dome into
 generic materials (`Material.001`–`.007`) that do not line up with the

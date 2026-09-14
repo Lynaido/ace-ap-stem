@@ -17,16 +17,11 @@ import {
   setArmPose,
   shouldShowSharedBase,
 } from './mascotModel';
+import { REACTION_DURATIONS } from './mascotCatalog';
+import { blendMoodMotion, stepMoodWeights } from './mascotMotion';
 
 // Seconds per study reaction. Unknown reactions fall back to a short nod.
-export const ACTION_DURATIONS = {
-  hello: 3,
-  focus: 2.35,
-  celebrate: 2.65,
-  think: 2.8,
-  encourage: 2.4,
-  rest: 3.4,
-};
+export const ACTION_DURATIONS = REACTION_DURATIONS;
 
 const MOOD_FACE_SCALE = {
   ready: { mouthX: 1, mouthZ: 1, eyesZ: 1 },
@@ -66,6 +61,7 @@ export const createMascotScene = ({
   let outfitRequest = 0;
   let visibleOutfit = null;
   let currentMood = 'ready';
+  let moodWeights = { ready: 1, curious: 0, cheerful: 0 };
   let currentAction = null;
   let activeOutfit = null;
   let lastFrameAt = 0;
@@ -333,8 +329,13 @@ export const createMascotScene = ({
 
     timer.update(timestamp);
     const elapsed = timer.getElapsed();
-    let y = reduceMotion ? 0 : Math.sin(elapsed * 1.1) * 0.018;
-    let tilt = reduceMotion ? 0 : Math.sin(elapsed * 0.68) * 0.008;
+    // The mood drives the idle motion of the whole character, so it is
+    // visible on garments and complete designer characters alike.
+    moodWeights = stepMoodWeights(moodWeights, currentMood);
+    const moodMotion = blendMoodMotion(moodWeights, elapsed, reduceMotion);
+    let moodInfluence = 1;
+    let y = 0;
+    let tilt = 0;
     let turn = 0;
     const armAngles = { ...REST_ARM_ANGLES };
     let wristWave = 0;
@@ -352,6 +353,8 @@ export const createMascotScene = ({
       const duration = ACTION_DURATIONS[currentAction.id] || 2.4;
       const progress = Math.min(1, Math.max(0, actionElapsed / duration));
       const envelope = Math.sin(progress * Math.PI) ** 2;
+      // A reaction takes over from the idle mood motion while it plays.
+      moodInfluence = 1 - envelope * 0.8;
       const targetAngles = ACTION_ARM_ANGLES[currentAction.id] || REST_ARM_ANGLES;
       armAngles.left = THREE.MathUtils.lerp(REST_ARM_ANGLES.left, targetAngles.left, envelope);
       armAngles.right = THREE.MathUtils.lerp(REST_ARM_ANGLES.right, targetAngles.right, envelope);
@@ -360,6 +363,8 @@ export const createMascotScene = ({
         tilt -= 0.025 * envelope;
         turn -= 0.055 * envelope;
         wristWave = Math.sin(progress * Math.PI * 8) * 0.2 * envelope;
+        // Designer characters cannot raise a separate arm, so they sway.
+        if (activeOutfit?.fullCharacter) turn += Math.sin(progress * Math.PI * 6) * 0.05 * envelope;
       } else if (currentAction.id === 'focus') {
         y -= 0.045 * envelope;
         tilt += Math.sin(progress * Math.PI * 2) * 0.018 * envelope;
@@ -387,9 +392,12 @@ export const createMascotScene = ({
       if (progress >= 1) currentAction = null;
     }
 
-    companionRoot.position.y = y;
-    companionRoot.rotation.z = tilt;
-    companionRoot.rotation.y = turn;
+    // Complete designer characters have no separate arm rigs, so their
+    // reactions are carried by a larger whole-body motion.
+    const bodyEmphasis = activeOutfit?.fullCharacter ? 1.8 : 1;
+    companionRoot.position.y = y * bodyEmphasis + moodMotion.y * moodInfluence;
+    companionRoot.rotation.z = tilt * bodyEmphasis + moodMotion.tilt * moodInfluence;
+    companionRoot.rotation.y = turn * bodyEmphasis + moodMotion.turn * moodInfluence;
     floor.position.y = THREE.MathUtils.lerp(floor.position.y, floorTargetY, 0.16);
 
     const baseModel = contentRoot.getObjectByName('ACEWebReadyBase');

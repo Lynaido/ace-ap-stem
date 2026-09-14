@@ -176,17 +176,52 @@ export const getOutfitArmPose = (outfit) => {
   };
 };
 
+// A mood sets how Acey moves while idle on every page (see mascotMotion.js).
 export const MOODS = [
-  { id: 'ready', label: 'Ready' },
-  { id: 'curious', label: 'Curious' },
-  { id: 'cheerful', label: 'Cheerful' },
+  { id: 'ready', label: 'Ready', icon: '🙂', description: 'Calm and steady' },
+  { id: 'curious', label: 'Curious', icon: '🤔', description: 'Tilts and looks around' },
+  { id: 'cheerful', label: 'Cheerful', icon: '😄', description: 'Bouncy and upbeat' },
 ];
 
-export const ACTIONS = [
-  { id: 'hello', label: 'Say hello', message: 'ACE says hello and is ready to study with you.' },
-  { id: 'focus', label: 'Focus with me', message: 'ACE is settling in for a focused study session.' },
-  { id: 'celebrate', label: 'Celebrate', message: 'ACE is celebrating your progress.' },
+// The reactions Acey plays by itself while the learner studies. Ids match
+// ACEY_REACTIONS in components/acey/aceyBrain.js; `when` describes the real
+// trigger so the customizer preview explains what each one is for.
+export const REACTIONS = [
+  {
+    id: 'hello', label: 'Hello', icon: '👋', duration: 3,
+    when: 'Greets you on the Dashboard and in AI Tutor',
+    message: 'waves hello.',
+  },
+  {
+    id: 'think', label: 'Think', icon: '💭', duration: 2.8,
+    when: 'When you upload a problem or ask for a hint',
+    message: 'is thinking it through with you.',
+  },
+  {
+    id: 'focus', label: 'Focus', icon: '🎯', duration: 2.35,
+    when: 'When a solution or study session starts',
+    message: 'is settling in to focus.',
+  },
+  {
+    id: 'celebrate', label: 'Celebrate', icon: '🎉', duration: 2.65,
+    when: 'When you finish a problem or save a note',
+    message: 'is celebrating your progress.',
+  },
+  {
+    id: 'encourage', label: 'Encourage', icon: '💪', duration: 2.4,
+    when: 'When something goes wrong, so you keep going',
+    message: 'is cheering you on.',
+  },
+  {
+    id: 'rest', label: 'Break', icon: '☕', duration: 3.4,
+    when: 'After a long study session',
+    message: 'stretches and suggests a short break.',
+  },
 ];
+
+export const REACTION_DURATIONS = Object.fromEntries(
+  REACTIONS.map((reaction) => [reaction.id, reaction.duration])
+);
 
 export const DEFAULT_OUTFIT_ID = 'classic';
 export const DEFAULT_MOOD_ID = 'ready';
@@ -196,14 +231,23 @@ export const PREFERENCES_KEY = 'ace-mascot-preferences-v1';
 // character that replaces the layered garment while accessories are switched
 // on. The scene fits full characters to the shared base body at runtime, so
 // no per-file scale calibration is needed here.
+//
+// The original `pose_fbx` files were built on the Technician body (work
+// overalls and tool belt) without outfit textures, so roles are added back
+// one at a time from the 3D team's corrected GLB re-exports, each compared
+// side by side with its garment in outfits/. See public/mascot/README.md.
 export const POSED_VARIANTS = {
-  doctor: {
-    url: '/mascot/poses/healthcare.glb',
-    label: 'Stethoscope & clipboard',
+  // phu_thuy.glb (2026-09-14): wizard hat, robe and belt match outfits/wizard.glb.
+  wizard: {
+    url: '/mascot/poses/wizard.glb',
+    label: 'Magic wand & spell book',
   },
-  // Performer (body_rig_AO_casi2.fbx, headphones + microphone) is held back:
-  // its face materials do not match the TEX_MOI body maps, so it renders with
-  // an off-brand yellow face until the 3D team supplies its textures.
+  // body_AO_hoodi2.glb (2026-09-14): purple ribbed hoodie and shoes match
+  // outfits/hoodie.glb.
+  hoodie: {
+    url: '/mascot/poses/hoodie.glb',
+    label: 'Headphones & game controller',
+  },
 };
 
 export const getOutfitAccessories = (outfit) => {

@@ -25,6 +25,7 @@ const HISTORY_PREFIX = 'acey-history-v1:';
 const SESSION_START_KEY = 'acey-session-started-at';
 const LONG_SESSION_KEY = 'acey-long-session-shown';
 const GREETED_PREFIX = 'acey-greeted:';
+const CUSTOMIZE_INTRO_PREFIX = 'acey-customize-intro-v1:';
 const IDLE_FIDGET_MS = 75 * 1000;
 
 export const shouldShowCompanion = (pathname) => (
@@ -268,10 +269,28 @@ const AceyCompanionPanel = ({ userId, pathname, problemView }) => {
     return () => window.clearTimeout(timer);
   }, [goToStep, isReady, onboarding, pathname]);
 
+  // Learners who finished the tour earlier get one pointer to customization.
+  useEffect(() => {
+    if (!isReady || tutorialStep !== null || shouldAutoStartTutorial({ onboarding })) return undefined;
+    if (context !== 'dashboard') return undefined;
+    const introKey = `${CUSTOMIZE_INTRO_PREFIX}${userId}`;
+    if (readJson(introKey)) return undefined;
+
+    const timer = window.setTimeout(() => {
+      if (showBubble(EVENT_MESSAGES['customize-intro'], 'context')) {
+        writeJson(introKey, Date.now());
+        sessionSet(`${GREETED_PREFIX}${userId}:dashboard`, '1');
+      }
+    }, 1400);
+    return () => window.clearTimeout(timer);
+  }, [context, isReady, onboarding, showBubble, tutorialStep, userId]);
+
   // Each feature introduces itself once per visit.
   useEffect(() => {
     if (!isReady || tutorialStep !== null || !context) return undefined;
     if (shouldAutoStartTutorial({ onboarding }) && !autoTourRef.current) return undefined;
+    // The one-time customization pointer takes the dashboard slot first.
+    if (context === 'dashboard' && !readJson(`${CUSTOMIZE_INTRO_PREFIX}${userId}`) && onboarding) return undefined;
     const greetedKey = `${GREETED_PREFIX}${userId}:${context}`;
     if (sessionGet(greetedKey)) return undefined;
 
@@ -366,14 +385,24 @@ const AceyCompanionPanel = ({ userId, pathname, problemView }) => {
           aria-label={bubble.kind === 'tutorial' ? 'Acey tour' : undefined}
         >
           <p className="acey-bubble__text">{bubble.message.text}</p>
+          {bubble.kind !== 'tutorial' && (bubble.kind === 'manual' || bubble.message.cta === 'customize') && (
+            <Link className="acey-bubble__link" to="/customize-acey" onClick={hideBubble}>
+              ✨ Customize Acey
+            </Link>
+          )}
           {bubble.kind === 'tutorial' && (
             <div className="acey-bubble__tour">
               <span className="acey-bubble__progress">{tutorialStep + 1} / {TUTORIAL_STEPS.length}</span>
               <div className="acey-bubble__actions">
                 {isLastStep ? (
-                  <button type="button" className="acey-button acey-button--primary" onClick={() => finishTutorial('completed')}>
-                    Got it
-                  </button>
+                  <>
+                    <Link className="acey-button" to="/customize-acey" onClick={() => finishTutorial('completed')}>
+                      ✨ Customize Acey
+                    </Link>
+                    <button type="button" className="acey-button acey-button--primary" onClick={() => finishTutorial('completed')}>
+                      Got it
+                    </button>
+                  </>
                 ) : (
                   <>
                     <button type="button" className="acey-button" onClick={() => finishTutorial('skipped')}>
