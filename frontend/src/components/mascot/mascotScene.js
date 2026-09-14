@@ -12,6 +12,7 @@ import {
   createWebReadyBase,
   disposeModel,
   getOutfitFloorY,
+  getRestArmAngles,
   getProgress,
   loadOutfitModel,
   loadPropSet,
@@ -65,6 +66,7 @@ export const createMascotScene = ({
   let visibleOutfit = null;
   let currentMood = 'ready';
   let moodWeights = { ready: 1, curious: 0, cheerful: 0 };
+  const restAngles = { ...REST_ARM_ANGLES };
   let currentAction = null;
   let activeOutfit = null;
   let lastFrameAt = 0;
@@ -368,7 +370,12 @@ export const createMascotScene = ({
     let y = 0;
     let tilt = 0;
     let turn = 0;
-    const armAngles = { ...REST_ARM_ANGLES };
+    // Ease into the resting arm pose of the current role (arms holding props
+    // rest lifted) instead of snapping when the role changes.
+    const restTarget = getRestArmAngles(activeOutfit);
+    restAngles.left = THREE.MathUtils.lerp(restAngles.left, restTarget.left, 0.12);
+    restAngles.right = THREE.MathUtils.lerp(restAngles.right, restTarget.right, 0.12);
+    const armAngles = { ...restAngles };
     let wristWave = 0;
 
     if (!currentAction && !reduceMotion) {
@@ -386,9 +393,9 @@ export const createMascotScene = ({
       const envelope = Math.sin(progress * Math.PI) ** 2;
       // A reaction takes over from the idle mood motion while it plays.
       moodInfluence = 1 - envelope * 0.8;
-      const targetAngles = ACTION_ARM_ANGLES[currentAction.id] || REST_ARM_ANGLES;
-      armAngles.left = THREE.MathUtils.lerp(REST_ARM_ANGLES.left, targetAngles.left, envelope);
-      armAngles.right = THREE.MathUtils.lerp(REST_ARM_ANGLES.right, targetAngles.right, envelope);
+      const targetAngles = ACTION_ARM_ANGLES[currentAction.id] || restAngles;
+      armAngles.left = THREE.MathUtils.lerp(restAngles.left, targetAngles.left, envelope);
+      armAngles.right = THREE.MathUtils.lerp(restAngles.right, targetAngles.right, envelope);
 
       if (currentAction.id === 'hello') {
         tilt -= 0.025 * envelope;

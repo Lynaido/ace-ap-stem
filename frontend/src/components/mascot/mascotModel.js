@@ -184,6 +184,22 @@ export const REST_ARM_ANGLES = {
   right: THREE.MathUtils.degToRad(-45),
 };
 
+// An arm that holds a prop rests lifted away from the body, so a mug, bag or
+// flask hangs clear of the floor and the torso instead of sinking into them.
+export const HOLD_ARM_ANGLES = {
+  left: THREE.MathUtils.degToRad(20),
+  right: THREE.MathUtils.degToRad(-20),
+};
+
+export const getRestArmAngles = (outfit) => {
+  const holdArms = outfit?.props?.holdArms;
+  if (!holdArms?.length) return REST_ARM_ANGLES;
+  return {
+    left: holdArms.includes('left') ? HOLD_ARM_ANGLES.left : REST_ARM_ANGLES.left,
+    right: holdArms.includes('right') ? HOLD_ARM_ANGLES.right : REST_ARM_ANGLES.right,
+  };
+};
+
 export const ACTION_ARM_ANGLES = {
   hello: { left: REST_ARM_ANGLES.left, right: THREE.MathUtils.degToRad(50) },
   focus: { left: THREE.MathUtils.degToRad(50), right: THREE.MathUtils.degToRad(-52) },
@@ -933,10 +949,11 @@ const syncPropAnchors = (model) => {
   });
 };
 
-// Prop sets (public/mascot/props) are authored around the delivery's hand
-// tips in units of the hand span, so one scale fits them to Acey's own hands
-// on the approved garment. `anchor_pos` follows the +x (right rig) hand,
-// `anchor_neg` the -x hand and `anchor_body` the midpoint between them.
+// Prop sets (public/mascot/props) are authored around the delivery's palms
+// (the centre of each hand mesh) in units of the hand span between the
+// fingertips, so one scale fits them to Acey's own hands on the approved
+// garment. `anchor_pos` follows the +x (right rig) palm, `anchor_neg` the -x
+// palm and `anchor_body` the midpoint between the fingertips.
 export const attachPropSet = (baseModel, propScene) => {
   detachPropSet(baseModel);
   const rigs = baseModel?.userData.armRigs;
@@ -950,7 +967,8 @@ export const attachPropSet = (baseModel, propScene) => {
     const side = PROP_ANCHOR_SIDES[source.name];
     if (side) {
       const rig = rigs[side];
-      anchor.position.copy(rig.hand.position).add(rig.handTip.clone().sub(rig.handCenter));
+      // The hand mesh is centred on its bounding box, so its position is the palm.
+      anchor.position.copy(rig.hand.position);
       rig.wrist.add(anchor);
       anchor.userData.rig = rig;
     } else {

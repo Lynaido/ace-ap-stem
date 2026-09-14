@@ -88,25 +88,30 @@ clothes, Acey keeps the role's approved garment from `outfits/` and holds the
 props from the 3D team's delivery. `tmp/extract-props.mjs` builds
 `props/<id>.glb`:
 
-- every T-pose delivery shares Acey's body, with hand tips at
-  (±0.616, 0.363, 0.015) — measured by `tmp/measure-hands.mjs` and checked
-  per file — so each prop is re-expressed around the +x hand tip
-  (`anchor_pos`), the -x hand tip (`anchor_neg`) or their midpoint
-  (`anchor_body`), in units of the hand span;
-- `mascotModel.attachPropSet` scales those anchors to Acey's own hand tips
-  (`getHandTip`); hand props follow the arm rig but counter-rotate so they
-  stay upright while Acey rests or reacts; body props stand with the body;
-- Acey rests with the hands near the floor, so props rise from the fist or
-  stand on the floor instead of hanging below the hand.
+- every T-pose delivery shares Acey's body — fingertips at
+  (±0.6157, 0.3626, 0.0152), palms (hand mesh centres, the same split the web
+  base uses) at (±0.5812, 0.3626, 0.0152), measured by
+  `tmp/measure-hands.mjs` and checked per file — so each prop is
+  re-expressed around the +x palm (`anchor_pos`), the -x palm (`anchor_neg`)
+  or the fingertip midpoint (`anchor_body`), in units of the fingertip span;
+- each hand prop is placed by where it is held (`grip`): mugs by the handle
+  with the cup in front of the palm, bags and the briefcase by the handle,
+  the flask by its neck, tools, brush and diploma through the fist, the
+  palette by its inner edge — so no prop sits around or through the hand;
+- `mascotModel.attachPropSet` scales the anchors to Acey's hands (span from
+  `getHandTip`, anchor at the palm); hand props follow the arm rig but
+  counter-rotate to stay upright while Acey rests or reacts;
+- arms that hold props (`PROP_SETS.holdArms`) rest lifted to 20° below
+  horizontal (`HOLD_ARM_ANGLES`) so hanging items clear the floor.
 
 | Role | Props | Source |
 | --- | --- | --- |
 | 01 Engineer | Wrench & power drill | wrench from `body_AO_CT2`; clean procedural drill (the scanned drill mesh renders as specks) |
 | 02 Healthcare | Stethoscope & clipboard | `body_AO_BS2.glb` |
 | 03 Scientist | Science flask | procedural flask (the delivered flask is 31 overlapping ~90k-vertex slices, 93 MB) |
-| 05 Business | Briefcase & coffee mug | `body_AO_vest2.glb` (briefcase on the floor, mug in hand; textures 512 px) |
+| 05 Business | Briefcase & coffee mug | `body_AO_vest2.glb` (textures 512 px) |
 | 06 Creative | Paintbrush & palette | `BODY_AO_HoaSi2.glb` |
-| 07 Performer | Handbag | `body_AO_TT2.glb` (set on the floor; textures 512 px) |
+| 07 Performer | Handbag | `body_AO_TT2.glb` (textures 512 px) |
 | 08 Fashion | Coffee mug | `body_AoKhoacTrumDau2.glb` (moved into the hand) |
 | 10 Scholar | Diploma scroll | procedural (no delivery) |
 

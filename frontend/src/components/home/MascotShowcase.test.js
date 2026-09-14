@@ -5,6 +5,9 @@ import MascotShowcase, {
   attachPropSet,
   detachPropSet,
   getHandTip,
+  getRestArmAngles,
+  HOLD_ARM_ANGLES,
+  REST_ARM_ANGLES,
   setArmPose,
   createCoveredHairGeometry,
   findArmTriangles,
@@ -118,9 +121,21 @@ test('anchors props at Acey’s hand tips and keeps held props upright', () => {
   setArmPose(base, { left: 0.7, right: -0.8 }, 0.2);
   expect(anchors[0].rotation.z).toBeCloseTo(0.6);
 
+  // Hand anchors sit on the palm, which is the hand mesh's own position.
+  expect(anchors[0].position.toArray()).toEqual(rigs.right.hand.position.toArray());
+
   detachPropSet(base);
   expect(anchors[0].parent).toBeNull();
   expect(base.userData.propAnchors).toBeNull();
+});
+
+test('lifts only the arms that hold props', () => {
+  expect(getRestArmAngles(OUTFITS[0])).toBe(REST_ARM_ANGLES);
+  const lifted = getRestArmAngles({ props: { holdArms: ['right'] } });
+  expect(lifted.left).toBe(REST_ARM_ANGLES.left);
+  expect(lifted.right).toBe(HOLD_ARM_ANGLES.right);
+  // Lifted means closer to horizontal than the resting pose.
+  expect(Math.abs(lifted.right)).toBeLessThan(Math.abs(REST_ARM_ANGLES.right));
 });
 
 test('shows a props switch that describes what it changes', () => {

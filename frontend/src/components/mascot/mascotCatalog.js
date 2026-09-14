@@ -253,15 +253,16 @@ export const POSED_VARIANTS = {
 // Props taken from the 3D team's posed deliveries and placed in Acey's hands
 // on the role's approved garment, for roles whose posed delivery wears the
 // wrong clothes. Built by tmp/extract-props.mjs; see public/mascot/README.md.
+// `holdArms` lists the arms that hold something and rest lifted.
 export const PROP_SETS = {
-  classic: { url: '/mascot/props/classic.glb', label: 'Wrench & power drill' },
-  doctor: { url: '/mascot/props/doctor.glb', label: 'Stethoscope & clipboard' },
-  'long-vest': { url: '/mascot/props/long-vest.glb', label: 'Science flask' },
-  vest: { url: '/mascot/props/vest.glb', label: 'Briefcase & coffee mug' },
-  artist: { url: '/mascot/props/artist.glb', label: 'Paintbrush & palette' },
-  activewear: { url: '/mascot/props/activewear.glb', label: 'Handbag' },
-  cloak: { url: '/mascot/props/cloak.glb', label: 'Coffee mug' },
-  graduation: { url: '/mascot/props/graduation.glb', label: 'Diploma scroll' },
+  classic: { url: '/mascot/props/classic.glb', label: 'Wrench & power drill', holdArms: ['left', 'right'] },
+  doctor: { url: '/mascot/props/doctor.glb', label: 'Stethoscope & clipboard', holdArms: ['right'] },
+  'long-vest': { url: '/mascot/props/long-vest.glb', label: 'Science flask', holdArms: ['left'] },
+  vest: { url: '/mascot/props/vest.glb', label: 'Briefcase & coffee mug', holdArms: ['left', 'right'] },
+  artist: { url: '/mascot/props/artist.glb', label: 'Paintbrush & palette', holdArms: ['left', 'right'] },
+  activewear: { url: '/mascot/props/activewear.glb', label: 'Handbag', holdArms: ['right'] },
+  cloak: { url: '/mascot/props/cloak.glb', label: 'Coffee mug', holdArms: ['left'] },
+  graduation: { url: '/mascot/props/graduation.glb', label: 'Diploma scroll', holdArms: ['right'] },
 };
 
 export const getOutfitAccessories = (outfit) => {
