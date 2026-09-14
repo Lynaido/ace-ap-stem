@@ -81,7 +81,48 @@ asset-specific review and web optimization.
 | `phu_thuy.glb` (2026-09-14) | 12 Fantasy | `poses/wizard.glb` | Hat, robe, belt and shoes match `outfits/wizard.glb`; no Technician overalls; props: magic wand + open spell book. Embedded body textures are correct, but the exporter left `metallic=1, roughness=1` on `body`, `mat`, `mieng`, `toc` and `mat_kinh`, which rendered the face grey. The web copy sets those five to `metallic=0, roughness=0.55`. At the client's request the props were coloured (wand: brown wood shaft with a gold tip; book: brown leather cover, cream pages) and the right hand was curled into a fist (middle/ring/pinky phalanges ~70°, small thumb curl) with the wand re-seated through it. Built by `tmp/wizard-props.mjs` from the untouched delivery. |
 | `body_AO_hoodi2.glb` (2026-09-14) | 11 Cozy | `poses/hoodie.glb` | Purple ribbed hoodie and shoes match `outfits/hoodie.glb` (rendered colours within a few RGB steps); no Technician overalls; props: over-ear headphones + game controller. Embedded textures, no `cs_*`/`tripo_*`, finite bounds, no metallic fix needed. The hair material (`Material.002`) was exported as `BLEND`, which drew its inner layers as shards; the web copy sets it to `OPAQUE` like the other deliveries' hair. Built by `tmp/posed-export-fix.mjs`. |
 
-Held back from the same 2026-09-14 batch (garment kept, 3D team to re-export):
+### Props on the approved garment (2026-09-15)
+
+Every role now has accessories. Where no posed delivery wears the right
+clothes, Acey keeps the role's approved garment from `outfits/` and holds the
+props from the 3D team's delivery. `tmp/extract-props.mjs` builds
+`props/<id>.glb`:
+
+- every T-pose delivery shares Acey's body — fingertips at
+  (±0.6157, 0.3626, 0.0152), palms (hand mesh centres, the same split the web
+  base uses) at (±0.5812, 0.3626, 0.0152), measured by
+  `tmp/measure-hands.mjs` and checked per file — so each prop is
+  re-expressed around the +x palm (`anchor_pos`), the -x palm (`anchor_neg`)
+  or the fingertip midpoint (`anchor_body`), in units of the fingertip span;
+- each hand prop is placed by where it is held (`grip`): mugs by the handle
+  with the cup in front of the palm, bags and the briefcase by the handle,
+  the flask by its neck, tools, brush and diploma through the fist, the
+  palette by its inner edge — so no prop sits around or through the hand;
+- `mascotModel.attachPropSet` scales the anchors to Acey's hands (span from
+  `getHandTip`, anchor at the palm); hand props follow the arm rig but
+  counter-rotate to stay upright while Acey rests or reacts;
+- arms that hold props (`PROP_SETS.holdArms`) rest lifted to 20° below
+  horizontal (`HOLD_ARM_ANGLES`) so hanging items clear the floor.
+
+| Role | Props | Source |
+| --- | --- | --- |
+| 01 Engineer | Wrench & power drill | wrench from `body_AO_CT2`; clean procedural drill (the scanned drill mesh renders as specks) |
+| 02 Healthcare | Stethoscope & clipboard | `body_AO_BS2.glb` |
+| 03 Scientist | Science flask | procedural flask (the delivered flask is 31 overlapping ~90k-vertex slices, 93 MB) |
+| 05 Business | Briefcase & coffee mug | `body_AO_vest2.glb` (textures 512 px) |
+| 06 Creative | Paintbrush & palette | `BODY_AO_HoaSi2.glb` |
+| 07 Performer | Handbag | `body_AO_TT2.glb` (textures 512 px) |
+| 08 Fashion | Coffee mug | `body_AoKhoacTrumDau2.glb` (moved into the hand) |
+| 10 Scholar | Diploma scroll | procedural (no delivery) |
+
+Technician (built-in) and Cozy/Fantasy (matching posed characters) keep their
+full characters. `outfits/technician.glb` was repaired by
+`tmp/fix-technician.mjs`: it contained `pSphere8`, a static bind-pose copy of
+the hard hat, overalls and tool belt that doubled the outfit (two helmet
+brims, doubled belt, hair hidden), and its drill was a broken scan; the copy
+is removed and the drill replaced with a clean one in the same hand.
+
+Held back from the same 2026-09-14 batch as posed characters (garment kept, 3D team to re-export):
 
 | Delivery | Role | Reason |
 | --- | --- | --- |

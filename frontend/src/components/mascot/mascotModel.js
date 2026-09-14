@@ -184,6 +184,22 @@ export const REST_ARM_ANGLES = {
   right: THREE.MathUtils.degToRad(-45),
 };
 
+// An arm that holds a prop rests lifted away from the body, so a mug, bag or
+// flask hangs clear of the floor and the torso instead of sinking into them.
+export const HOLD_ARM_ANGLES = {
+  left: THREE.MathUtils.degToRad(20),
+  right: THREE.MathUtils.degToRad(-20),
+};
+
+export const getRestArmAngles = (outfit) => {
+  const holdArms = outfit?.props?.holdArms;
+  if (!holdArms?.length) return REST_ARM_ANGLES;
+  return {
+    left: holdArms.includes('left') ? HOLD_ARM_ANGLES.left : REST_ARM_ANGLES.left,
+    right: holdArms.includes('right') ? HOLD_ARM_ANGLES.right : REST_ARM_ANGLES.right,
+  };
+};
+
 export const ACTION_ARM_ANGLES = {
   hello: { left: REST_ARM_ANGLES.left, right: THREE.MathUtils.degToRad(50) },
   focus: { left: THREE.MathUtils.degToRad(50), right: THREE.MathUtils.degToRad(-52) },
@@ -849,9 +865,32 @@ const syncShoulderShroud = (rig, outfit, outfitModel, side, shoulderX, shoulderY
   rig.shoulderShroud = shroud;
 };
 
+// Held props are anchored at the centre of the outer part of each hand: the
+// vertices beyond 81% of the hand's reach from the body centre. This matches
+// how the 3D team's posed deliveries were measured (|x| > 0.55 of 0.681).
+const PROP_TIP_REACH = 0.55 / 0.681;
+
+export const getHandTip = (hand) => {
+  hand.updateMatrix();
+  const positions = hand.geometry.getAttribute('position');
+  const point = new THREE.Vector3();
+  let reach = 0;
+  for (let index = 0; index < positions.count; index += 1) {
+    point.fromBufferAttribute(positions, index).applyMatrix4(hand.matrix);
+    reach = Math.max(reach, Math.abs(point.x));
+  }
+  const box = new THREE.Box3();
+  for (let index = 0; index < positions.count; index += 1) {
+    point.fromBufferAttribute(positions, index).applyMatrix4(hand.matrix);
+    if (Math.abs(point.x) >= reach * PROP_TIP_REACH) box.expandByPoint(point);
+  }
+  return box.isEmpty() ? hand.position.clone() : box.getCenter(new THREE.Vector3());
+};
+
 const addArmAndHand = (model, hand, side) => {
   const sign = side === 'right' ? 1 : -1;
   const handCenter = hand.position.clone();
+  const handTip = getHandTip(hand);
   const shoulderX = 19;
   const shoulderY = 18.6;
   // Sink the base arm under the outfit shoulder so no skin-colored gap is
@@ -889,8 +928,66 @@ const addArmAndHand = (model, hand, side) => {
   wrist.attach(hand);
 
   const handWristOffset = getHandWristOffset(hand, side);
-  return { arm, shoulder, wrist, handCenter, handWristOffset };
+  return { arm, shoulder, wrist, hand, handCenter, handTip, handWristOffset };
 };
+
+const PROP_ANCHOR_SIDES = { anchor_pos: 'right', anchor_neg: 'left', anchor_body: null };
+
+export const detachPropSet = (baseModel) => {
+  const anchors = baseModel?.userData.propAnchors;
+  if (!anchors) return;
+  anchors.forEach((anchor) => anchor.removeFromParent());
+  baseModel.userData.propAnchors = null;
+};
+
+const syncPropAnchors = (model) => {
+  model?.userData.propAnchors?.forEach((anchor) => {
+    const { rig } = anchor.userData;
+    // Held props follow the hand but counter-rotate with the arm, so a mug,
+    // flask or briefcase stays upright while Acey rests or reacts.
+    if (rig) anchor.rotation.z = -(rig.shoulder.rotation.z + rig.wrist.rotation.z);
+  });
+};
+
+// Prop sets (public/mascot/props) are authored around the delivery's palms
+// (the centre of each hand mesh) in units of the hand span between the
+// fingertips, so one scale fits them to Acey's own hands on the approved
+// garment. `anchor_pos` follows the +x (right rig) palm, `anchor_neg` the -x
+// palm and `anchor_body` the midpoint between the fingertips.
+export const attachPropSet = (baseModel, propScene) => {
+  detachPropSet(baseModel);
+  const rigs = baseModel?.userData.armRigs;
+  if (!rigs?.left?.handTip || !rigs?.right?.handTip || !propScene) return [];
+  const span = rigs.right.handTip.x - rigs.left.handTip.x;
+  const anchors = [];
+  propScene.children.forEach((source) => {
+    if (!(source.name in PROP_ANCHOR_SIDES)) return;
+    const anchor = source.clone(true);
+    anchor.scale.setScalar(span);
+    const side = PROP_ANCHOR_SIDES[source.name];
+    if (side) {
+      const rig = rigs[side];
+      // The hand mesh is centred on its bounding box, so its position is the palm.
+      anchor.position.copy(rig.hand.position);
+      rig.wrist.add(anchor);
+      anchor.userData.rig = rig;
+    } else {
+      anchor.position.copy(rigs.left.handTip).add(rigs.right.handTip).multiplyScalar(0.5);
+      baseModel.add(anchor);
+    }
+    anchors.push(anchor);
+  });
+  baseModel.userData.propAnchors = anchors;
+  syncPropAnchors(baseModel);
+  return anchors;
+};
+
+export const loadPropSet = (url) => new Promise((resolve, reject) => {
+  new GLTFLoader().load(url, (gltf) => {
+    configureModel(gltf.scene);
+    resolve(gltf.scene);
+  }, undefined, reject);
+});
 
 export const configureBaseArmRigs = (model, outfit, outfitModel) => {
   const rigs = model?.userData.armRigs;
@@ -939,6 +1036,7 @@ export const setArmPose = (model, angles, wristWave = 0) => {
   if (rigs.right?.shoulder) rigs.right.shoulder.rotation.z = angles.right;
   else if (rigs.right) rigs.right.rotation.z = angles.right;
   if (rigs.right?.wrist) rigs.right.wrist.rotation.z = wristWave;
+  syncPropAnchors(model);
 };
 
 // The supplied FBX contains vertices with more skinning weights than Three.js supports.

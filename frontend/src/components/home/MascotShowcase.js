@@ -32,7 +32,7 @@ const prefersReducedMotion = () => (
 const getAccessoryDetail = (accessories, outfit, enabled) => {
   if (accessories.builtIn) return `Always included in the ${outfit.label} designer pose.`;
   return enabled
-    ? `On: shows the ${outfit.label} designer pose holding these props.`
+    ? `On: the ${outfit.label} outfit holding these props.`
     : `Off: shows the ${outfit.label} outfit without props.`;
 };
 
@@ -127,7 +127,7 @@ const MascotShowcase = ({ variant = 'landing' }) => {
       onOutfitProgress: setOutfitProgress,
       onError: setErrorMessage,
       onOutfitShown: (outfit) => {
-        const props = outfit.variant === 'posed' ? getOutfitAccessories(outfit) : null;
+        const props = outfit.variant ? getOutfitAccessories(outfit) : null;
         setAnnouncement(
           props
             ? `${name} is now in the ${outfit.label} look with ${props.label.toLowerCase()}.`

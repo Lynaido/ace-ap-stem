@@ -6,12 +6,16 @@ import {
   MASCOT_FLOOR_Y,
   REST_ARM_ANGLES,
   applyHeadwearHairMask,
+  attachPropSet,
   configureBaseArmRigs,
+  detachPropSet,
   createWebReadyBase,
   disposeModel,
   getOutfitFloorY,
+  getRestArmAngles,
   getProgress,
   loadOutfitModel,
+  loadPropSet,
   prepareOutfitModel,
   releaseSourceMeshes,
   setArmPose,
@@ -62,6 +66,7 @@ export const createMascotScene = ({
   let visibleOutfit = null;
   let currentMood = 'ready';
   let moodWeights = { ready: 1, curious: 0, cheerful: 0 };
+  const restAngles = { ...REST_ARM_ANGLES };
   let currentAction = null;
   let activeOutfit = null;
   let lastFrameAt = 0;
@@ -196,6 +201,32 @@ export const createMascotScene = ({
     model.userData.fittedToBase = true;
   };
 
+  // Props for garment roles live on the shared base's hands. Each set is
+  // loaded once; switching roles swaps the attached copy.
+  const propSets = new Map();
+  let propRequest = 0;
+  const syncProps = async (outfit) => {
+    const requestId = ++propRequest;
+    const baseModel = contentRoot.getObjectByName('ACEWebReadyBase');
+    if (!baseModel) return;
+    detachPropSet(baseModel);
+    const url = outfit?.fullCharacter ? null : outfit?.props?.url;
+    if (!url) return;
+    let request = propSets.get(url);
+    if (!request) {
+      request = loadPropSet(url);
+      propSets.set(url, request);
+      request.catch(() => propSets.delete(url));
+    }
+    try {
+      const template = await request;
+      if (disposed || requestId !== propRequest) return;
+      attachPropSet(baseModel, template);
+    } catch (error) {
+      // Props are optional decoration; the outfit stays usable without them.
+    }
+  };
+
   const showOutfit = async (outfit) => {
     if (!outfit || disposed) return;
     activeOutfit = outfit;
@@ -245,6 +276,7 @@ export const createMascotScene = ({
           configureBaseArmRigs(baseModel, outfit, model);
         }
       }
+      syncProps(outfit);
       syncFloorTarget(outfit);
       onOutfitStatus('ready');
       onOutfitProgress(null);
@@ -307,6 +339,7 @@ export const createMascotScene = ({
           applyHeadwearHairMask(model, activeOutfit);
           configureBaseArmRigs(model, activeOutfit, visibleOutfit);
         }
+        syncProps(activeOutfit);
       }
 
       onBaseStatus('ready');
@@ -337,7 +370,12 @@ export const createMascotScene = ({
     let y = 0;
     let tilt = 0;
     let turn = 0;
-    const armAngles = { ...REST_ARM_ANGLES };
+    // Ease into the resting arm pose of the current role (arms holding props
+    // rest lifted) instead of snapping when the role changes.
+    const restTarget = getRestArmAngles(activeOutfit);
+    restAngles.left = THREE.MathUtils.lerp(restAngles.left, restTarget.left, 0.12);
+    restAngles.right = THREE.MathUtils.lerp(restAngles.right, restTarget.right, 0.12);
+    const armAngles = { ...restAngles };
     let wristWave = 0;
 
     if (!currentAction && !reduceMotion) {
@@ -355,9 +393,9 @@ export const createMascotScene = ({
       const envelope = Math.sin(progress * Math.PI) ** 2;
       // A reaction takes over from the idle mood motion while it plays.
       moodInfluence = 1 - envelope * 0.8;
-      const targetAngles = ACTION_ARM_ANGLES[currentAction.id] || REST_ARM_ANGLES;
-      armAngles.left = THREE.MathUtils.lerp(REST_ARM_ANGLES.left, targetAngles.left, envelope);
-      armAngles.right = THREE.MathUtils.lerp(REST_ARM_ANGLES.right, targetAngles.right, envelope);
+      const targetAngles = ACTION_ARM_ANGLES[currentAction.id] || restAngles;
+      armAngles.left = THREE.MathUtils.lerp(restAngles.left, targetAngles.left, envelope);
+      armAngles.right = THREE.MathUtils.lerp(restAngles.right, targetAngles.right, envelope);
 
       if (currentAction.id === 'hello') {
         tilt -= 0.025 * envelope;
@@ -429,6 +467,9 @@ export const createMascotScene = ({
     renderer.setAnimationLoop(null);
     timer.dispose();
     controls?.dispose();
+    const baseModel = contentRoot.getObjectByName('ACEWebReadyBase');
+    detachPropSet(baseModel);
+    propSets.forEach((request) => request.then(disposeModel, () => {}));
     disposeModel(contentRoot);
     floor.geometry.dispose();
     floor.material.dispose();

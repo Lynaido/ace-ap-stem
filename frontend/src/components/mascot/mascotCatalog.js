@@ -250,18 +250,36 @@ export const POSED_VARIANTS = {
   },
 };
 
+// Props taken from the 3D team's posed deliveries and placed in Acey's hands
+// on the role's approved garment, for roles whose posed delivery wears the
+// wrong clothes. Built by tmp/extract-props.mjs; see public/mascot/README.md.
+// `holdArms` lists the arms that hold something and rest lifted.
+export const PROP_SETS = {
+  classic: { url: '/mascot/props/classic.glb', label: 'Wrench & power drill', holdArms: ['left', 'right'] },
+  doctor: { url: '/mascot/props/doctor.glb', label: 'Stethoscope & clipboard', holdArms: ['right'] },
+  'long-vest': { url: '/mascot/props/long-vest.glb', label: 'Science flask', holdArms: ['left'] },
+  vest: { url: '/mascot/props/vest.glb', label: 'Briefcase & coffee mug', holdArms: ['left', 'right'] },
+  artist: { url: '/mascot/props/artist.glb', label: 'Paintbrush & palette', holdArms: ['left', 'right'] },
+  activewear: { url: '/mascot/props/activewear.glb', label: 'Handbag', holdArms: ['right'] },
+  cloak: { url: '/mascot/props/cloak.glb', label: 'Coffee mug', holdArms: ['left'] },
+  graduation: { url: '/mascot/props/graduation.glb', label: 'Diploma scroll', holdArms: ['right'] },
+};
+
 export const getOutfitAccessories = (outfit) => {
   if (!outfit) return null;
   if (outfit.accessories) return outfit.accessories;
-  const posed = POSED_VARIANTS[outfit.id];
-  return posed ? { label: posed.label, builtIn: false } : null;
+  const set = POSED_VARIANTS[outfit.id] || PROP_SETS[outfit.id];
+  return set ? { label: set.label, builtIn: false } : null;
 };
 
-// Returns the model that should be displayed for an outfit. Roles without a
-// posed delivery simply keep their calibrated garment.
+// Returns the model that should be displayed for an outfit: a matching posed
+// character, the approved garment holding its props, or the plain garment
+// when accessories are switched off.
 export const resolveOutfitVariant = (outfit, accessoriesEnabled = true) => {
   const posed = outfit && POSED_VARIANTS[outfit.id];
-  if (!posed || !accessoriesEnabled) return outfit;
+  const propSet = outfit && PROP_SETS[outfit.id];
+  if (!accessoriesEnabled || (!posed && !propSet)) return outfit;
+  if (!posed) return { ...outfit, props: propSet, variant: 'props' };
   return {
     ...outfit,
     type: 'glb',
