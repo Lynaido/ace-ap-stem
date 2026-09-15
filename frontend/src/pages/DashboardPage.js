@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FaArrowRight,
@@ -12,6 +12,9 @@ import {
 import { useAppContext } from '../context/AppContext';
 import { savedItemsAPI } from '../utils/api';
 import './DashboardPage.css';
+
+// The customizer ships the 3D scene, so keep it out of the dashboard bundle.
+const MascotShowcase = lazy(() => import('../components/home/MascotShowcase'));
 
 const DashboardPage = () => {
   const { user } = useAppContext();
@@ -50,9 +53,9 @@ const DashboardPage = () => {
             <div className="dashboard-hero__actions">
               <Link to="/solve-problems?create=true">Solve a problem <FaArrowRight aria-hidden="true" /></Link>
               <Link className="dashboard-hero__secondary" to="/notes-hub">Open your notes</Link>
-              <Link className="dashboard-hero__secondary" to="/customize-acey" data-acey-target="customize-acey">
+              <a className="dashboard-hero__secondary" href="#customize-acey">
                 <FaMagic aria-hidden="true" /> Customize Acey
-              </Link>
+              </a>
             </div>
           </div>
           <div className="dashboard-ace-stage" aria-label="ACE is ready to study with you">
@@ -78,6 +81,12 @@ const DashboardPage = () => {
               <Link to={to}>{cta} <FaArrowRight aria-hidden="true" /></Link>
             </article>
           ))}
+        </section>
+
+        <section className="dashboard-customize" aria-label="Customize Acey">
+          <Suspense fallback={<p className="dashboard-customize__loading" role="status">Preparing Acey…</p>}>
+            <MascotShowcase variant="dashboard" />
+          </Suspense>
         </section>
 
         <aside className="dashboard-tip">

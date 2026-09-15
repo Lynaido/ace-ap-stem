@@ -1122,3 +1122,8 @@
     animation: none;
   }
 }
+
+/* Customizer embedded in the Dashboard: no page padding, dashboard heading scale */
+.mascot-showcase--embedded { padding: 0; }
+.mascot-showcase--embedded .mascot-showcase__container { gap: clamp(1rem, 2vw, 1.6rem); }
+.mascot-showcase--embedded .mascot-showcase__copy h2 { max-width: 18ch; margin: 0; color: var(--mascot-ink); font-size: clamp(1.65rem, 3vw, 2.4rem); line-height: 1.04; letter-spacing: -.05em; }
