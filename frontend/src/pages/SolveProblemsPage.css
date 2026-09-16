@@ -29,7 +29,7 @@
 
 .solve-problems-page .solve-page-intro-copy { position: relative; z-index: 2; max-width: 690px; }
 .solve-problems-page .solve-page-eyebrow { display:block; margin-bottom:.5rem; color:var(--ace-violet,#6c3df4); font-size:.74rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
-.solve-problems-page .solve-page-intro h1 { max-width:650px; margin:0; font-size:clamp(1.65rem,3.2vw,2.65rem); line-height:1.08; letter-spacing:-.045em; }
+.solve-problems-page .solve-page-intro h1 { max-width:650px; margin:0; font-size:clamp(1.65rem,3.2vw,2.65rem); line-height:1.08; letter-spacing:-0.012em; }
 .solve-problems-page .solve-page-intro p { max-width:620px; margin:.75rem 0 0; color:var(--ace-muted,#696b8e); font-size:clamp(.92rem,1.4vw,1.02rem); line-height:1.65; }
 
 .solve-problems-page .solve-page-mascot {
@@ -67,7 +67,7 @@
 .solve-problems-page .create-mode-header, .solve-problems-page .card-heading { text-align:left; }
 .solve-problems-page .create-mode-header h2 { margin:0; color:var(--ace-ink,#15164f); font-size:1rem; }
 .solve-problems-page .create-mode-header p { margin:.25rem 0 0; color:var(--ace-muted,#696b8e); font-size:.85rem; }
-.solve-problems-page .card-heading h1 { margin:0; font-size:clamp(1.45rem,2.4vw,2rem); letter-spacing:-.035em; }
+.solve-problems-page .card-heading h1 { margin:0; font-size:clamp(1.45rem,2.4vw,2rem); letter-spacing:-0.012em; }
 .solve-problems-page .card-subtitle { max-width:640px; margin:.45rem 0 0; color:var(--ace-muted,#696b8e); line-height:1.6; }
 
 .solve-problems-page .variant-banner { display:flex; align-items:flex-start; gap:.75rem; margin-bottom:1rem; padding:.9rem 1rem; border:1px solid rgba(255,122,56,.24); border-radius:var(--ace-radius-card,22px); background:var(--ace-surface-orange,#fff5ee); }

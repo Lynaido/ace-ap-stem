@@ -139,8 +139,8 @@
   margin: 0;
   color: var(--ace-ink);
   font-size: clamp(2.15rem, 5vw, 3.55rem);
-  line-height: 0.98;
-  letter-spacing: -0.055em;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
 }
 
 .notes-hub-header p { max-width: 620px; margin: 0.8rem 0 0; color: var(--ace-muted); font-size: clamp(0.94rem, 1.5vw, 1.05rem); line-height: 1.6; }

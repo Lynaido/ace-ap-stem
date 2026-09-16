@@ -220,7 +220,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   color: var(--ace-ink);
   font-weight: 800;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.012em;
 }
 
 a {

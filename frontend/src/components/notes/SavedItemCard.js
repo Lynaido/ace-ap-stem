@@ -57,7 +57,7 @@ const SavedItemCard = ({ item, onOpen, onReview, onToggleStar, onDeleteItem, cla
     >
       <header className="saved-item-card__header">
         <span className={`saved-item-card__badge saved-item-card__badge--${item.type?.toLowerCase() || 'problem'}`}>
-          {item.type?.replace('_', ' ') || 'problem'}
+          {item.hasSolution ? 'Problem + solution' : (item.type?.replace('_', ' ') || 'problem')}
         </span>
         <div className="saved-item-card__meta">
           <time className="saved-item-card__time" dateTime={item.updatedAt}>
@@ -93,6 +93,12 @@ const SavedItemCard = ({ item, onOpen, onReview, onToggleStar, onDeleteItem, cla
       <button type="button" className="saved-item-card__open" onClick={handleOpen}>
         <span className="saved-item-card__title">{item.title}</span>
         <LatexRenderer content={item.excerpt} className="saved-item-card__excerpt" />
+        {item.solutionPreview && (
+          <span className="saved-item-card__solution">
+            <span className="saved-item-card__solution-label">Answer</span>
+            <LatexRenderer content={item.solutionPreview} className="saved-item-card__solution-text" />
+          </span>
+        )}
       </button>
       <footer className="saved-item-card__footer">
         <div className="saved-item-card__tags">

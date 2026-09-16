@@ -6,6 +6,7 @@ import ViewSavedItemModal from '../components/notes/ViewSavedItemModal';
 import ConfirmationModal from '../components/primitives/ConfirmationModal';
 import { useAppContext } from '../context/AppContext';
 import { savedItemsAPI } from '../utils/api';
+import { formatFinalAnswer, groupSavedItems } from '../utils/savedItemGroups';
 import './NotesHubPage.css';
 import { toast } from 'react-toastify';
 import { FaArrowRight, FaFileAlt } from 'react-icons/fa';
@@ -67,7 +68,7 @@ const NotesHubPage = () => {
     setFoldersError(null);
 
     const [itemsResult, foldersResult] = await Promise.allSettled([
-      savedItemsAPI.getAll({ page: 1, limit: 20 }),
+      savedItemsAPI.getAll({ page: 1, limit: 50 }),
       getFolders()
     ]);
 
@@ -92,7 +93,7 @@ const NotesHubPage = () => {
     if (loadingMore || pagination.page >= pagination.pages) return;
     setLoadingMore(true);
     try {
-      const response = await savedItemsAPI.getAll({ page: pagination.page + 1, limit: 20 });
+      const response = await savedItemsAPI.getAll({ page: pagination.page + 1, limit: 50 });
       setSavedItems((current) => [...current, ...(response.data || [])]);
       setPagination(response.pagination || pagination);
     } catch (loadMoreError) {
@@ -140,8 +141,9 @@ const NotesHubPage = () => {
   }, [fetchData]);
 
   // Transform saved items for display
+  // A problem and its saved solution are one learning item.
   const transformedItems = useMemo(() => {
-    return savedItems.map(item => {
+    return groupSavedItems(savedItems).map(item => {
       // Format date safely
       let relativeUpdated = 'Recently';
       try {
@@ -166,6 +168,9 @@ const NotesHubPage = () => {
               ...baseItem,
               title: item.problem.title?.replace(/^Problem:\s*/i, '') || 'Saved problem',
               excerpt: item.problem.description,
+              solutionPreview: item.hasSolution
+                ? (formatFinalAnswer(item.solution.finalAnswer) || 'Step-by-step solution saved')
+                : '',
               subject: item.problem.subject,
               difficulty: item.problem.difficulty,
               // Remove subject/difficulty from tags to avoid duplication
@@ -180,7 +185,7 @@ const NotesHubPage = () => {
             return {
               ...baseItem,
               title: item.problem.title || 'Solution',
-              excerpt: searchableText(item.solution.finalAnswer || item.solution.content).substring(0, 150) || 'View full solution',
+              excerpt: (formatFinalAnswer(item.solution.finalAnswer) || searchableText(item.solution.content)).substring(0, 150) || 'View full solution',
               subject: item.problem.subject || 'Unknown',
               difficulty: item.problem.difficulty,
               // Remove subject/difficulty from tags to avoid duplication
@@ -278,30 +283,30 @@ const NotesHubPage = () => {
     });
   }, [baseItems, searchQuery, activeFilters]);
 
+  const memberIdsOf = (itemId) => (
+    transformedItems.find((item) => item.id === itemId)?.memberIds || [itemId]
+  );
+
   const handleToggleStar = async (targetItem) => {
     try {
-      // Find the original saved item (not transformed)
-      const originalItem = savedItems.find(item => item.id === targetItem.id);
-      if (!originalItem) return;
+      // A merged problem + solution stars (or unstars) every saved item in it.
+      const starred = !targetItem.starred;
+      const memberIds = targetItem.memberIds || [targetItem.id];
+      const originals = savedItems.filter((item) => memberIds.includes(item.id));
+      if (!originals.length) return;
 
-      // Update via API with correct data structure
-      const updateData = {
+      await Promise.all(originals.map((originalItem) => savedItemsAPI.update(originalItem.id, {
         type: originalItem.type,
         problemId: originalItem.problemId,
         solutionId: originalItem.solutionId,
         hintId: originalItem.hintId,
         conceptNoteId: originalItem.conceptNoteId,
-        starred: !originalItem.starred,
+        starred,
         tags: originalItem.tags
-      };
+      })));
 
-      await savedItemsAPI.update(originalItem.id, updateData);
-      
-      // Update local state
       setSavedItems((prev) =>
-        prev.map((item) =>
-          item.id === targetItem.id ? { ...item, starred: !item.starred } : item
-        )
+        prev.map((item) => (memberIds.includes(item.id) ? { ...item, starred } : item))
       );
     } catch (error) {
       console.error('Error toggling star:', error);
@@ -309,8 +314,9 @@ const NotesHubPage = () => {
   };
 
   const handleDeleteItem = (itemId) => {
-    const itemToDelete = savedItems.find(item => item.id === itemId);
+    const itemToDelete = transformedItems.find(item => item.id === itemId);
     const itemName = itemToDelete?.title || 'this item';
+    const memberIds = memberIdsOf(itemId);
 
     setConfirmationModal({
       isOpen: true,
@@ -319,10 +325,12 @@ const NotesHubPage = () => {
       confirmText: 'Delete',
       confirmVariant: 'danger',
       onConfirm: async () => {
-        // Optimistically remove the item from the UI
-        setSavedItems((prev) => prev.filter((item) => item.id !== itemId));
+        // Optimistically remove the item (and its saved solution) from the UI
+        setSavedItems((prev) => prev.filter((item) => !memberIds.includes(item.id)));
         try {
-          await deleteSavedItem(itemId);
+          const [first, ...rest] = memberIds;
+          await Promise.all(rest.map((id) => savedItemsAPI.delete(id)));
+          await deleteSavedItem(first);
         } catch (error) {
           // If the delete fails, refresh the data to revert the change
           fetchData();
@@ -355,19 +363,19 @@ const NotesHubPage = () => {
 
   const handleItemDrop = async (itemId, targetFolderId) => {
     try {
-      // Find the item being moved
-      const itemToMove = savedItems.find(item => item.id === itemId);
+      // Find the item being moved (a problem moves with its saved solution)
+      const itemToMove = transformedItems.find(item => item.id === itemId);
       if (!itemToMove || itemToMove.folderId === targetFolderId) {
         return; // Don't do anything if it's the same folder
       }
+      const memberIds = memberIdsOf(itemId);
 
       // Optimistically update the UI
       setSavedItems(prev => prev.map(item =>
-        item.id === itemId ? { ...item, folderId: targetFolderId } : item
+        memberIds.includes(item.id) ? { ...item, folderId: targetFolderId } : item
       ));
 
-      // Call the API to update the item
-      await savedItemsAPI.update(itemId, { folderId: targetFolderId });
+      await Promise.all(memberIds.map((id) => savedItemsAPI.update(id, { folderId: targetFolderId })));
 
       // Optionally, show a success toast
       toast.success('Item moved successfully!');
@@ -438,7 +446,7 @@ const NotesHubPage = () => {
 
   // Get available filter options
   const filterOptions = useMemo(() => {
-    const types = [...new Set(savedItems.map(item => item.type))];
+    const types = [...new Set(transformedItems.map(item => item.type))];
     const subjects = [...new Set(savedItems.map(item => 
       item.problem?.subject || item.solution?.subject || item.hint?.subject || item.conceptNote?.subject
     ).filter(Boolean))];
@@ -448,22 +456,22 @@ const NotesHubPage = () => {
     const tags = [...new Set(savedItems.flatMap(item => item.tags || []))];
 
     return { types, subjects, difficulties, tags };
-  }, [savedItems]);
+  }, [savedItems, transformedItems]);
 
   // Clean folder system - only real folders + "All Items"
   const allFolders = useMemo(() => {
     const foldersWithCounts = folders.map(folder => ({
       ...folder,
-      count: savedItems.filter(item => 
+      count: transformedItems.filter(item => 
         item.folderId === folder.id
       ).length
     }));
 
     return [
-      { id: 'all', name: 'All Items', count: savedItems.length },
+      { id: 'all', name: 'All Items', count: transformedItems.length },
       ...foldersWithCounts
     ];
-  }, [savedItems, folders]);
+  }, [transformedItems, folders]);
 
   return (
     <div className="notes-hub-page">
@@ -481,7 +489,7 @@ const NotesHubPage = () => {
               <div className="notes-hub-intro__copy">
                 <span className="notes-hub-eyebrow">Your learning library</span>
                 <h1>Notes Hub</h1>
-                <p>Keep every problem, solution, hint, and concept note ready for your next study session.</p>
+                <p>Keep every problem with its solution, plus hints and concept notes, ready for your next study session.</p>
               </div>
               <div
                 className="notes-hub-mascot"

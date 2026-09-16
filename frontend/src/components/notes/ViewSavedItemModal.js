@@ -100,6 +100,16 @@ const ViewSavedItemModal = ({
                 />
               )}
             </div>
+            {/* A problem saved with its solution reviews both together. */}
+            {savedItem.solution && (
+              <SolutionDisplay
+                solution={savedItem.solution}
+                problemText={savedItem.problem?.description}
+                currentProblem={savedItem.problem}
+                onGetHints={null}
+                onViewConceptNotes={null}
+              />
+            )}
           </div>
         );
       
@@ -119,7 +129,7 @@ const ViewSavedItemModal = ({
           <div className="header-content">
             <div className="header-title">
               <span className={`item-type-badge ${savedItem.type?.toLowerCase()}`}>
-                {savedItem.type?.replace('_', ' ')}
+                {savedItem.hasSolution ? 'Problem + solution' : savedItem.type?.replace('_', ' ')}
               </span>
               <h2>{savedItem.title}</h2>
             </div>

@@ -32,7 +32,7 @@
   margin: 0;
   font-size: clamp(3.1rem, 5.45vw, 5.65rem);
   line-height: 1.015;
-  letter-spacing: -0.052em;
+  letter-spacing: -0.02em;
   text-wrap: balance;
 }
 
@@ -214,7 +214,7 @@
 
 @media (max-width: 640px) {
   .ace-hero { padding: 44px 16px 52px; }
-  .ace-hero h1 { font-size: clamp(2.65rem, 12.4vw, 3.7rem); line-height: 1.025; letter-spacing: -0.045em; }
+  .ace-hero h1 { font-size: clamp(2.65rem, 12.4vw, 3.7rem); line-height: 1.025; letter-spacing: -0.012em; }
   .ace-hero__lede { margin-top: 26px; font-size: 1rem; }
   .ace-hero__actions { flex-direction: column; align-items: stretch; }
   .ace-hero__primary, .ace-hero__secondary { width: 100%; }

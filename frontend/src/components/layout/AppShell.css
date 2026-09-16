@@ -4,7 +4,7 @@
 .product-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ace-ink); text-decoration: none; }
 .product-brand img { border-radius: 12px; box-shadow: 0 8px 22px rgba(97, 80, 190, .17); }
 .product-brand span, .product-user-menu__copy { display: grid; line-height: 1.05; }
-.product-brand strong { font-size: 1rem; letter-spacing: -.03em; }
+.product-brand strong { font-size: 1rem; letter-spacing: -0.012em; }
 .product-brand small { margin-top: 3px; color: var(--ace-muted); font-size: .62rem; font-weight: 800; letter-spacing: .13em; }
 .product-navigation { display: flex; justify-content: center; align-items: center; gap: 4px; }
 .product-navigation__link { min-height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 13px; border-radius: 999px; color: var(--ace-muted); font-size: .86rem; font-weight: 760; text-decoration: none; transition: color 170ms ease, background 170ms ease, transform 170ms ease; }

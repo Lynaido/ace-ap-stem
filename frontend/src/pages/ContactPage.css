@@ -3,7 +3,7 @@
 .ace-contact__intro { position:relative; isolation:isolate; overflow:hidden; min-height:690px; padding:clamp(34px,5vw,58px); color:#fff; background:linear-gradient(150deg,var(--ace-ink),#29206f); }
 .ace-contact__intro::before { content:''; position:absolute; z-index:-1; width:300px; aspect-ratio:1; right:-140px; top:-80px; border-radius:50%; background:rgba(239,97,186,.2); }
 .ace-contact__eyebrow { margin:0 0 18px; color:#c9bdf5; font-size:.72rem; font-weight:900; letter-spacing:.13em; text-transform:uppercase; }
-.ace-contact__intro h1 { max-width:10ch; margin:0; color:#fff; font-size:clamp(2.6rem,5vw,4.7rem); line-height:.98; letter-spacing:-.06em; }
+.ace-contact__intro h1 { max-width:10ch; margin:0; color:#fff; font-size:clamp(2.6rem,5vw,4.7rem); line-height:1.08; letter-spacing:-0.02em; }
 .ace-contact__lead { max-width:440px; margin:24px 0 0; color:rgba(255,255,255,.74); line-height:1.65; }
 .ace-contact__guide,.ace-contact__email { position:relative; z-index:2; display:flex; gap:13px; align-items:flex-start; padding:16px; border:1px solid rgba(255,255,255,.14); border-radius:var(--ace-radius-card); background:rgba(255,255,255,.08); }
 .ace-contact__guide { margin-top:36px; }
@@ -16,7 +16,7 @@
 .ace-contact__email a:hover { text-decoration:underline; }
 .ace-contact__mascot { position:absolute; right:-25px; bottom:-14px; width:210px; aspect-ratio:1; background-image:var(--ace-sprite-image); background-position:0 0; background-size:200% 200%; background-repeat:no-repeat; filter:drop-shadow(0 20px 24px rgba(0,0,0,.25)); }
 .ace-contact__form-panel { display:flex; flex-direction:column; justify-content:center; padding:clamp(36px,5vw,68px); }
-.ace-contact__form-heading h2 { margin:0; font-size:clamp(1.8rem,3vw,2.75rem); letter-spacing:-.045em; }
+.ace-contact__form-heading h2 { margin:0; font-size:clamp(1.8rem,3vw,2.75rem); letter-spacing:-0.012em; }
 .ace-contact__form-heading p { margin:9px 0 0; color:var(--ace-muted); font-size:.84rem; }
 .ace-contact__form { display:grid; gap:18px; margin-top:30px; }
 .ace-contact__row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }

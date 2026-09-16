@@ -20,7 +20,9 @@ const SolutionDisplay = ({ solution, problemText, onGetHints, onViewConceptNotes
     }
   }, [solution?.id, lastSolutionId]);
 
-  if (!solution || !solution.steps) {
+  // A saved solution without steps has nothing to page through; rendering it
+  // would read steps[0] and crash the Notes Hub review.
+  if (!solution || !solution.steps?.length) {
     return null;
   }
 
