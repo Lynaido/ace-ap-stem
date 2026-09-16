@@ -242,9 +242,20 @@ export const COLORS = [
   { id: 'sky', label: 'Sky', swatch: '#62c8f2', tint: '#98dcff' },
   { id: 'ocean', label: 'Ocean', swatch: '#4f82f4', tint: '#8aa6ff' },
   { id: 'grape', label: 'Grape', swatch: '#8b5cf6', tint: '#a88bff' },
+  // The approved lightbulb render: a soft pink, sky-blue and violet blend
+  // across the brain rather than one color (`blend`, see applyBrainTint).
+  {
+    id: 'dreamy',
+    label: 'Dreamy',
+    swatch: 'linear-gradient(135deg, #f7a8d8 0%, #b69cff 52%, #8fc1ff 100%)',
+    glow: '#b69cff',
+    tint: null,
+    blend: ['#ffa6d4', '#9ec4ff', '#c8a8ff'],
+  },
 ];
 
 export const getBrainTint = (colorId) => COLORS.find((color) => color.id === colorId)?.tint || null;
+export const getBrainBlend = (colorId) => COLORS.find((color) => color.id === colorId)?.blend || null;
 
 export const DEFAULT_OUTFIT_ID = 'classic';
 export const DEFAULT_MOOD_ID = 'ready';
@@ -331,8 +342,11 @@ export const POSED_VARIANTS = {
     // chest; the other hand cups the open spell book from below, palm up.
     hold: {
       right: { target: [-0.3, 0.3, 0.22], pole: [1, -1, -0.5] },
-      left: { target: [0.2, 0.28, 0.27], pole: [1, -1, -0.4], roll: 180 },
+      left: { target: [0.2, 0.255, 0.31], pole: [1, -1, -0.4], roll: 180 },
       props: { right: ['pCylinder3'] },
+      // The open spell book (rebuilt by tmp/build-wizard-book.mjs) stays still
+      // in front of the body; the palm holds it under the spine.
+      fixed: ['spell_book'],
       // The witch hat (robe, hat band and buckle materials above the neck)
       // rides higher so the brain shows under its brim.
       headwear: { materials: ['QUAN_AO', 'That_lung', 'pk_non'], fromY: 0.9, lift: 0.12 },

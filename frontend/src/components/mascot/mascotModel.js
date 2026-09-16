@@ -1364,7 +1364,74 @@ export const BASE_BRAIN_MATERIALS = ['toc'];
 // Recolors the brain. The brain texture carries its shading, so a tint
 // replaces the material color rather than darkening it; `null` restores the
 // designer's color.
-export const applyBrainTint = (root, tint, materialNames = BASE_BRAIN_MATERIALS) => {
+// A `blend` (three colors) paints soft, overlapping patches of each color
+// across the brain in the shader, from each vertex's position inside the
+// brain's bounds, multiplied over the brain texture so its folds keep their
+// shading. It does not depend on the geometry, so headwear crops keep it.
+const BRAIN_BLEND_VERTEX = '\nvarying vec3 vAceBrainPosition;';
+const BRAIN_BLEND_FRAGMENT = [
+  '',
+  'varying vec3 vAceBrainPosition;',
+  'uniform vec3 aceBrainMin;',
+  'uniform vec3 aceBrainSize;',
+  'uniform vec3 aceBrainPink;',
+  'uniform vec3 aceBrainBlue;',
+  'uniform vec3 aceBrainViolet;',
+  'vec3 aceBrainBlend(vec3 position) {',
+  '  vec3 q = (position - aceBrainMin) / max(aceBrainSize, vec3(1e-5));',
+  '  float wave = 0.5 + 0.5 * sin(q.x * 6.3 + q.y * 3.1 + q.z * 2.2 + 0.7);',
+  '  float drift = 0.5 + 0.5 * sin(q.z * 5.4 - q.x * 2.6 + q.y * 4.2 + 2.3);',
+  '  vec3 color = mix(aceBrainPink, aceBrainBlue, smoothstep(0.22, 0.78, wave));',
+  '  return mix(color, aceBrainViolet, smoothstep(0.35, 0.9, drift) * 0.45);',
+  '}',
+].join('\n');
+
+const setBrainBlend = (material, mesh, blend) => {
+  const blendData = material.userData.brainBlend;
+  if (!blend) {
+    if (!blendData) return;
+    material.onBeforeCompile = blendData.previousCompile;
+    material.customProgramCacheKey = blendData.previousCacheKey;
+    delete material.userData.brainBlend;
+    material.needsUpdate = true;
+    return;
+  }
+  const colors = blend.map((hex) => new THREE.Color(hex));
+  if (blendData) {
+    blendData.uniforms.aceBrainPink.value.copy(colors[0]);
+    blendData.uniforms.aceBrainBlue.value.copy(colors[1]);
+    blendData.uniforms.aceBrainViolet.value.copy(colors[2]);
+    return;
+  }
+  const { geometry } = mesh;
+  if (!geometry.boundingBox) geometry.computeBoundingBox();
+  const box = geometry.boundingBox;
+  const uniforms = {
+    aceBrainMin: { value: box.min.clone() },
+    aceBrainSize: { value: box.getSize(new THREE.Vector3()) },
+    aceBrainPink: { value: colors[0] },
+    aceBrainBlue: { value: colors[1] },
+    aceBrainViolet: { value: colors[2] },
+  };
+  material.userData.brainBlend = {
+    uniforms,
+    previousCompile: material.onBeforeCompile,
+    previousCacheKey: material.customProgramCacheKey,
+  };
+  material.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, uniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>' + BRAIN_BLEND_VERTEX)
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvAceBrainPosition = position;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>' + BRAIN_BLEND_FRAGMENT)
+      .replace('#include <map_fragment>', '#include <map_fragment>\ndiffuseColor.rgb *= aceBrainBlend(vAceBrainPosition);');
+  };
+  material.customProgramCacheKey = () => 'ace-brain-blend';
+  material.needsUpdate = true;
+};
+
+export const applyBrainTint = (root, tint, materialNames = BASE_BRAIN_MATERIALS, blend = null) => {
   if (!root || !materialNames?.length) return;
   const color = tint ? new THREE.Color(tint) : null;
   root.traverse((node) => {
@@ -1372,7 +1439,9 @@ export const applyBrainTint = (root, tint, materialNames = BASE_BRAIN_MATERIALS)
     (Array.isArray(node.material) ? node.material : [node.material]).forEach((material) => {
       if (!material?.color?.isColor || !materialNames.includes(material.name)) return;
       if (!material.userData.designColor) material.userData.designColor = material.color.clone();
-      material.color.copy(color || material.userData.designColor);
+      // A blend multiplies over the texture, so the base color stays white.
+      material.color.copy(blend ? new THREE.Color(0xffffff) : (color || material.userData.designColor));
+      setBrainBlend(material, node, blend);
     });
   });
 };

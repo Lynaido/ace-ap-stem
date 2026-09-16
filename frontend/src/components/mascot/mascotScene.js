@@ -22,7 +22,7 @@ import {
   setArmPose,
   shouldShowSharedBase,
 } from './mascotModel';
-import { REACTION_DURATIONS, getBrainTint } from './mascotCatalog';
+import { REACTION_DURATIONS, getBrainBlend, getBrainTint } from './mascotCatalog';
 import { blendMoodMotion, stepMoodWeights } from './mascotMotion';
 
 // Seconds per study reaction. Unknown reactions fall back to a short nod.
@@ -208,14 +208,16 @@ export const createMascotScene = ({
   // The learner's brain color applies to the shared base and, for designer
   // characters, to the brain materials they list.
   let brainTint = null;
+  let brainBlend = null;
   const syncBrainTint = (outfit = activeOutfit) => {
-    applyBrainTint(contentRoot.getObjectByName('ACEWebReadyBase'), brainTint);
+    applyBrainTint(contentRoot.getObjectByName('ACEWebReadyBase'), brainTint, undefined, brainBlend);
     if (visibleOutfit && outfit?.fullCharacter) {
-      applyBrainTint(visibleOutfit, brainTint, outfit.brainMaterials || []);
+      applyBrainTint(visibleOutfit, brainTint, outfit.brainMaterials || [], brainBlend);
     }
   };
   const setBrainColor = (colorId) => {
     brainTint = getBrainTint(colorId);
+    brainBlend = getBrainBlend(colorId);
     syncBrainTint();
   };
 

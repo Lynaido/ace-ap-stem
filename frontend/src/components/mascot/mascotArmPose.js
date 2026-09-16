@@ -22,6 +22,11 @@ export const ARM_FRAME = {
   minY: 0.19,
   maxY: 0.44,
   maxAbsZ: 0.24,
+  // Beside the torso only the sleeve, above the armpit, follows the arm;
+  // lower vertices there are the sides of a jacket or robe, which would
+  // otherwise be dragged forward and open a hole at the hip.
+  torsoX: [0.28, 0.34],
+  armpitY: [0.27, 0.32],
   // The open hand lies palm down with the thumb toward +z. A gripping hand
   // curls its fingers (beyond `knuckleX`) around a handle that runs along z
   // under the knuckles, then rolls thumb-up so the handle stands upright.
@@ -79,7 +84,11 @@ export const getArmWeights = (point, frame = ARM_FRAME) => {
     && Math.abs(point.z - frame.axisZ) <= frame.maxAbsZ;
   if (!inBand) return { upper: 0, fore: 0 };
   const reach = Math.abs(point.x);
-  const upper = THREE.MathUtils.smoothstep(reach, frame.shoulderBlend[0], frame.shoulderBlend[1]);
+  const follow = Math.max(
+    THREE.MathUtils.smoothstep(reach, frame.torsoX[0], frame.torsoX[1]),
+    THREE.MathUtils.smoothstep(point.y, frame.armpitY[0], frame.armpitY[1])
+  );
+  const upper = follow * THREE.MathUtils.smoothstep(reach, frame.shoulderBlend[0], frame.shoulderBlend[1]);
   const fore = upper * THREE.MathUtils.smoothstep(reach, frame.elbowBlend[0], frame.elbowBlend[1]);
   return { upper: upper - fore, fore };
 };
@@ -166,7 +175,9 @@ const createArmSkeleton = (model, frame) => {
 //             grip: { meshes: [name, ...], at: 0.3, spin: 0 } },
 //     right: { ... },
 //     props: { left: [meshName, ...], right: [...] },
+//     fixed: [meshName, ...],
 //     headwear: { materials: [...], fromY, lift } }
+// `fixed` meshes (a prop resting in front of the body) never follow an arm.
 // `target` is where the palm goes (character space, metres) and `pole` the
 // direction the elbow points, given for the left arm and mirrored for the
 // right. `grip` meshes are moved into that hand's fist by their handle
@@ -184,6 +195,7 @@ export const poseCharacterArms = (model, hold, frame = ARM_FRAME) => {
   const nameSide = (map, mesh) => map.get(mesh.name) || map.get(mesh.parent?.name);
   const rigidSide = new Map();
   const gripSide = new Map();
+  const fixedMeshes = new Set(hold.fixed || []);
   ['left', 'right'].forEach((side) => {
     (hold.props?.[side] || []).forEach((name) => rigidSide.set(name, side));
     (hold[side]?.grip?.meshes || []).forEach((name) => gripSide.set(name, side));
@@ -205,7 +217,14 @@ export const poseCharacterArms = (model, hold, frame = ARM_FRAME) => {
         normals.push(new THREE.Vector3().fromBufferAttribute(sourceNormals, index).applyMatrix3(normalMatrix).normalize());
       }
     }
-    return { mesh, points, normals, grip: nameSide(gripSide, mesh), rigid: nameSide(rigidSide, mesh) };
+    return {
+      mesh,
+      points,
+      normals,
+      grip: nameSide(gripSide, mesh),
+      rigid: nameSide(rigidSide, mesh),
+      fixed: fixedMeshes.has(mesh.name) || fixedMeshes.has(mesh.parent?.name),
+    };
   });
 
   // Hats sit higher so the brain shows under the brim, as in the approved
@@ -244,7 +263,7 @@ export const poseCharacterArms = (model, hold, frame = ARM_FRAME) => {
   const gripping = { left: Boolean(hold.left?.grip), right: Boolean(hold.right?.grip) };
   const skinned = [];
 
-  baked.forEach(({ mesh, points, normals, rigid }) => {
+  baked.forEach(({ mesh, points, normals, rigid, fixed }) => {
     const source = mesh.geometry;
     const geometry = source.clone();
     if (geometry.getAttribute('skinIndex')) geometry.deleteAttribute('skinIndex');
@@ -260,6 +279,9 @@ export const poseCharacterArms = (model, hold, frame = ARM_FRAME) => {
       const offset = index * 4;
       if (rigid) {
         skinIndex[offset] = joints[rigid].foreIndex;
+        skinWeight[offset] = 1;
+      } else if (fixed) {
+        skinIndex[offset] = 0;
         skinWeight[offset] = 1;
       } else {
         const side = point.x < 0 ? 'right' : 'left';

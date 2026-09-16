@@ -45,7 +45,7 @@ export const BuddyColorPicker = ({ colorId, onChange, buddyName, disabled = fals
             title={color.label}
             tabIndex={index === activeIndex ? 0 : -1}
             className={`buddy-colors__swatch${index === activeIndex ? ' is-active' : ''}`}
-            style={{ '--swatch': color.swatch }}
+            style={{ '--swatch': color.swatch, '--swatch-glow': color.glow || color.swatch }}
             disabled={disabled}
             onClick={() => onChange(color.id)}
             onKeyDown={handleKeyDown}
@@ -53,7 +53,7 @@ export const BuddyColorPicker = ({ colorId, onChange, buddyName, disabled = fals
         ))}
       </div>
       <p className="buddy-colors__current" aria-live="polite">
-        <span className="buddy-colors__dot" style={{ '--swatch': active.swatch }} aria-hidden="true" />
+        <span className="buddy-colors__dot" style={{ '--swatch': active.swatch, '--swatch-glow': active.glow || active.swatch }} aria-hidden="true" />
         {active.label}
       </p>
     </div>

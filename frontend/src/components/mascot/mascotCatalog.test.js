@@ -7,6 +7,7 @@ import {
   PROP_SETS,
   REACTIONS,
   REACTION_DURATIONS,
+  getBrainBlend,
   getBrainTint,
   getBuddyName,
   getOutfitAccessories,
@@ -21,8 +22,13 @@ describe('brain colors and buddy name', () => {
     expect(COLORS[0].id).toBe(DEFAULT_COLOR_ID);
     expect(getBrainTint(DEFAULT_COLOR_ID)).toBeNull();
     expect(new Set(COLORS.map((color) => color.id)).size).toBe(COLORS.length);
-    COLORS.slice(1).forEach((color) => expect(getBrainTint(color.id)).toMatch(/^#[0-9a-f]{6}$/));
+    // Every other color is either one tint or a three-color blend.
+    COLORS.slice(1).filter((color) => !color.blend)
+      .forEach((color) => expect(getBrainTint(color.id)).toMatch(/^#[0-9a-f]{6}$/));
     expect(getBrainTint('unknown')).toBeNull();
+    expect(getBrainBlend('dreamy')).toEqual([expect.stringMatching(/^#[0-9a-f]{6}$/), expect.any(String), expect.any(String)]);
+    expect(getBrainTint('dreamy')).toBeNull();
+    expect(getBrainBlend(DEFAULT_COLOR_ID)).toBeNull();
   });
 
   it('keeps names short and plain, falling back to Acey', () => {

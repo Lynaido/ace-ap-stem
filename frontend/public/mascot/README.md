@@ -77,6 +77,21 @@ reference for every role. Changes made to match them:
 | 09 Cozy | `poses/hoodie.glb` | `body_AO_hoodi2.glb` | Both hands hold the game controller. |
 | 10 Fantasy | `poses/wizard.glb` | `phu_thuy.glb` | Wand hand in front, other hand under the book (palm up); hat raised 0.12 so the brain shows. |
 
+Follow-ups (later on 2026-09-16):
+
+- **Dreamy brain color** (`COLORS` id `dreamy`): a soft pink / sky-blue / violet
+  blend like the lightbulb render. `applyBrainTint(..., blend)` injects a small
+  shader that mixes the three colors by position inside the brain's bounds and
+  multiplies them over the brain texture. Not available on Engineer and
+  Fashion, whose brains are baked into their textures.
+- **Fantasy spell book**: the delivered book was two overlapping scanned shells
+  that z-fought into speckles. `tmp/build-wizard-book.mjs` replaces them in
+  `poses/wizard.glb` with a clean open book (`spell_book`), held still
+  (`hold.fixed`) with the palm under its spine.
+- **Jacket sides**: beside the torso only vertices above the armpit follow the
+  arm (`ARM_FRAME.torsoX` / `armpitY`), so bulky jackets (Fashion, Cozy) no
+  longer open a gap at the hip when the arms bend.
+
 Roles are numbered 01–10 after the Technician merge. Review renders:
 `tmp/scene-preview.html` (real scene), `tmp/bone-lab.html?file=…&hold=…`
 (one GLB with a hold config) and `tmp/look-lab.html` (material variants).

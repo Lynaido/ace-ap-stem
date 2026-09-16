@@ -27,6 +27,8 @@ test('weights only the arms: torso, head and hands blend by reach along the arm'
   expect(getArmWeights(new THREE.Vector3(0.6, 0.8, 0))).toEqual({ upper: 0, fore: 0 });
   expect(getArmWeights(new THREE.Vector3(0.3, 0.36, 0))).toEqual({ upper: 1, fore: 0 });
   expect(getArmWeights(new THREE.Vector3(-0.62, 0.36, 0))).toEqual({ upper: 0, fore: 1 });
+  // A jacket side below the armpit, next to the torso, stays with the body.
+  expect(getArmWeights(new THREE.Vector3(0.24, 0.22, 0))).toEqual({ upper: 0, fore: 0 });
 });
 
 test('rebuilds a T-pose character as skinned meshes and moves the held prop with the hand', () => {
