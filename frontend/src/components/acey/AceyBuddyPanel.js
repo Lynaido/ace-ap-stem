@@ -9,7 +9,7 @@ import {
   FaRegUser,
   FaTshirt,
 } from 'react-icons/fa';
-import { OUTFITS, getBuddyName, getOutfitAccessories } from '../mascot/mascotCatalog';
+import { OUTFITS, POSED_VARIANTS, getBuddyName, getOutfitAccessories } from '../mascot/mascotCatalog';
 import { useAcey } from './AceyContext';
 import AceyAvatar from './AceyAvatar';
 import { BuddyColorPicker, BuddyNameForm } from './BuddyControls';
@@ -210,8 +210,8 @@ const AceyBuddyPanel = () => {
                   onChange={(colorId) => update({ colorId })}
                 />
                 <p className="acey-buddy__hint">
-                  {activeOutfit.id === 'technician'
-                    ? `The Technician's hard hat keeps ${name}'s brain covered; the color shows in every other look.`
+                  {appearance.accessoriesEnabled && POSED_VARIANTS[activeOutfit.id] && !POSED_VARIANTS[activeOutfit.id].brainMaterials
+                    ? `In the ${activeOutfit.label} look ${name}'s brain keeps its designer color; the color shows in the other looks.`
                     : `${name} keeps this color in every outfit and on every study page.`}
                 </p>
               </div>

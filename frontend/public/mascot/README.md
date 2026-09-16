@@ -45,6 +45,42 @@ shared shoulder rig, and applies the same pose to the sleeve, forearm, and hand.
 This removes the T-pose and supports the current Hello, Focus, and Celebrate
 reactions without modifying the approved source files.
 
+## Approved design look (2026-09-16)
+
+The client supplied the 3D team's own renders (dark background) as the
+reference for every role. Changes made to match them:
+
+- **Body colors (all roles).** The base FBX multiplied every body texture by
+  0.8 grey and drew the eye layer translucent over the face shell, washing the
+  eyes out to grey. `applyDesignBodyLook` in `mascotModel` shows the textures at
+  full value and draws the eyes opaque: a pearl-white face, navy eyes and pink
+  cheeks, as in the base render. Designer characters keep their delivered
+  colors (`configureModel(model, { keepColors: true })`); only garments are
+  softened.
+- **Arms that hold props.** The delivered skeletons lose Blender's constraints,
+  so `mascotArmPose.poseCharacterArms` rebuilds each full character on a small
+  procedural arm rig (shoulder and elbow per side, weights from each vertex's
+  position along the T-pose arm) and places each palm with two-bone IK
+  (`hold.left/right.target` and `pole`). `grip` seats a prop in a curled fist by
+  its handle; `props` meshes follow the forearm; `headwear` raises a hat so the
+  brain shows under the brim. Garments holding props rest their arms lowered and
+  swung forward (`HOLD_ARM_ANGLES`, `HOLD_ARM_FORWARD`, per-set `holdPose`).
+- **Roles.** Built by `tmp/build-design-mascots.mjs` into `poses/`:
+
+| Role | Web asset | Source | Notes |
+| --- | --- | --- | --- |
+| 01 Engineer | `poses/engineer.glb` | `outfits/technician.glb` (mascot_Rig_CN2) | Replaces the duplicate Technician role: its holding pose with the Engineer colors — the white shell material is split by height into a yellow hard hat (y>0.8), light-blue scarf (0.37–0.5), brown tool belt and boots; pale violets in its texture become pearl so the face matches. |
+| 05 Creative | `poses/artist.glb` | `BODY_AO_HoaSi2.glb` | Beret on the brain, brush in a fist, palette held out. |
+| 06 Singer | `poses/singer.glb` | `body_rig_AO_casi2.glb` | Pink blazer and headphones; microphone in a fist by the mouth. |
+| 07 Fashion | `poses/hooded-jacket.glb` | `body_AoKhoacTrumDau2.glb` | Brain shows in the hood; both hands cup the mug. Jacket drawn OPAQUE. |
+| 08 Scholar | garment + `props/graduation.glb` | `graduation.fbx` | The gown, cap and tassel share one white material; `regionColors` paints a black gown and cap with a gold tassel. Pencil pointer in the fist, books on the floor (procedural). |
+| 09 Cozy | `poses/hoodie.glb` | `body_AO_hoodi2.glb` | Both hands hold the game controller. |
+| 10 Fantasy | `poses/wizard.glb` | `phu_thuy.glb` | Wand hand in front, other hand under the book (palm up); hat raised 0.12 so the brain shows. |
+
+Roles are numbered 01–10 after the Technician merge. Review renders:
+`tmp/scene-preview.html` (real scene), `tmp/bone-lab.html?file=…&hold=…`
+(one GLB with a hold config) and `tmp/look-lab.html` (material variants).
+
 ## Incoming `pose_fbx` review (2026-09-09)
 
 The separate Drive delivery named `pose_fbx` is source/DCC material rather than

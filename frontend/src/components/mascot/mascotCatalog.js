@@ -51,18 +51,7 @@ export const OUTFITS = [
     armPose: { shoulderX: 19.3, shoulderY: 18.3, outerMin: 43 },
   },
   {
-    // The supplied Technician is a complete, textured character rather than
-    // a garment shell. Keep it on its own calibrated scale and hide the
-    // shared base while selected so the two mascots can never overlap.
-    id: 'technician', number: '04', label: 'Technician', type: 'glb',
-    url: '/mascot/outfits/technician.glb', unitScale: 0.685,
-    fullCharacter: true, fullCharacterOffsetY: 25.2,
-    // The designer's pose is the only Technician delivery, so its props are
-    // always on.
-    accessories: { label: 'Wrench & power drill', builtIn: true },
-  },
-  {
-    id: 'vest', number: '05', label: 'Business', type: 'glb', url: '/mascot/outfits/vest.glb', unitScale: 100,
+    id: 'vest', number: '04', label: 'Business', type: 'glb', url: '/mascot/outfits/vest.glb', unitScale: 100,
     // The supplied vest ends well below the mascot's chin. Lift the complete
     // garment and its authored shoulder pivots together so the collar, cuffs,
     // hands and action poses remain one connected character.
@@ -71,7 +60,7 @@ export const OUTFITS = [
     cuffOverlap: 3.2, armPose: { shoulderX: 18.3, shoulderY: 18.6, outerMin: 45 },
   },
   {
-    id: 'artist', number: '06', label: 'Creative', type: 'glb', url: '/mascot/outfits/artist.glb', unitScale: 100,
+    id: 'artist', number: '05', label: 'Creative', type: 'glb', url: '/mascot/outfits/artist.glb', unitScale: 100,
     modelOffsetY: 17.66,
     // The short-sleeve shoulder has to be cut at its authored outside edge,
     // while its rotation centre stays under the bib. Decoupling those two
@@ -103,7 +92,7 @@ export const OUTFITS = [
     showBaseArms: true, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 24 },
   },
   {
-    id: 'activewear', number: '07', label: 'Performer', type: 'glb', url: '/mascot/outfits/activewear.glb', unitScale: 100,
+    id: 'activewear', number: '06', label: 'Singer', type: 'glb', url: '/mascot/outfits/activewear.glb', unitScale: 100,
     modelOffsetY: 16.14,
     // Its continuous top is split into a moving sleeve and fixed torso at
     // runtime. Keep that cut at the asset's outer shoulder edge, but tuck the
@@ -122,7 +111,7 @@ export const OUTFITS = [
     cuffOverlap: 3.2, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 45 },
   },
   {
-    id: 'cloak', number: '08', label: 'Fashion', type: 'glb', url: '/mascot/outfits/cloak.glb', unitScale: 100,
+    id: 'cloak', number: '07', label: 'Fashion', type: 'glb', url: '/mascot/outfits/cloak.glb', unitScale: 100,
     // Measured hood peak is 102.46 versus the base-hair peak 116.40.
     // This 15.44 lift supplies a 1.5-unit safety clearance at the crown.
     modelOffsetY: 15.44, integratedHood: 'liftAll',
@@ -135,26 +124,35 @@ export const OUTFITS = [
     cuffOverlap: 3.2, armPose: { shoulderX: 16.3, shoulderY: 19.45, outerMin: 45 },
   },
   {
-    id: 'graduation', number: '10', label: 'Scholar', type: 'fbx',
+    id: 'graduation', number: '08', label: 'Scholar', type: 'fbx',
     url: '/mascot/outfits/graduation/graduation.fbx', unitScale: 1,
     modelOffsetY: 17,
     shoulderOverlap: 1.6,
     // The mortarboard begins at y=98. A 96 y cutoff leaves a neat fringe
     // below the cap while removing every hair triangle that could poke up.
     headwearHairCutoffY: 96,
-    outfitTint: '#7867c6',
+    // The supplied gown, cap and tassel share one plain white material. Paint
+    // them as in the approved Scholar render: a black gown and cap with a gold
+    // tassel (cord and tuft hang at x≈-43, its button tops the cap).
+    regionColors: {
+      color: '#26262e',
+      regions: [
+        { color: '#d8a31f', min: [-47, 38, 0.5], max: [-38.5, 60, 9.5] },
+        { color: '#d8a31f', min: [-43.5, 88.5, 2.5], max: [-39.2, 93, 6.8] },
+      ],
+    },
     cuffOverlap: 3.4, handOffsetY: 3.49,
     armPose: { shoulderX: 21.1, shoulderY: 18.8, outerMin: 45 },
   },
   {
-    id: 'hoodie', number: '11', label: 'Cozy', type: 'glb', url: '/mascot/outfits/hoodie.glb', unitScale: 100,
+    id: 'hoodie', number: '09', label: 'Cozy', type: 'glb', url: '/mascot/outfits/hoodie.glb', unitScale: 100,
     modelOffsetY: 15.72,
     shoulderOverlap: 1.6,
     outfitTint: '#c8b7e8',
     cuffOverlap: 3.4, armPose: { shoulderX: 16.1, shoulderY: 19.45, outerMin: 45 },
   },
   {
-    id: 'wizard', number: '12', label: 'Fantasy', type: 'glb', url: '/mascot/outfits/wizard.glb', unitScale: 100,
+    id: 'wizard', number: '10', label: 'Fantasy', type: 'glb', url: '/mascot/outfits/wizard.glb', unitScale: 100,
     modelOffsetY: 17.12,
     shoulderOverlap: 1.6,
     // The witch-hat brim ends at y=75.1. Keep only the fringe below it so
@@ -275,11 +273,70 @@ export const PREFERENCES_KEY = 'ace-mascot-preferences-v1';
 // one at a time from the 3D team's corrected GLB re-exports, each compared
 // side by side with its garment in outfits/. See public/mascot/README.md.
 export const POSED_VARIANTS = {
+  // Engineer: the 3D team's posed worker (mascot_Rig_CN2, formerly shown as
+  // a separate Technician) holding a wrench and power drill, recolored to the
+  // approved Engineer design — yellow hard hat, brown tool belt and boots, and
+  // the pearl face — by tmp/build-design-mascots.mjs.
+  classic: {
+    url: '/mascot/poses/engineer.glb',
+    label: 'Wrench & power drill',
+  },
+  // Singer: body_rig_AO_casi2.glb (pink blazer, headphones, microphone). The
+  // microphone sits in a fist held up by the mouth; the other arm rests.
+  activewear: {
+    url: '/mascot/poses/singer.glb',
+    label: 'Headphones & microphone',
+    brainMaterials: ['Material.004.1001'],
+    hold: {
+      left: {
+        target: [0.12, 0.39, 0.28],
+        pole: [1, -1, -0.4],
+        grip: { meshes: ['Prongs_low_Microphone_0'], at: 0.3 },
+      },
+      right: { target: [-0.34, 0.13, 0.08], pole: [1, 0.2, -1] },
+    },
+  },
   // phu_thuy.glb (2026-09-14): wizard hat, robe and belt match outfits/wizard.glb.
+  // Creative: BODY_AO_HoaSi2.glb — brown beret sitting on the brain, white
+  // shirt, blue overalls; a paintbrush in one fist and the palette held out.
+  artist: {
+    url: '/mascot/poses/artist.glb',
+    label: 'Paintbrush & palette',
+    brainMaterials: ['Material.008.1001'],
+    hold: {
+      right: {
+        target: [-0.26, 0.32, 0.25],
+        pole: [1, -1, -0.5],
+        grip: { meshes: ['Cylinder', 'Cylinder001', 'Cylinder002'], at: 0.3 },
+      },
+      left: { target: [0.46, 0.27, 0.14], pole: [0.3, -1, -1] },
+      props: { left: ['Cylinder003'] },
+    },
+  },
+  // Fashion: body_AoKhoacTrumDau2.glb — pink hooded jacket with the brain
+  // showing inside the hood; both hands cup the mug.
+  cloak: {
+    url: '/mascot/poses/hooded-jacket.glb',
+    label: 'Warm mug',
+    hold: {
+      right: { target: [-0.1, 0.31, 0.3], pole: [1, -1, -0.5] },
+      left: { target: [0.07, 0.31, 0.3], pole: [1, -1, -0.5] },
+    },
+  },
   wizard: {
     url: '/mascot/poses/wizard.glb',
     label: 'Magic wand & spell book',
     brainMaterials: ['toc'],
+    // The wand hand (already curled around the wand) comes in front of the
+    // chest; the other hand cups the open spell book from below, palm up.
+    hold: {
+      right: { target: [-0.3, 0.3, 0.22], pole: [1, -1, -0.5] },
+      left: { target: [0.2, 0.28, 0.27], pole: [1, -1, -0.4], roll: 180 },
+      props: { right: ['pCylinder3'] },
+      // The witch hat (robe, hat band and buckle materials above the neck)
+      // rides higher so the brain shows under its brim.
+      headwear: { materials: ['QUAN_AO', 'That_lung', 'pk_non'], fromY: 0.9, lift: 0.12 },
+    },
   },
   // body_AO_hoodi2.glb (2026-09-14): purple ribbed hoodie and shoes match
   // outfits/hoodie.glb.
@@ -287,6 +344,11 @@ export const POSED_VARIANTS = {
     url: '/mascot/poses/hoodie.glb',
     label: 'Headphones & game controller',
     brainMaterials: ['Material.002'],
+    // Both hands come in to hold the game controller in front of the chest.
+    hold: {
+      right: { target: [-0.1, 0.33, 0.27], pole: [1, -1, -0.5] },
+      left: { target: [0.1, 0.33, 0.27], pole: [1, -1, -0.5] },
+    },
   },
 };
 
@@ -296,14 +358,16 @@ export const POSED_VARIANTS = {
 // tmp/extract-props.mjs; see public/mascot/README.md.
 // `holdArms` lists the arms that hold something and rest lifted.
 export const PROP_SETS = {
-  classic: { url: '/mascot/props/classic.glb', label: 'Wrench & blueprint roll', holdArms: ['left', 'right'] },
   doctor: { url: '/mascot/props/doctor.glb', label: 'Stethoscope & clipboard', holdArms: ['right'] },
   'long-vest': { url: '/mascot/props/long-vest.glb', label: 'Science flask', holdArms: ['left'] },
   vest: { url: '/mascot/props/vest.glb', label: 'Briefcase & coffee mug', holdArms: ['left', 'right'] },
-  artist: { url: '/mascot/props/artist.glb', label: 'Paintbrush & palette', holdArms: ['left', 'right'] },
-  activewear: { url: '/mascot/props/activewear.glb', label: 'Microphone', holdArms: ['right'] },
-  cloak: { url: '/mascot/props/cloak.glb', label: 'Handbag', holdArms: ['right'] },
-  graduation: { url: '/mascot/props/graduation.glb', label: 'Diploma scroll', holdArms: ['right'] },
+  // The approved Scholar render points the pencil out to the side.
+  graduation: {
+    url: '/mascot/props/graduation.glb',
+    label: 'Pencil & books',
+    holdArms: ['right'],
+    holdPose: { right: { down: 12, forward: 8 } },
+  },
 };
 
 export const getOutfitAccessories = (outfit) => {
@@ -332,6 +396,7 @@ export const resolveOutfitVariant = (outfit, accessoriesEnabled = true) => {
     // base body's floor.
     modelOffsetY: 0,
     brainMaterials: posed.brainMaterials || [],
+    hold: posed.hold,
     variant: 'posed',
   };
 };

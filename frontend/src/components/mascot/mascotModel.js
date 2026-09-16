@@ -4,12 +4,34 @@ import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { getOutfitArmPose } from './mascotCatalog';
+import { poseCharacterArms } from './mascotArmPose';
 
 export * from './mascotCatalog';
+export { poseCharacterArms };
 
 export const MASCOT_FLOOR_Y = -1.94;
 
-export const configureModel = (model) => {
+// Textured materials of Acey's own body (brain, face shell, eyes, glasses,
+// mouth, bulb) as named in the base FBX and the 3D team's GLB exports.
+const BODY_MATERIALS = new Set(['body', 'mat', 'mat_kinh', 'mieng', 'toc', 'Material']);
+
+// The approved design renders show a pearl-white face with crisp navy eyes.
+// The base FBX multiplies every body texture by 0.8 grey, and its eye layer is
+// drawn translucent over the face shell, which washed the eyes out to grey.
+// Show the textures at full value and draw the eyes opaque.
+export const applyDesignBodyLook = (material) => {
+  if (!material?.map || !BODY_MATERIALS.has(material.name)) return;
+  material.color?.set(0xffffff);
+  if (material.name === 'mat') {
+    material.transparent = false;
+    material.depthWrite = true;
+  }
+  material.needsUpdate = true;
+};
+
+// `keepColors` leaves material colors as delivered: designer characters are
+// already in the approved design colors, only garments need softening.
+export const configureModel = (model, { keepColors = false } = {}) => {
   model.traverse((node) => {
     if (!node.isMesh) return;
 
@@ -19,8 +41,11 @@ export const configureModel = (model) => {
     const materials = Array.isArray(node.material) ? node.material : [node.material];
     materials.filter(Boolean).forEach((material) => {
       if (material.map) material.map.colorSpace = THREE.SRGBColorSpace;
+      applyDesignBodyLook(material);
       const materialName = (material.name || '').toLowerCase();
       const shouldStayGlossy = /eye|glass|lens|kinh|pupil/.test(materialName);
+      // Colors recorded from an approved design render are used as delivered.
+      const keepColor = keepColors || Boolean(material.userData?.keepColor);
 
       // The supplied files mix very glossy and very dark material defaults.
       // Bring fabrics and painted surfaces into one soft, toy-like finish while
@@ -31,7 +56,7 @@ export const configureModel = (model) => {
       if (!shouldStayGlossy && Number.isFinite(material.metalness)) {
         material.metalness = Math.min(material.metalness, 0.18);
       }
-      if (!shouldStayGlossy && material.color?.isColor) {
+      if (!shouldStayGlossy && !keepColor && material.color?.isColor) {
         const color = {};
         material.color.getHSL(color);
         const softenedSaturation = Math.min(color.s, 0.68);
@@ -184,19 +209,39 @@ export const REST_ARM_ANGLES = {
   right: THREE.MathUtils.degToRad(-45),
 };
 
-// An arm that holds a prop rests lifted away from the body, so a mug, bag or
-// flask hangs clear of the floor and the torso instead of sinking into them.
+// An arm that holds a prop rests lowered and brought forward, so the prop is
+// held in front of the body the way the designer's posed characters hold
+// theirs, instead of on an arm stretched out to the side. `forward` swings the
+// arm toward the camera about the shoulder; a prop set can override both with
+// `holdPose: { left: { down, forward }, right: {...} }` (degrees).
 export const HOLD_ARM_ANGLES = {
-  left: THREE.MathUtils.degToRad(20),
-  right: THREE.MathUtils.degToRad(-20),
+  left: THREE.MathUtils.degToRad(40),
+  right: THREE.MathUtils.degToRad(-40),
+};
+export const HOLD_ARM_FORWARD = {
+  left: THREE.MathUtils.degToRad(35),
+  right: THREE.MathUtils.degToRad(35),
 };
 
 export const getRestArmAngles = (outfit) => {
   const holdArms = outfit?.props?.holdArms;
   if (!holdArms?.length) return REST_ARM_ANGLES;
+  const pose = outfit.props.holdPose || {};
+  const angle = (side) => {
+    if (!holdArms.includes(side)) return REST_ARM_ANGLES[side];
+    if (pose[side]?.down === undefined) return HOLD_ARM_ANGLES[side];
+    return THREE.MathUtils.degToRad(side === 'left' ? pose[side].down : -pose[side].down);
+  };
+  const forward = (side) => {
+    if (!holdArms.includes(side)) return 0;
+    if (pose[side]?.forward === undefined) return HOLD_ARM_FORWARD[side];
+    return THREE.MathUtils.degToRad(pose[side].forward);
+  };
   return {
-    left: holdArms.includes('left') ? HOLD_ARM_ANGLES.left : REST_ARM_ANGLES.left,
-    right: holdArms.includes('right') ? HOLD_ARM_ANGLES.right : REST_ARM_ANGLES.right,
+    left: angle('left'),
+    right: angle('right'),
+    forwardLeft: forward('left'),
+    forwardRight: forward('right'),
   };
 };
 
@@ -1186,13 +1231,17 @@ export const configureBaseArmRigs = (model, outfit, outfitModel) => {
   });
 };
 
+// Positive `forward` swings either arm toward the camera. The left rig points
+// to -x and the right rig to +x, so their yaw signs are opposite.
 export const setArmPose = (model, angles, wristWave = 0) => {
   const rigs = model?.userData.armRigs;
   if (!rigs) return;
-  if (rigs.left?.shoulder) rigs.left.shoulder.rotation.z = angles.left;
-  else if (rigs.left) rigs.left.rotation.z = angles.left;
-  if (rigs.right?.shoulder) rigs.right.shoulder.rotation.z = angles.right;
-  else if (rigs.right) rigs.right.rotation.z = angles.right;
+  const leftYaw = angles.forwardLeft || 0;
+  const rightYaw = -(angles.forwardRight || 0);
+  const leftJoint = rigs.left?.shoulder || rigs.left;
+  const rightJoint = rigs.right?.shoulder || rigs.right;
+  if (leftJoint) leftJoint.rotation.set(0, leftYaw, angles.left);
+  if (rightJoint) rightJoint.rotation.set(0, rightYaw, angles.right);
   if (rigs.right?.wrist) rigs.right.wrist.rotation.z = wristWave;
   syncPropAnchors(model);
 };
@@ -1395,12 +1444,47 @@ export const adjustOutfitGear = (model, gear) => {
   });
 };
 
+// A garment delivered as one plain white material (the Scholar gown, cap and
+// tassel) is painted in its approved colors with vertex colors:
+// `regionColors: { color, regions: [{ color, min: [x, y, z], max: [x, y, z] }] }`
+// in the prepared model's coordinates. The first matching region wins.
+export const applyRegionColors = (model, regionColors) => {
+  if (!regionColors) return;
+  model.updateMatrixWorld(true);
+  const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert();
+  const base = new THREE.Color(regionColors.color);
+  const regions = (regionColors.regions || []).map((region) => ({
+    color: new THREE.Color(region.color),
+    box: new THREE.Box3(new THREE.Vector3(...region.min), new THREE.Vector3(...region.max)),
+  }));
+  const point = new THREE.Vector3();
+  model.traverse((node) => {
+    if (!node.isMesh || !node.geometry?.getAttribute('position')) return;
+    const positions = node.geometry.getAttribute('position');
+    const matrix = new THREE.Matrix4().multiplyMatrices(toModel, node.matrixWorld);
+    const colors = new Float32Array(positions.count * 3);
+    for (let index = 0; index < positions.count; index += 1) {
+      point.fromBufferAttribute(positions, index).applyMatrix4(matrix);
+      const color = regions.find((region) => region.box.containsPoint(point))?.color || base;
+      colors.set([color.r, color.g, color.b], index * 3);
+    }
+    node.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    (Array.isArray(node.material) ? node.material : [node.material]).filter(Boolean).forEach((material) => {
+      material.vertexColors = true;
+      material.needsUpdate = true;
+    });
+  });
+};
+
 export const prepareOutfitModel = (model, outfit) => {
   if (outfit.unitScale !== 1) model.scale.multiplyScalar(outfit.unitScale);
   if (outfit.fullCharacter) {
     model.position.y += outfit.fullCharacterOffsetY || 0;
     model.name = `ACEOutfit-${outfit.id}`;
-    configureModel(model);
+    // Designer characters arrive in a T-pose; bend their arms so they hold
+    // their props the way the approved renders do.
+    if (outfit.hold) poseCharacterArms(model, outfit.hold);
+    configureModel(model, { keepColors: true });
     return model;
   }
   liftOutfitGarment(model, outfit.modelOffsetY, outfit.integratedHood);
@@ -1437,6 +1521,7 @@ export const prepareOutfitModel = (model, outfit) => {
   // This runs after the color treatment so the shroud clones the exact
   // displayed sleeve material rather than an untinted source color.
   addOutfitArmShrouds(model, outfit);
+  applyRegionColors(model, outfit.regionColors);
   return model;
 };
 

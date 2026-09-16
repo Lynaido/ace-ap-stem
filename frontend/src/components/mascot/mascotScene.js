@@ -124,6 +124,9 @@ export const createMascotScene = ({
   keyLight.position.set(3.5, 5.5, 4);
   keyLight.castShadow = !compact;
   keyLight.shadow.mapSize.set(1024, 1024);
+  // Characters posed with a skinned arm rig otherwise self-shadow in fine
+  // stripes across hats and jackets.
+  keyLight.shadow.normalBias = 0.02;
   scene.add(keyLight);
 
   const fillLight = new THREE.DirectionalLight(0xded8ff, 1.25);
@@ -392,6 +395,8 @@ export const createMascotScene = ({
     const restTarget = getRestArmAngles(activeOutfit);
     restAngles.left = THREE.MathUtils.lerp(restAngles.left, restTarget.left, 0.12);
     restAngles.right = THREE.MathUtils.lerp(restAngles.right, restTarget.right, 0.12);
+    restAngles.forwardLeft = THREE.MathUtils.lerp(restAngles.forwardLeft || 0, restTarget.forwardLeft || 0, 0.12);
+    restAngles.forwardRight = THREE.MathUtils.lerp(restAngles.forwardRight || 0, restTarget.forwardRight || 0, 0.12);
     const armAngles = { ...restAngles };
     let wristWave = 0;
 
@@ -413,6 +418,9 @@ export const createMascotScene = ({
       const targetAngles = ACTION_ARM_ANGLES[currentAction.id] || restAngles;
       armAngles.left = THREE.MathUtils.lerp(restAngles.left, targetAngles.left, envelope);
       armAngles.right = THREE.MathUtils.lerp(restAngles.right, targetAngles.right, envelope);
+      // Reaction poses are authored side-on; bring held arms back out for them.
+      armAngles.forwardLeft = THREE.MathUtils.lerp(restAngles.forwardLeft || 0, 0, envelope);
+      armAngles.forwardRight = THREE.MathUtils.lerp(restAngles.forwardRight || 0, 0, envelope);
 
       if (currentAction.id === 'hello') {
         tilt -= 0.025 * envelope;

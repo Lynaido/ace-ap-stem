@@ -62,7 +62,7 @@ const byId = (id) => OUTFITS.find((outfit) => outfit.id === id);
 
 describe('designer poses with accessories', () => {
   it('uses matching posed characters and keeps every other role in its approved garment', () => {
-    expect(Object.keys(POSED_VARIANTS)).toEqual(['wizard', 'hoodie']);
+    expect(Object.keys(POSED_VARIANTS)).toEqual(['classic', 'activewear', 'artist', 'cloak', 'wizard', 'hoodie']);
     expect(resolveOutfitVariant(byId('wizard'), true)).toMatchObject({
       url: '/mascot/poses/wizard.glb',
       fullCharacter: true,
@@ -75,7 +75,12 @@ describe('designer poses with accessories', () => {
       variant: 'posed',
     });
     expect(resolveOutfitVariant(byId('hoodie'), false)).toBe(byId('hoodie'));
-    expect(resolveOutfitVariant(byId('technician'), true)).toBe(byId('technician'));
+    expect(resolveOutfitVariant(byId('classic'), true)).toMatchObject({
+      url: '/mascot/poses/engineer.glb',
+      fullCharacter: true,
+      variant: 'posed',
+    });
+    expect(resolveOutfitVariant(byId('activewear'), true).hold.left.grip.meshes).toEqual(['Prongs_low_Microphone_0']);
   });
 
   it('gives every role accessories, with props on the approved garment where no matching pose exists', () => {
@@ -112,7 +117,7 @@ describe('designer poses with accessories', () => {
   });
 
   it('describes built-in accessories and roles without accessories', () => {
-    expect(getOutfitAccessories(byId('technician'))).toEqual({ label: 'Wrench & power drill', builtIn: true });
+    expect(getOutfitAccessories(byId('classic'))).toEqual({ label: 'Wrench & power drill', builtIn: false });
     expect(getOutfitAccessories(byId('doctor'))).toEqual({ label: 'Stethoscope & clipboard', builtIn: false });
     expect(getOutfitAccessories(byId('wizard'))).toEqual({ label: 'Magic wand & spell book', builtIn: false });
     expect(getOutfitAccessories(byId('hoodie'))).toEqual({ label: 'Headphones & game controller', builtIn: false });

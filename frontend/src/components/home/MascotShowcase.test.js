@@ -48,7 +48,7 @@ test('renders complete mascot personalization controls', () => {
   expect(screen.getByRole('group', { name: /outfit/i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /^mood$/i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /study reactions/i })).toBeInTheDocument();
-  expect(within(screen.getByRole('group', { name: /outfit/i })).getAllByRole('button')).toHaveLength(11);
+  expect(within(screen.getByRole('group', { name: /outfit/i })).getAllByRole('button')).toHaveLength(10);
   expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(2);
 });
 
@@ -71,7 +71,7 @@ test('gives every role props and a switch for them', () => {
 
   const outfits = within(screen.getByRole('group', { name: /outfit/i })).getAllByRole('button');
   outfits.forEach((button) => expect(button).toHaveAccessibleName(/,\s*has props$/i));
-  expect(screen.getByRole('switch', { name: 'Show props: Wrench & blueprint roll' })).toBeChecked();
+  expect(screen.getByRole('switch', { name: 'Show props: Wrench & power drill' })).toBeChecked();
 });
 
 test('anchors props at Acey’s hand tips and keeps held props upright', () => {
@@ -205,8 +205,8 @@ test('shows a props switch that describes what it changes', () => {
   expect(toggle).toHaveAccessibleDescription('Off: shows the Cozy outfit without props.');
 });
 
-test('keeps calibrated shoulder poses for layered outfits and isolates the Technician', () => {
-  expect(OUTFITS).toHaveLength(11);
+test('keeps calibrated shoulder poses for layered outfits', () => {
+  expect(OUTFITS).toHaveLength(10);
   const layeredOutfits = OUTFITS.filter((outfit) => !outfit.fullCharacter);
   expect(layeredOutfits).toHaveLength(10);
   layeredOutfits.forEach((outfit) => {
@@ -215,14 +215,9 @@ test('keeps calibrated shoulder poses for layered outfits and isolates the Techn
     expect(outfit.armPose.outerMin).toBeGreaterThan(0);
   });
 
-  expect(OUTFITS.find((outfit) => outfit.id === 'technician')).toMatchObject({
-    number: '04',
-    label: 'Technician',
-    type: 'glb',
-    url: '/mascot/outfits/technician.glb',
-    fullCharacter: true,
-  });
-  expect(shouldShowSharedBase(OUTFITS.find((outfit) => outfit.id === 'technician'))).toBe(false);
+  // The posed worker that used to be a separate Technician is now the
+  // Engineer's accessories look; there is no duplicate hard-hat role.
+  expect(OUTFITS.find((outfit) => outfit.id === 'technician')).toBeUndefined();
   expect(shouldShowSharedBase(OUTFITS.find((outfit) => outfit.id === 'classic'))).toBe(true);
 
   expect(OUTFITS.find((outfit) => outfit.id === 'activewear').showBaseArms).not.toBe(true);
@@ -252,7 +247,7 @@ test('uses material-matched, deeply underlapped shrouds for the base-arm outfits
   });
 });
 
-test('gives Performer a moving sleeve shroud instead of a static shoulder patch', () => {
+test('gives the Singer garment a moving sleeve shroud instead of a static shoulder patch', () => {
   const performer = OUTFITS.find((outfit) => outfit.id === 'activewear');
   const shroud = performer.outfitArmShroud;
 
@@ -322,8 +317,8 @@ test('applies measured vertical cuff corrections to the three slanted sleeves', 
 
   expect(offsets).toMatchObject({
     '03': -2.24,
-    '10': 3.49,
-    '12': 5.03,
+    '08': 3.49,
+    '10': 5.03,
   });
 });
 
@@ -532,10 +527,10 @@ test('uses full headwear masks only for the supplied headwear outfits', () => {
 
   expect(masks).toEqual({
     '01': 84,
-    '06': 70,
-    '08': 70,
-    '10': 96,
-    '12': 74.5,
+    '05': 70,
+    '07': 70,
+    '08': 96,
+    '10': 74.5,
   });
 });
 
@@ -598,9 +593,9 @@ test('preserves separated Scientist sleeve roots and gives connected sleeves a m
   });
 });
 
-test('exposes the approved eleven outfit names and skips gamer', () => {
+test('exposes the approved ten outfit names and skips gamer', () => {
   expect(OUTFITS.map((outfit) => outfit.label)).toEqual([
-    'Engineer', 'Healthcare', 'Scientist', 'Technician', 'Business', 'Creative',
-    'Performer', 'Fashion', 'Scholar', 'Cozy', 'Fantasy',
+    'Engineer', 'Healthcare', 'Scientist', 'Business', 'Creative',
+    'Singer', 'Fashion', 'Scholar', 'Cozy', 'Fantasy',
   ]);
 });

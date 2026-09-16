@@ -228,7 +228,7 @@ const MascotShowcase = ({ variant = 'landing' }) => {
               : 'Pick a role, set the mood, and let ACE react as you learn. Every outfit stays fitted while ACE rests, waves hello, focuses with you, and celebrates progress.'}
           </p>
           <div className="mascot-showcase__notes" aria-label="Mascot features">
-            <span>11 character roles</span>
+            <span>{OUTFITS.length} character roles</span>
             <span>Designer poses with props</span>
             <span>{isAuthenticated ? 'Saved to your account' : 'Your choice is remembered'}</span>
           </div>
