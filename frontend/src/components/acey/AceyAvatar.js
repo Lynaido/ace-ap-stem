@@ -25,7 +25,9 @@ const whenIdle = (callback) => {
   return () => window.clearTimeout(handle);
 };
 
-const AceyAvatar = ({ appearance, reaction }) => {
+// `compact` keeps the floating companion light (30 fps, no shadows); larger
+// showcases such as the dashboard pass compact={false}.
+const AceyAvatar = ({ appearance, reaction, compact = true }) => {
   const stageRef = useRef(null);
   const canvasRef = useRef(null);
   const apiRef = useRef(null);
@@ -49,7 +51,7 @@ const AceyAvatar = ({ appearance, reaction }) => {
           stage: stageRef.current,
           canvas: canvasRef.current,
           interactive: false,
-          compact: true,
+          compact,
           onBaseStatus: (status) => {
             if (cancelled) return;
             if (status === 'ready') setMode('3d');
@@ -62,6 +64,7 @@ const AceyAvatar = ({ appearance, reaction }) => {
         const current = appearanceRef.current;
         const currentOutfit = OUTFITS.find((item) => item.id === current.outfitId) || OUTFITS[0];
         api.setMood(current.moodId);
+        api.setBrainColor(current.colorId);
         api.showOutfit(resolveOutfitVariant(currentOutfit, current.accessoriesEnabled));
       } catch (error) {
         if (!cancelled) setMode('sprite');
@@ -74,7 +77,7 @@ const AceyAvatar = ({ appearance, reaction }) => {
       apiRef.current = null;
       api?.dispose();
     };
-  }, []);
+  }, [compact]);
 
   useEffect(() => {
     apiRef.current?.showOutfit(displayedOutfit);
@@ -85,6 +88,10 @@ const AceyAvatar = ({ appearance, reaction }) => {
   useEffect(() => {
     apiRef.current?.setMood(appearance.moodId);
   }, [appearance.moodId]);
+
+  useEffect(() => {
+    apiRef.current?.setBrainColor(appearance.colorId);
+  }, [appearance.colorId]);
 
   useEffect(() => {
     if (reaction?.id) apiRef.current?.playAction(reaction.id);

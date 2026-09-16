@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FaArrowRight,
@@ -10,14 +10,26 @@ import {
   FaUpload,
 } from 'react-icons/fa';
 import { useAppContext } from '../context/AppContext';
+import AceyBuddyPanel from '../components/acey/AceyBuddyPanel';
+import { useAcey } from '../components/acey/AceyContext';
+import { getBuddyName } from '../components/mascot/mascotCatalog';
 import { savedItemsAPI } from '../utils/api';
 import './DashboardPage.css';
 
-// The customizer ships the 3D scene, so keep it out of the dashboard bundle.
-const MascotShowcase = lazy(() => import('../components/home/MascotShowcase'));
+// The customizer now lives on the Dashboard; the hero button jumps to it.
+const scrollToStudio = (event) => {
+  const studio = document.getElementById('acey-studio');
+  if (!studio) return;
+  event.preventDefault();
+  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  studio.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+  studio.querySelector('[role="tab"][aria-selected="true"]')?.focus({ preventScroll: true });
+};
 
 const DashboardPage = () => {
   const { user } = useAppContext();
+  const { appearance } = useAcey();
+  const buddyName = getBuddyName(appearance);
   const firstName = user?.name?.trim()?.split(/\s+/)[0] || 'there';
   const [recentItems, setRecentItems] = useState([]);
 
@@ -53,22 +65,18 @@ const DashboardPage = () => {
             <div className="dashboard-hero__actions">
               <Link to="/solve-problems?create=true">Solve a problem <FaArrowRight aria-hidden="true" /></Link>
               <Link className="dashboard-hero__secondary" to="/notes-hub">Open your notes</Link>
-              <a className="dashboard-hero__secondary" href="#customize-acey">
-                <FaMagic aria-hidden="true" /> Customize Acey
+              <a className="dashboard-hero__secondary" href="#acey-studio" onClick={scrollToStudio}>
+                <FaMagic aria-hidden="true" /> Customize {buddyName}
               </a>
             </div>
-          </div>
-          <div className="dashboard-ace-stage" aria-label="ACE is ready to study with you">
-            <div className="dashboard-ace-stage__orb" aria-hidden="true" />
-            <div className="ace-sprite ace-sprite--wave" aria-hidden="true" />
-            <span className="dashboard-ace-stage__bubble">Let&apos;s make it click.</span>
-            <span className="dashboard-ace-stage__tag">READY TO HELP</span>
           </div>
           <aside className="dashboard-setup" aria-label="Today with ACE">
             <span className="dashboard-setup__icon"><FaMagic aria-hidden="true" /></span>
             <div><strong>Today with ACE</strong><p>Your workspace is ready when you are.</p></div>
           </aside>
         </header>
+
+        <AceyBuddyPanel />
 
         <section className="dashboard-actions" aria-label="Learning tools">
           {tools.map(({ title, eyebrow, description, to, cta, icon: Icon, tone }) => (
@@ -81,12 +89,6 @@ const DashboardPage = () => {
               <Link to={to}>{cta} <FaArrowRight aria-hidden="true" /></Link>
             </article>
           ))}
-        </section>
-
-        <section className="dashboard-customize" aria-label="Customize Acey">
-          <Suspense fallback={<p className="dashboard-customize__loading" role="status">Preparing Acey…</p>}>
-            <MascotShowcase variant="dashboard" />
-          </Suspense>
         </section>
 
         <aside className="dashboard-tip">

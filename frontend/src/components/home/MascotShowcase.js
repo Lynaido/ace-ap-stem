@@ -3,11 +3,13 @@ import {
   MOODS,
   OUTFITS,
   REACTIONS,
+  getBuddyName,
   getOutfitAccessories,
   resolveOutfitVariant,
 } from '../mascot/mascotCatalog';
 import { createMascotScene } from '../mascot/mascotScene';
 import { useAcey } from '../acey/AceyContext';
+import { BuddyColorPicker, BuddyNameForm } from '../acey/BuddyControls';
 import './MascotShowcase.css';
 
 export * from '../mascot/mascotModel';
@@ -37,19 +39,26 @@ const getAccessoryDetail = (accessories, outfit, enabled) => {
 };
 
 const MascotShowcase = ({ variant = 'landing' }) => {
-  // 'dashboard' is the same customizer embedded in the Dashboard page, so it
-  // loads only when scrolled into view and keeps the page's single h1.
-  const isDashboard = variant === 'dashboard';
-  const isWorkspace = variant === 'workspace' || isDashboard;
-  const name = isWorkspace ? 'Acey' : 'ACE';
+  const isWorkspace = variant === 'workspace';
   const { appearance, updateAppearance, isAuthenticated, syncStatus } = useAcey();
-  const { outfitId: activeOutfitId, moodId: activeMoodId, accessoriesEnabled } = appearance;
+  const name = isWorkspace ? getBuddyName(appearance) : 'ACE';
+  // Scene callbacks read the latest name without rebuilding the 3D scene.
+  const nameRef = useRef(name);
+  nameRef.current = name;
+  const {
+    outfitId: activeOutfitId,
+    moodId: activeMoodId,
+    accessoriesEnabled,
+    colorId: activeColorId,
+  } = appearance;
+  const activeColorRef = useRef(activeColorId);
+  activeColorRef.current = activeColorId;
   const sectionRef = useRef(null);
   const stageRef = useRef(null);
   const canvasRef = useRef(null);
   const sceneApiRef = useRef(null);
   const reactionTimerRef = useRef(null);
-  const [shouldLoad, setShouldLoad] = useState(isWorkspace && !isDashboard);
+  const [shouldLoad, setShouldLoad] = useState(isWorkspace);
   const [sceneVersion, setSceneVersion] = useState(0);
   const [baseStatus, setBaseStatus] = useState('idle');
   const [outfitStatus, setOutfitStatus] = useState('idle');
@@ -133,8 +142,8 @@ const MascotShowcase = ({ variant = 'landing' }) => {
         const props = outfit.variant ? getOutfitAccessories(outfit) : null;
         setAnnouncement(
           props
-            ? `${name} is now in the ${outfit.label} look with ${props.label.toLowerCase()}.`
-            : `${name} is now wearing the ${outfit.label.toLowerCase()} outfit.`
+            ? `${nameRef.current} is now in the ${outfit.label} look with ${props.label.toLowerCase()}.`
+            : `${nameRef.current} is now wearing the ${outfit.label.toLowerCase()} outfit.`
         );
       },
     });
@@ -142,6 +151,7 @@ const MascotShowcase = ({ variant = 'landing' }) => {
 
     sceneApiRef.current = api;
     api.setMood(activeMoodRef.current);
+    api.setBrainColor(activeColorRef.current);
     // Start the first outfit request immediately so its network transfer and
     // parsing overlap with the body FBX request instead of running serially.
     api.showOutfit(displayedOutfitRef.current);
@@ -150,11 +160,15 @@ const MascotShowcase = ({ variant = 'landing' }) => {
       sceneApiRef.current = null;
       api.dispose();
     };
-  }, [name, sceneVersion, shouldLoad]);
+  }, [sceneVersion, shouldLoad]);
 
   useEffect(() => {
     sceneApiRef.current?.showOutfit(displayedOutfit);
   }, [displayedOutfit]);
+
+  useEffect(() => {
+    sceneApiRef.current?.setBrainColor(activeColorId);
+  }, [activeColorId]);
 
   useEffect(() => {
     sceneApiRef.current?.setMood(activeMoodId);
@@ -195,27 +209,22 @@ const MascotShowcase = ({ variant = 'landing' }) => {
 
   const isLoading = baseStatus === 'loading' || outfitStatus === 'loading';
   const controlsReady = baseStatus === 'ready';
-  const Heading = isWorkspace && !isDashboard ? 'h1' : 'h2';
+  const Heading = isWorkspace ? 'h1' : 'h2';
   const idPrefix = `mascot-${variant}`;
 
   return (
     <section
-      className={`mascot-showcase${isWorkspace ? ' mascot-showcase--workspace' : ''}${isDashboard ? ' mascot-showcase--embedded' : ''}`}
-      id={isDashboard ? 'customize-acey' : (isWorkspace ? undefined : 'meet-ace')}
-      data-acey-target={isDashboard ? 'customize-acey' : undefined}
+      className={`mascot-showcase${isWorkspace ? ' mascot-showcase--workspace' : ''}`}
+      id={isWorkspace ? undefined : 'meet-ace'}
       ref={sectionRef}
     >
       <div className="mascot-showcase__container">
         <div className="mascot-showcase__copy">
-          <p className="mascot-showcase__eyebrow">
-            {isDashboard ? 'Make Acey truly yours' : (isWorkspace ? 'Your study buddy' : 'Meet your study buddy')}
-          </p>
-          <Heading>
-            {isDashboard ? 'Customize Acey right here.' : (isWorkspace ? 'Customize Acey.' : 'Make ACE feel like your own.')}
-          </Heading>
+          <p className="mascot-showcase__eyebrow">{isWorkspace ? 'Your study buddy' : 'Meet your study buddy'}</p>
+          <Heading>{isWorkspace ? 'Customize Acey.' : 'Make ACE feel like your own.'}</Heading>
           <p>
             {isWorkspace
-              ? 'Choose a role, accessories and mood. Acey keeps this look on your Dashboard, Solve, AI Tutor, Notes Hub and Study Mode.'
+              ? `Choose a role, brain color, accessories, name and mood. ${name} keeps this look on your Dashboard, Solve, AI Tutor, Notes Hub and Study Mode.`
               : 'Pick a role, set the mood, and let ACE react as you learn. Every outfit stays fitted while ACE rests, waves hello, focuses with you, and celebrates progress.'}
           </p>
           <div className="mascot-showcase__notes" aria-label="Mascot features">
@@ -329,6 +338,16 @@ const MascotShowcase = ({ variant = 'landing' }) => {
                 </div>
               </fieldset>
 
+              <fieldset className="mascot-controls__group">
+                <legend>Brain color</legend>
+                <BuddyColorPicker
+                  colorId={activeColorId}
+                  buddyName={name}
+                  disabled={!controlsReady}
+                  onChange={(colorId) => updateAppearance({ colorId })}
+                />
+              </fieldset>
+
               <fieldset className="mascot-controls__group mascot-accessory">
                 <legend>Accessories</legend>
                 {accessories ? (
@@ -381,6 +400,13 @@ const MascotShowcase = ({ variant = 'landing' }) => {
                   </div>
                 )}
               </fieldset>
+
+              {isWorkspace && (
+                <fieldset className="mascot-controls__group">
+                  <legend>Name</legend>
+                  <BuddyNameForm name={appearance.name} onSave={(value) => updateAppearance({ name: value })} />
+                </fieldset>
+              )}
 
               <fieldset className="mascot-controls__group">
                 <legend>Mood</legend>

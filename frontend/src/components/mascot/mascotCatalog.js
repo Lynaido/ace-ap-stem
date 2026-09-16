@@ -11,10 +11,18 @@ export const OUTFITS = [
     // Moving its pivot farther inward makes the resting rotation pull the
     // visible shoulder edge away from the body, so preserve its authored pivot.
     shoulderOverlap: 0,
-    // The helmet's brim begins at y=64.5 while the base hair begins at
-    // y=71.2. Hide the brain entirely rather than allowing a stray curl
-    // to show through this sealed hard-hat.
-    headwearHairCutoffY: 70,
+    // As supplied, the hard hat sits down over the eyes (brim at y=63-68,
+    // eyes at y=62-77) and the glasses rims cut through its brim, while the
+    // thick scarf crowds the chin. Tip the hat back 14° and lift it so the
+    // front brim clears the glasses, and slim the scarf a little.
+    gearAdjust: {
+      materialName: 'non_quanao_1001',
+      hat: { fromY: 55, center: [0, 63, 0], scale: 0.92, pivot: [0, 63, -20], tiltDeg: 14, liftY: 5 },
+      collar: { fromY: 31, toY: 50, blendY: 36, shrink: 0.9, dropY: 1.5 },
+    },
+    // With the hat tipped back, a fringe of brain curls below y=84 shows
+    // under the brim; higher curls would bulge past it at the sides.
+    headwearHairCutoffY: 84,
     // The short utility shirt ends above the exposed base arm. A tapered
     // fabric shroud follows the arm pivot and overlaps both pieces, keeping
     // the rear shoulder as a sleeve transition rather than a bare tube.
@@ -223,8 +231,38 @@ export const REACTION_DURATIONS = Object.fromEntries(
   REACTIONS.map((reaction) => [reaction.id, reaction.duration])
 );
 
+// Brain colors a learner can pick. `swatch` is the UI dot; `tint` becomes the
+// color of the textured brain material in 3D (null keeps the designer's
+// lavender). Technician's brain is baked into its single texture and stays
+// under the hard hat, so it has no brainMaterials.
+export const COLORS = [
+  { id: 'lavender', label: 'Lavender', swatch: '#b69cff', tint: null },
+  { id: 'bubblegum', label: 'Bubblegum', swatch: '#f58dc8', tint: '#ff9fd3' },
+  { id: 'peach', label: 'Peach', swatch: '#ff9d5c', tint: '#ffb68a' },
+  { id: 'sunny', label: 'Sunny', swatch: '#ffcf4a', tint: '#ffdb6e' },
+  { id: 'mint', label: 'Mint', swatch: '#4fcf93', tint: '#8feabb' },
+  { id: 'sky', label: 'Sky', swatch: '#62c8f2', tint: '#98dcff' },
+  { id: 'ocean', label: 'Ocean', swatch: '#4f82f4', tint: '#8aa6ff' },
+  { id: 'grape', label: 'Grape', swatch: '#8b5cf6', tint: '#a88bff' },
+];
+
+export const getBrainTint = (colorId) => COLORS.find((color) => color.id === colorId)?.tint || null;
+
 export const DEFAULT_OUTFIT_ID = 'classic';
 export const DEFAULT_MOOD_ID = 'ready';
+export const DEFAULT_COLOR_ID = 'lavender';
+export const DEFAULT_BUDDY_NAME = 'Acey';
+export const BUDDY_NAME_MAX_LENGTH = 20;
+
+// Mirrors the backend rule: letters (any language), digits, spaces and . ' -
+// up to 20 characters. Anything else falls back to the default name ('').
+export const normalizeBuddyName = (value) => {
+  if (typeof value !== 'string') return '';
+  const name = value.trim().replace(/\s+/g, ' ');
+  return /^[\p{L}\p{N}][\p{L}\p{N} .'-]{0,19}$/u.test(name) ? name : '';
+};
+
+export const getBuddyName = (appearance) => normalizeBuddyName(appearance?.name) || DEFAULT_BUDDY_NAME;
 export const PREFERENCES_KEY = 'ace-mascot-preferences-v1';
 
 // Designer poses with props from the `pose_fbx` delivery. Each is a complete
@@ -241,27 +279,30 @@ export const POSED_VARIANTS = {
   wizard: {
     url: '/mascot/poses/wizard.glb',
     label: 'Magic wand & spell book',
+    brainMaterials: ['toc'],
   },
   // body_AO_hoodi2.glb (2026-09-14): purple ribbed hoodie and shoes match
   // outfits/hoodie.glb.
   hoodie: {
     url: '/mascot/poses/hoodie.glb',
     label: 'Headphones & game controller',
+    brainMaterials: ['Material.002'],
   },
 };
 
-// Props taken from the 3D team's posed deliveries and placed in Acey's hands
-// on the role's approved garment, for roles whose posed delivery wears the
-// wrong clothes. Built by tmp/extract-props.mjs; see public/mascot/README.md.
+// Props taken from the 3D team's deliveries (or built where a delivered mesh
+// is unusable) and held in Acey's fists on the role's approved garment, for
+// roles whose posed delivery wears the wrong clothes. Built by
+// tmp/extract-props.mjs; see public/mascot/README.md.
 // `holdArms` lists the arms that hold something and rest lifted.
 export const PROP_SETS = {
-  classic: { url: '/mascot/props/classic.glb', label: 'Wrench & power drill', holdArms: ['left', 'right'] },
+  classic: { url: '/mascot/props/classic.glb', label: 'Wrench & blueprint roll', holdArms: ['left', 'right'] },
   doctor: { url: '/mascot/props/doctor.glb', label: 'Stethoscope & clipboard', holdArms: ['right'] },
   'long-vest': { url: '/mascot/props/long-vest.glb', label: 'Science flask', holdArms: ['left'] },
   vest: { url: '/mascot/props/vest.glb', label: 'Briefcase & coffee mug', holdArms: ['left', 'right'] },
   artist: { url: '/mascot/props/artist.glb', label: 'Paintbrush & palette', holdArms: ['left', 'right'] },
-  activewear: { url: '/mascot/props/activewear.glb', label: 'Handbag', holdArms: ['right'] },
-  cloak: { url: '/mascot/props/cloak.glb', label: 'Coffee mug', holdArms: ['left'] },
+  activewear: { url: '/mascot/props/activewear.glb', label: 'Microphone', holdArms: ['right'] },
+  cloak: { url: '/mascot/props/cloak.glb', label: 'Handbag', holdArms: ['right'] },
   graduation: { url: '/mascot/props/graduation.glb', label: 'Diploma scroll', holdArms: ['right'] },
 };
 
@@ -290,6 +331,7 @@ export const resolveOutfitVariant = (outfit, accessoriesEnabled = true) => {
     // Garment lifts do not apply to a complete character; its feet share the
     // base body's floor.
     modelOffsetY: 0,
+    brainMaterials: posed.brainMaterials || [],
     variant: 'posed',
   };
 };

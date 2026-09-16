@@ -1,6 +1,8 @@
 import { render, screen, within } from '@testing-library/react';
 import * as THREE from 'three';
 import MascotShowcase, {
+  addHandHold,
+  adjustOutfitGear,
   applyHeadwearHairMask,
   attachPropSet,
   detachPropSet,
@@ -69,7 +71,7 @@ test('gives every role props and a switch for them', () => {
 
   const outfits = within(screen.getByRole('group', { name: /outfit/i })).getAllByRole('button');
   outfits.forEach((button) => expect(button).toHaveAccessibleName(/,\s*has props$/i));
-  expect(screen.getByRole('switch', { name: 'Show props: Wrench & power drill' })).toBeChecked();
+  expect(screen.getByRole('switch', { name: 'Show props: Wrench & blueprint roll' })).toBeChecked();
 });
 
 test('anchors props at Acey’s hand tips and keeps held props upright', () => {
@@ -127,6 +129,58 @@ test('anchors props at Acey’s hand tips and keeps held props upright', () => {
   detachPropSet(base);
   expect(anchors[0].parent).toBeNull();
   expect(base.userData.propAnchors).toBeNull();
+});
+
+test('curls a hand into an upright fist around a gripped prop and opens it again', () => {
+  const base = new THREE.Group();
+  const rigs = {};
+  [['right', 1], ['left', -1]].forEach(([side, sign]) => {
+    const geometry = new THREE.BufferGeometry();
+    // Palm-down hand in wrist space: wrist at -10, fingertips at +10.
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute([
+      sign * -10, 0, -4, sign * 10, 0, -4, sign * 10, 0, 4,
+    ], 3));
+    geometry.setAttribute('normal', new THREE.Float32BufferAttribute([0, 1, 0, 0, 1, 0, 0, 1, 0], 3));
+    const hand = new THREE.Mesh(geometry);
+    const shoulder = new THREE.Group();
+    shoulder.position.set(sign * 19, 18.6, 0);
+    base.add(shoulder);
+    const wrist = new THREE.Group();
+    wrist.position.set(sign * 39, 3, 0);
+    shoulder.add(wrist);
+    rigs[side] = addHandHold({
+      shoulder, wrist, hand,
+      handTip: new THREE.Vector3(sign * 60, 21.6, 0),
+      handWristOffset: new THREE.Vector3(sign * -5, 0, 0),
+    }, side);
+  });
+  base.userData.armRigs = rigs;
+
+  const template = new THREE.Group();
+  const grip = new THREE.Group();
+  grip.name = 'grip_pos';
+  template.add(grip);
+  const [anchor] = attachPropSet(base, template);
+
+  const { right, left } = rigs;
+  expect(anchor.parent).toBe(right.holdFrame);
+  expect(right.gripping).toBe(true);
+  expect(left.gripping).toBe(false);
+  // The fingertips curl back under the knuckles.
+  const tip = new THREE.Vector3().fromBufferAttribute(right.hand.geometry.getAttribute('position'), 1);
+  expect(tip.x).toBeLessThan(10);
+  expect(tip.y).toBeLessThan(-2);
+
+  // The fist and its prop counter-rotate with the arm to stay upright.
+  setArmPose(base, { left: 0.7, right: -0.35 }, 0.1);
+  expect(right.holdPivot.rotation.z).toBeCloseTo(0.25);
+  expect(left.holdPivot.rotation.z).toBe(0);
+
+  detachPropSet(base);
+  expect(right.gripping).toBe(false);
+  expect(right.hand.geometry).toBe(right.openGeometry);
+  expect(right.hand.quaternion.equals(right.openQuaternion)).toBe(true);
+  expect(right.holdPivot.rotation.z).toBe(0);
 });
 
 test('lifts only the arms that hold props', () => {
@@ -477,12 +531,40 @@ test('uses full headwear masks only for the supplied headwear outfits', () => {
   );
 
   expect(masks).toEqual({
-    '01': 70,
+    '01': 84,
     '06': 70,
     '08': 70,
     '10': 96,
     '12': 74.5,
   });
+});
+
+test('tips the Engineer hard hat back off the glasses and slims the scarf', () => {
+  const engineer = OUTFITS.find((outfit) => outfit.id === 'classic');
+  const makeMesh = (materialName, points) => {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(points.flat(), 3));
+    geometry.setAttribute('normal', new THREE.Float32BufferAttribute(points.flatMap(() => [0, 0, 1]), 3));
+    const material = new THREE.MeshStandardMaterial();
+    material.name = materialName;
+    return new THREE.Mesh(geometry, material);
+  };
+  // Front brim, scarf and belt of the hat-and-gear mesh, plus the shirt.
+  const gear = makeMesh(engineer.gearAdjust.materialName, [[0, 66, 42], [20, 40, 6], [22, 20, 8]]);
+  const shirt = makeMesh('ao_trong_1001', [[20, 40, 6]]);
+  const model = new THREE.Group();
+  model.add(gear, shirt);
+
+  adjustOutfitGear(model, engineer.gearAdjust);
+  const at = (mesh, index) => new THREE.Vector3().fromBufferAttribute(mesh.geometry.getAttribute('position'), index);
+
+  // The front brim rises above the top of the glasses (y ≈ 84).
+  expect(at(gear, 0).y).toBeGreaterThan(80);
+  // The scarf moves in toward the body and down; the belt and shirt stay put.
+  expect(at(gear, 1).x).toBeLessThan(20);
+  expect(at(gear, 1).y).toBeLessThan(40);
+  expect(at(gear, 2).toArray()).toEqual([22, 20, 8]);
+  expect(at(shirt, 0).toArray()).toEqual([20, 40, 6]);
 });
 
 test('applies the calibrated shoulder pivot and sleeve-cut positions to every layered outfit rig', () => {

@@ -887,10 +887,150 @@ export const getHandTip = (hand) => {
   return box.isEmpty() ? hand.position.clone() : box.getCenter(new THREE.Vector3());
 };
 
+// A hand that grips a prop curls into a fist around a handle. Values are in
+// the wrist rig's space for the right hand, where the open hand lies palm down
+// (+x toward the fingertips, +z toward the thumb); the left hand mirrors x.
+const FIST = {
+  knuckleX: 3,
+  // Finger midline radius around the handle and the largest curl (radians).
+  curlRadius: 2.6,
+  maxCurl: 2.9,
+  // The thumb (z > ~4.5, x < ~3.5) turns from pointing forward to lying beside
+  // the index finger, so it wraps the handle with the fingers.
+  thumbPivot: { x: 0.3, z: 3.8 },
+  thumbZ: [3.6, 5.4],
+  thumbX: [3.5, 5.5],
+  // Middle of the four fingers across the hand.
+  gripZ: -1.75,
+};
+
+// A fist is rolled thumb-up, so the handle through it runs vertically.
+const GRIP_ROLL = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+
+const createFistGeometry = (hand, openQuaternion, side) => {
+  const sign = side === 'right' ? 1 : -1;
+  const geometry = hand.geometry.clone();
+  const positions = geometry.getAttribute('position');
+  const normals = geometry.getAttribute('normal');
+  const toWrist = new THREE.Matrix4().compose(new THREE.Vector3(), openQuaternion, hand.scale);
+  const toLocal = toWrist.clone().invert();
+  const toLocalRotation = openQuaternion.clone().invert();
+  const point = new THREE.Vector3();
+  const normal = new THREE.Vector3();
+  const { thumbPivot, curlRadius, knuckleX } = FIST;
+
+  for (let index = 0; index < positions.count; index += 1) {
+    point.fromBufferAttribute(positions, index).applyMatrix4(toWrist);
+    if (normals) normal.fromBufferAttribute(normals, index).applyQuaternion(openQuaternion);
+    let x = point.x * sign;
+    let nx = normal.x * sign;
+
+    const thumb = THREE.MathUtils.smoothstep(point.z, FIST.thumbZ[0], FIST.thumbZ[1])
+      * (1 - THREE.MathUtils.smoothstep(x, FIST.thumbX[0], FIST.thumbX[1]));
+    if (thumb > 0) {
+      const cos = Math.cos(thumb * Math.PI / 2);
+      const sin = Math.sin(thumb * Math.PI / 2);
+      const dx = x - thumbPivot.x;
+      const dz = point.z - thumbPivot.z;
+      x = thumbPivot.x + (dx * cos) + (dz * sin);
+      point.z = thumbPivot.z - (dx * sin) + (dz * cos);
+      const turnedNx = (nx * cos) + (normal.z * sin);
+      normal.z = (-nx * sin) + (normal.z * cos);
+      nx = turnedNx;
+    }
+
+    if (x > knuckleX) {
+      const length = x - knuckleX;
+      const angle = Math.min(length / curlRadius, FIST.maxCurl);
+      const straight = length - (angle * curlRadius);
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      const radius = curlRadius + point.y;
+      x = knuckleX + (radius * sin) + (straight * cos);
+      point.y = -curlRadius + (radius * cos) - (straight * sin);
+      const curledNx = (nx * cos) + (normal.y * sin);
+      normal.y = (-nx * sin) + (normal.y * cos);
+      nx = curledNx;
+    }
+
+    point.x = x * sign;
+    normal.x = nx * sign;
+    point.applyMatrix4(toLocal);
+    positions.setXYZ(index, point.x, point.y, point.z);
+    if (normals) {
+      normal.applyQuaternion(toLocalRotation).normalize();
+      normals.setXYZ(index, normal.x, normal.y, normal.z);
+    }
+  }
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+};
+
+// Every hand sits in a hold frame that turns about the wrist joint. It stays
+// at rest for open hands; a fist counter-rotates with the arm so the prop it
+// grips stays upright while Acey rests or reacts.
+export const addHandHold = (rig, side) => {
+  const { wrist, hand } = rig;
+  const joint = rig.handWristOffset || new THREE.Vector3();
+  const holdPivot = new THREE.Group();
+  holdPivot.name = `ACE-${side}-hold`;
+  holdPivot.position.copy(joint);
+  wrist.add(holdPivot);
+  const holdFrame = new THREE.Group();
+  holdFrame.position.copy(joint).negate();
+  holdPivot.add(holdFrame);
+  holdFrame.add(hand);
+  Object.assign(rig, {
+    holdPivot,
+    holdFrame,
+    side,
+    gripping: false,
+    openGeometry: hand.geometry,
+    openQuaternion: hand.quaternion.clone(),
+    openPosition: hand.position.clone(),
+  });
+  return rig;
+};
+
+const setHandGrip = (rig, gripping) => {
+  if (!rig?.holdFrame || rig.gripping === gripping) return;
+  const { hand } = rig;
+  rig.gripping = gripping;
+  if (gripping) {
+    rig.fistGeometry = rig.fistGeometry || createFistGeometry(hand, rig.openQuaternion, rig.side);
+    hand.geometry = rig.fistGeometry;
+    hand.quaternion.copy(rig.openQuaternion).premultiply(GRIP_ROLL);
+    // Roll about the wrist joint so the hand stays joined to its sleeve.
+    const joint = rig.handWristOffset || new THREE.Vector3();
+    hand.position.copy(rig.openPosition).add(joint).sub(joint.clone().applyQuaternion(GRIP_ROLL));
+  } else {
+    hand.geometry = rig.openGeometry;
+    hand.quaternion.copy(rig.openQuaternion);
+    hand.position.copy(rig.openPosition);
+    rig.holdPivot.rotation.z = 0;
+  }
+};
+
+// The centre of the handle through a fist, in hold-frame coordinates.
+const getGripCenter = (rig) => {
+  const sign = rig.side === 'right' ? 1 : -1;
+  return new THREE.Vector3(sign * FIST.knuckleX, -FIST.curlRadius, FIST.gripZ)
+    .applyQuaternion(GRIP_ROLL)
+    .add(rig.hand.position);
+};
+
 const addArmAndHand = (model, hand, side) => {
   const sign = side === 'right' ? 1 : -1;
   const handCenter = hand.position.clone();
   const handTip = getHandTip(hand);
+  // The supplied body is slightly translucent. Opaque hands keep held props
+  // from showing through the fingers; the synthetic arms are opaque too.
+  (Array.isArray(hand.material) ? hand.material : [hand.material]).filter(Boolean).forEach((material) => {
+    material.transparent = false;
+    material.alphaMap = null;
+    material.needsUpdate = true;
+  });
   const shoulderX = 19;
   const shoulderY = 18.6;
   // Sink the base arm under the outfit shoulder so no skin-colored gap is
@@ -928,32 +1068,44 @@ const addArmAndHand = (model, hand, side) => {
   wrist.attach(hand);
 
   const handWristOffset = getHandWristOffset(hand, side);
-  return { arm, shoulder, wrist, hand, handCenter, handTip, handWristOffset };
+  return addHandHold({ arm, shoulder, wrist, hand, handCenter, handTip, handWristOffset }, side);
 };
 
 const PROP_ANCHOR_SIDES = { anchor_pos: 'right', anchor_neg: 'left', anchor_body: null };
+const GRIP_ANCHOR_SIDES = { grip_pos: 'right', grip_neg: 'left' };
 
 export const detachPropSet = (baseModel) => {
   const anchors = baseModel?.userData.propAnchors;
   if (!anchors) return;
   anchors.forEach((anchor) => anchor.removeFromParent());
   baseModel.userData.propAnchors = null;
+  const rigs = baseModel.userData.armRigs;
+  setHandGrip(rigs?.left, false);
+  setHandGrip(rigs?.right, false);
 };
 
 const syncPropAnchors = (model) => {
+  const rigs = model?.userData.armRigs;
+  [rigs?.left, rigs?.right].forEach((rig) => {
+    if (rig?.holdPivot && rig.gripping) {
+      rig.holdPivot.rotation.z = -(rig.shoulder.rotation.z + rig.wrist.rotation.z);
+    }
+  });
   model?.userData.propAnchors?.forEach((anchor) => {
     const { rig } = anchor.userData;
-    // Held props follow the hand but counter-rotate with the arm, so a mug,
-    // flask or briefcase stays upright while Acey rests or reacts.
+    // Hanging props (bags) follow the open hand but counter-rotate with the
+    // arm, so they keep hanging straight down while Acey rests or reacts.
     if (rig) anchor.rotation.z = -(rig.shoulder.rotation.z + rig.wrist.rotation.z);
   });
 };
 
-// Prop sets (public/mascot/props) are authored around the delivery's palms
-// (the centre of each hand mesh) in units of the hand span between the
-// fingertips, so one scale fits them to Acey's own hands on the approved
-// garment. `anchor_pos` follows the +x (right rig) palm, `anchor_neg` the -x
-// palm and `anchor_body` the midpoint between the fingertips.
+// Prop sets (public/mascot/props) are authored in units of the hand span
+// between the fingertips, so one scale fits them to Acey's own hands on the
+// approved garment:
+// - `grip_pos` / `grip_neg`: held through the +x (right rig) or -x fist; the
+//   origin is the centre of the handle and +y runs along it;
+// - `anchor_pos` / `anchor_neg`: hanging from the open +x or -x palm;
+// - `anchor_body`: around the midpoint between the fingertips.
 export const attachPropSet = (baseModel, propScene) => {
   detachPropSet(baseModel);
   const rigs = baseModel?.userData.armRigs;
@@ -961,11 +1113,17 @@ export const attachPropSet = (baseModel, propScene) => {
   const span = rigs.right.handTip.x - rigs.left.handTip.x;
   const anchors = [];
   propScene.children.forEach((source) => {
-    if (!(source.name in PROP_ANCHOR_SIDES)) return;
+    const gripSide = GRIP_ANCHOR_SIDES[source.name];
+    if (!gripSide && !(source.name in PROP_ANCHOR_SIDES)) return;
     const anchor = source.clone(true);
     anchor.scale.setScalar(span);
     const side = PROP_ANCHOR_SIDES[source.name];
-    if (side) {
+    if (gripSide) {
+      const rig = rigs[gripSide];
+      setHandGrip(rig, true);
+      (rig.holdFrame || rig.wrist).add(anchor);
+      anchor.position.copy(rig.holdFrame ? getGripCenter(rig) : rig.hand.position);
+    } else if (side) {
       const rig = rigs[side];
       // The hand mesh is centred on its bounding box, so its position is the palm.
       anchor.position.copy(rig.hand.position);
@@ -1150,6 +1308,93 @@ export const liftOutfitGarment = (model, liftY, integratedHood = false) => {
   model.updateMatrixWorld(true);
 };
 
+// Materials that make up Acey's brain on the shared base. Designer characters
+// list their own (`brainMaterials` on the resolved outfit).
+export const BASE_BRAIN_MATERIALS = ['toc'];
+
+// Recolors the brain. The brain texture carries its shading, so a tint
+// replaces the material color rather than darkening it; `null` restores the
+// designer's color.
+export const applyBrainTint = (root, tint, materialNames = BASE_BRAIN_MATERIALS) => {
+  if (!root || !materialNames?.length) return;
+  const color = tint ? new THREE.Color(tint) : null;
+  root.traverse((node) => {
+    if (!node.isMesh) return;
+    (Array.isArray(node.material) ? node.material : [node.material]).forEach((material) => {
+      if (!material?.color?.isColor || !materialNames.includes(material.name)) return;
+      if (!material.userData.designColor) material.userData.designColor = material.color.clone();
+      material.color.copy(color || material.userData.designColor);
+    });
+  });
+};
+
+// Reshapes a garment's headwear and collar after the garment lift, in the
+// mascot's model units (see OUTFITS[].gearAdjust). Only meshes whose material
+// matches `materialName` move:
+// - hat: vertices at or above `fromY` are scaled about `center`, tipped back
+//   by `tiltDeg` about `pivot` (front brim up) and raised by `liftY`;
+// - collar: vertices between `fromY` and `toY` shrink toward the body axis
+//   and drop, blended in from `fromY` to `blendY` so the garment stays joined.
+export const adjustOutfitGear = (model, gear) => {
+  if (!gear) return;
+  const { hat, collar, materialName } = gear;
+  model.updateMatrixWorld(true);
+  const point = new THREE.Vector3();
+  const normal = new THREE.Vector3();
+  const hatCenter = hat && new THREE.Vector3(...hat.center);
+  const hatPivot = hat && new THREE.Vector3(...hat.pivot);
+  const hatTilt = hat && new THREE.Quaternion().setFromAxisAngle(
+    new THREE.Vector3(1, 0, 0),
+    THREE.MathUtils.degToRad(-(hat.tiltDeg || 0))
+  );
+
+  model.traverse((node) => {
+    if (!node.isMesh) return;
+    const materials = Array.isArray(node.material) ? node.material : [node.material];
+    if (!materials.some((material) => material?.name === materialName)) return;
+    const positions = node.geometry?.getAttribute('position');
+    if (!positions) return;
+    const normals = node.geometry.getAttribute('normal');
+    const toModel = node.matrixWorld;
+    const toNode = toModel.clone().invert();
+    const nodeRotation = new THREE.Quaternion();
+    toModel.decompose(new THREE.Vector3(), nodeRotation, new THREE.Vector3());
+    const tiltInNode = hatTilt && nodeRotation.clone().invert().multiply(hatTilt).multiply(nodeRotation);
+    let changed = false;
+
+    for (let index = 0; index < positions.count; index += 1) {
+      point.fromBufferAttribute(positions, index).applyMatrix4(toModel);
+      if (hat && point.y >= hat.fromY) {
+        point.sub(hatCenter).multiplyScalar(hat.scale || 1).add(hatCenter);
+        point.sub(hatPivot).applyQuaternion(hatTilt).add(hatPivot);
+        point.y += hat.liftY || 0;
+        if (normals) {
+          normal.fromBufferAttribute(normals, index).applyQuaternion(tiltInNode).normalize();
+          normals.setXYZ(index, normal.x, normal.y, normal.z);
+        }
+      } else if (collar && point.y >= collar.fromY && point.y < collar.toY) {
+        const weight = THREE.MathUtils.smoothstep(point.y, collar.fromY, collar.blendY);
+        const radial = 1 - ((1 - collar.shrink) * weight);
+        point.x *= radial;
+        point.z *= radial;
+        point.y -= (collar.dropY || 0) * weight;
+      } else {
+        continue;
+      }
+      point.applyMatrix4(toNode);
+      positions.setXYZ(index, point.x, point.y, point.z);
+      changed = true;
+    }
+
+    if (changed) {
+      positions.needsUpdate = true;
+      if (normals) normals.needsUpdate = true;
+      node.geometry.computeBoundingBox();
+      node.geometry.computeBoundingSphere();
+    }
+  });
+};
+
 export const prepareOutfitModel = (model, outfit) => {
   if (outfit.unitScale !== 1) model.scale.multiplyScalar(outfit.unitScale);
   if (outfit.fullCharacter) {
@@ -1159,6 +1404,7 @@ export const prepareOutfitModel = (model, outfit) => {
     return model;
   }
   liftOutfitGarment(model, outfit.modelOffsetY, outfit.integratedHood);
+  adjustOutfitGear(model, outfit.gearAdjust);
   removeArtistBeretCrownNub(model, outfit);
   model.name = `ACEOutfit-${outfit.id}`;
   // Engineer and Creative deliberately use the base model's animated arms.

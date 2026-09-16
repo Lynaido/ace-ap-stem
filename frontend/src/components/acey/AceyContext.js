@@ -2,12 +2,15 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { useAppContext } from '../../context/AppContext';
 import { companionAPI } from '../../utils/api';
 import {
+  COLORS,
+  DEFAULT_COLOR_ID,
   DEFAULT_MOOD_ID,
   DEFAULT_OUTFIT_ID,
   MOODS,
   OUTFITS,
   PREFERENCES_KEY,
   isKnownPreference,
+  normalizeBuddyName,
   readPreferences,
 } from '../mascot/mascotCatalog';
 
@@ -21,6 +24,8 @@ export const normalizeAppearance = (appearance = {}) => ({
   outfitId: isKnownPreference(OUTFITS, appearance?.outfitId) ? appearance.outfitId : DEFAULT_OUTFIT_ID,
   moodId: isKnownPreference(MOODS, appearance?.moodId) ? appearance.moodId : DEFAULT_MOOD_ID,
   accessoriesEnabled: typeof appearance?.accessoriesEnabled === 'boolean' ? appearance.accessoriesEnabled : true,
+  colorId: isKnownPreference(COLORS, appearance?.colorId) ? appearance.colorId : DEFAULT_COLOR_ID,
+  name: normalizeBuddyName(appearance?.name),
 });
 
 export const normalizeProfile = (profile = {}) => ({
@@ -53,8 +58,8 @@ const writeJson = (key, value) => {
 
 // The landing-page customizer has always used this key, so keep it current for
 // signed-out visits and for the first sign-in on this browser.
-const writeAnonymousAppearance = ({ outfitId, moodId, accessoriesEnabled }) => {
-  writeJson(PREFERENCES_KEY, { outfitId, moodId, accessoriesEnabled });
+const writeAnonymousAppearance = ({ outfitId, moodId, accessoriesEnabled, colorId, name }) => {
+  writeJson(PREFERENCES_KEY, { outfitId, moodId, accessoriesEnabled, colorId, name });
 };
 
 const hasSavedAppearance = (appearance) => Boolean(appearance && appearance.outfitId);

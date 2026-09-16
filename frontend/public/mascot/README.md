@@ -94,25 +94,57 @@ props from the 3D team's delivery. `tmp/extract-props.mjs` builds
   `tmp/measure-hands.mjs` and checked per file — so each prop is
   re-expressed around the +x palm (`anchor_pos`), the -x palm (`anchor_neg`)
   or the fingertip midpoint (`anchor_body`), in units of the fingertip span;
-- each hand prop is placed by where it is held (`grip`): mugs by the handle
-  with the cup in front of the palm, bags and the briefcase by the handle,
-  the flask by its neck, tools, brush and diploma through the fist, the
-  palette by its inner edge — so no prop sits around or through the hand;
+- held props are gripped (2026-09-15 rework): the open web hand is a flat,
+  palm-down mitten, so props laid against it looked like they floated beside
+  or skewered the hand. `mascotModel` now curls a holding hand into a fist at
+  runtime (`FIST`: fingers bent 2.6 units around a handle under the knuckles,
+  thumb turned in beside the index finger), rolls it thumb-up and keeps it
+  upright about the wrist joint (`addHandHold`), and makes the hands opaque
+  (the body's opacity map let props show through the fingers);
+- fist props use `grip_pos` / `grip_neg`: the origin is the centre of the
+  handle and +y runs along it. `tmp/extract-props.mjs` turns each delivered
+  prop with `align` (its measured axes from `tmp/measure-frames.mjs`: handle
+  up, face to the camera), puts its `grip` point at the origin and applies a
+  small `tilt`; bags keep hanging from the open palm (`anchor_pos`);
 - `mascotModel.attachPropSet` scales the anchors to Acey's hands (span from
-  `getHandTip`, anchor at the palm); hand props follow the arm rig but
-  counter-rotate to stay upright while Acey rests or reacts;
+  `getHandTip`); hanging props counter-rotate on the wrist, fists in their
+  hold frame, so both stay upright while Acey rests or reacts;
 - arms that hold props (`PROP_SETS.holdArms`) rest lifted to 20° below
   horizontal (`HOLD_ARM_ANGLES`) so hanging items clear the floor.
 
+Review renders: `tmp/scene-preview.html?ids=…&views=0,35&focus=right|left|chest|face`
+(`&pitch=0.02` matches the customizer's eye-level camera).
+
+### Engineer hard hat, brain colors and thumbnails (2026-09-15)
+
+- **Engineer**: the supplied hard hat sat down over the eyes (brim at
+  y=63-68, eyes at 62-77) with the glasses rims cutting through the brim, and
+  the thick scarf crowded the chin — at the customizer's eye-level camera the
+  face looked squeezed. `OUTFITS.classic.gearAdjust` (applied by
+  `mascotModel.adjustOutfitGear` after the garment lift, only on
+  `non_quanao_1001`) scales the hat to 92%, tips it back 14° about the back of
+  the head and lifts it 5 units, and slims/lowers the scarf. The base hair is
+  now cut at y=84 so a fringe of brain curls shows under the brim.
+- **Brain color** (`COLORS`, `appearance.colorId`): the tint replaces the color
+  of the textured brain material — `toc` on the shared base and Fantasy,
+  `Material.002` on Cozy (`brainMaterials`). Technician's brain is baked into
+  its single texture under the hard hat, so it keeps its color.
+- **Buddy name** (`appearance.name`, validated the same way by the backend):
+  used across the Dashboard panel, the customizer and Acey's bubbles.
+- **Outfit thumbnails** (`thumbs/<id>.webp`, 240 px, transparent) for the
+  Dashboard outfit picker are real renders:
+  `scene-preview.html?ids=…&frames=120&crop=0,0,360,360&single=1&nofloor=1&save=thumb`,
+  then `node tmp/make-thumbs.mjs`. Re-render them whenever an outfit or prop changes.
+
 | Role | Props | Source |
 | --- | --- | --- |
-| 01 Engineer | Wrench & power drill | wrench from `body_AO_CT2`; clean procedural drill (the scanned drill mesh renders as specks) |
-| 02 Healthcare | Stethoscope & clipboard | `body_AO_BS2.glb` |
-| 03 Scientist | Science flask | procedural flask (the delivered flask is 31 overlapping ~90k-vertex slices, 93 MB) |
-| 05 Business | Briefcase & coffee mug | `body_AO_vest2.glb` (textures 512 px) |
+| 01 Engineer | Wrench & blueprint roll | wrench from `body_AO_CT2`; procedural blueprint roll (Technician already has the wrench and drill) |
+| 02 Healthcare | Stethoscope & clipboard | clipboard from `body_AO_BS2.glb`; procedural stethoscope draped over the coat collar (the delivered one is held in front of the legs) |
+| 03 Scientist | Science flask | procedural flask held by the neck (the delivered flask is 31 overlapping ~90k-vertex slices, 93 MB) |
+| 05 Business | Briefcase & coffee mug | `body_AO_vest2.glb` (textures 512 px); mug held by its handle |
 | 06 Creative | Paintbrush & palette | `BODY_AO_HoaSi2.glb` |
-| 07 Performer | Handbag | `body_AO_TT2.glb` (textures 512 px) |
-| 08 Fashion | Coffee mug | `body_AoKhoacTrumDau2.glb` (moved into the hand) |
+| 07 Performer | Microphone | `body_rig_AO_casi2.glb` (the singer delivery; textures 512 px) |
+| 08 Fashion | Handbag | `body_AO_TT2.glb` (the fashion delivery; textures 512 px) — previously shown on Performer by mistake |
 | 10 Scholar | Diploma scroll | procedural (no delivery) |
 
 Technician (built-in) and Cozy/Fantasy (matching posed characters) keep their

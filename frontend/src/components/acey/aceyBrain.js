@@ -80,7 +80,7 @@ export const CONTEXT_MESSAGES = {
     { id: 'study-ready', text: 'Ready to see what you remember? Let’s go! ✨', reaction: ACEY_REACTIONS.FOCUS },
   ],
   [ACEY_CONTEXTS.CUSTOMIZE]: [
-    { id: 'customize-look', text: 'Pick my look and mood. I’ll keep it on every page!', reaction: ACEY_REACTIONS.CELEBRATE },
+    { id: 'customize-look', text: 'Pick my look, brain color, name and mood. I’ll keep it on every page!', reaction: ACEY_REACTIONS.CELEBRATE },
   ],
 };
 
@@ -107,7 +107,7 @@ export const EVENT_MESSAGES = {
   // Shown once to learners who finished the tour before customization existed.
   'customize-intro': {
     id: 'event-customize-intro',
-    text: 'New! You can pick my outfit, accessories and mood. Tap “Customize Acey” to make me yours! ✨',
+    text: 'New! Make me yours right here on your Dashboard: pick my outfit, brain color, accessories and even my name! ✨',
     reaction: ACEY_REACTIONS.CELEBRATE,
     highlight: 'customize-acey',
     cta: 'customize',
@@ -119,7 +119,7 @@ export const TUTORIAL_STEPS = [
   { id: 'upload', text: "First, you can upload any AP STEM problem you're stuck on.", reaction: ACEY_REACTIONS.FOCUS, route: '/solve-problems', target: 'upload-problem' },
   { id: 'learn', text: 'Then, you can choose how you want to learn: step-by-step hints, concept notes, or the full solution.', reaction: ACEY_REACTIONS.THINK, route: '/solve-problems', target: 'learning-options' },
   { id: 'notes', text: 'You can also save useful explanations to your Notes Hub!', reaction: ACEY_REACTIONS.FOCUS, target: 'notes-hub' },
-  { id: 'customize', text: 'Want to make me yours? Pick my outfit, accessories and mood here! ✨', reaction: ACEY_REACTIONS.CELEBRATE, route: '/dashboard', target: 'customize-acey' },
+  { id: 'customize', text: 'Want to make me yours? Pick my outfit, brain color, accessories and name right here! ✨', reaction: ACEY_REACTIONS.CELEBRATE, route: '/dashboard', target: 'customize-acey' },
   { id: 'done', text: "That's it! I'm here whenever you need me. 💜", reaction: ACEY_REACTIONS.CELEBRATE },
 ];
 

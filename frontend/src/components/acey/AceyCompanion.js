@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaEllipsisH, FaTimes } from 'react-icons/fa';
 import { useAppContext } from '../../context/AppContext';
 import { useAcey } from './AceyContext';
+import { getBuddyName } from '../mascot/mascotCatalog';
 import AceyAvatar from './AceyAvatar';
 import { ACEY_EVENT } from './aceyEvents';
 import {
@@ -90,6 +91,9 @@ const AceyCompanionPanel = ({ userId, pathname, problemView }) => {
     setOnboardingStatus,
   } = useAcey();
   const context = getAceyContext(pathname, problemView);
+  // Messages are written with the default name; learners can rename Acey.
+  const name = getBuddyName(appearance);
+  const speak = (text) => text.replace(/\bAcey\b/g, name);
   const [bubble, setBubble] = useState(null);
   const [reaction, setReaction] = useState(null);
   const [tutorialStep, setTutorialStep] = useState(null);
@@ -375,19 +379,19 @@ const AceyCompanionPanel = ({ userId, pathname, problemView }) => {
   return (
     <aside
       className={`acey-companion${minimized ? ' is-minimized' : ''}${tutorialActive ? ' is-touring' : ''}`}
-      aria-label="Acey, your study buddy"
+      aria-label={`${name}, your study buddy`}
     >
       {bubble && (!minimized || bubble.kind === 'tutorial') && (
         <div
           className={`acey-bubble acey-bubble--${bubble.kind}`}
           role={bubble.kind === 'tutorial' ? 'dialog' : 'status'}
           aria-live="polite"
-          aria-label={bubble.kind === 'tutorial' ? 'Acey tour' : undefined}
+          aria-label={bubble.kind === 'tutorial' ? `${name} tour` : undefined}
         >
-          <p className="acey-bubble__text">{bubble.message.text}</p>
+          <p className="acey-bubble__text">{speak(bubble.message.text)}</p>
           {bubble.kind !== 'tutorial' && (bubble.kind === 'manual' || bubble.message.cta === 'customize') && (
             <Link className="acey-bubble__link" to="/customize-acey" onClick={hideBubble}>
-              ✨ Customize Acey
+              ✨ Customize {name}
             </Link>
           )}
           {bubble.kind === 'tutorial' && (
@@ -397,7 +401,7 @@ const AceyCompanionPanel = ({ userId, pathname, problemView }) => {
                 {isLastStep ? (
                   <>
                     <Link className="acey-button" to="/customize-acey" onClick={() => finishTutorial('completed')}>
-                      ✨ Customize Acey
+                      ✨ Customize {name}
                     </Link>
                     <button type="button" className="acey-button acey-button--primary" onClick={() => finishTutorial('completed')}>
                       Got it
@@ -436,7 +440,7 @@ const AceyCompanionPanel = ({ userId, pathname, problemView }) => {
             <button
               type="button"
               className="acey-companion__menu-toggle"
-              aria-label="Acey options"
+              aria-label={`${name} options`}
               aria-expanded={menuOpen}
               aria-haspopup="menu"
               onClick={() => setMenuOpen((open) => !open)}
@@ -445,13 +449,13 @@ const AceyCompanionPanel = ({ userId, pathname, problemView }) => {
             </button>
             {menuOpen && (
               <div className="acey-menu" role="menu">
-                <Link role="menuitem" to="/customize-acey" onClick={() => setMenuOpen(false)}>Customize Acey</Link>
+                <Link role="menuitem" to="/customize-acey" onClick={() => setMenuOpen(false)}>Customize {name}</Link>
                 <button type="button" role="menuitem" onClick={() => goToStep(0)}>Show me around</button>
                 <button type="button" role="menuitem" onClick={toggleTips}>
                   {preferences.bubblesEnabled ? 'Pause tips' : 'Turn tips back on'}
                 </button>
                 <button type="button" role="menuitem" onClick={toggleMinimized}>
-                  {preferences.minimized ? 'Expand Acey' : 'Minimize Acey'}
+                  {preferences.minimized ? `Expand ${name}` : `Minimize ${name}`}
                 </button>
               </div>
             )}
@@ -462,7 +466,7 @@ const AceyCompanionPanel = ({ userId, pathname, problemView }) => {
           type="button"
           className="acey-companion__avatar"
           onClick={handleAvatarClick}
-          aria-label={minimized ? 'Open Acey' : 'Talk to Acey'}
+          aria-label={minimized ? `Open ${name}` : `Talk to ${name}`}
         >
           <AceyAvatar appearance={appearance} reaction={reaction} />
         </button>

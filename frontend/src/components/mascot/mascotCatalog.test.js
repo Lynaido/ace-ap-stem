@@ -1,13 +1,51 @@
 import {
+  COLORS,
+  DEFAULT_BUDDY_NAME,
+  DEFAULT_COLOR_ID,
   OUTFITS,
   POSED_VARIANTS,
   PROP_SETS,
   REACTIONS,
   REACTION_DURATIONS,
+  getBrainTint,
+  getBuddyName,
   getOutfitAccessories,
+  normalizeBuddyName,
   resolveOutfitVariant,
 } from './mascotCatalog';
 import { ACEY_REACTIONS } from '../acey/aceyBrain';
+import { normalizeAppearance } from '../acey/AceyContext';
+
+describe('brain colors and buddy name', () => {
+  it('offers distinct colors with the designer lavender as the default', () => {
+    expect(COLORS[0].id).toBe(DEFAULT_COLOR_ID);
+    expect(getBrainTint(DEFAULT_COLOR_ID)).toBeNull();
+    expect(new Set(COLORS.map((color) => color.id)).size).toBe(COLORS.length);
+    COLORS.slice(1).forEach((color) => expect(getBrainTint(color.id)).toMatch(/^#[0-9a-f]{6}$/));
+    expect(getBrainTint('unknown')).toBeNull();
+  });
+
+  it('keeps names short and plain, falling back to Acey', () => {
+    expect(normalizeBuddyName('  Nova   Star ')).toBe('Nova Star');
+    expect(normalizeBuddyName('Bé Ốc')).toBe('Bé Ốc');
+    expect(normalizeBuddyName('<b>Hi</b>')).toBe('');
+    expect(normalizeBuddyName('A'.repeat(21))).toBe('');
+    expect(getBuddyName({ name: '' })).toBe(DEFAULT_BUDDY_NAME);
+    expect(getBuddyName({ name: 'Pixel' })).toBe('Pixel');
+  });
+
+  it('normalizes saved appearance with a color and a name', () => {
+    expect(normalizeAppearance({ outfitId: 'doctor', colorId: 'mint', name: ' Pixel ' })).toMatchObject({
+      outfitId: 'doctor', colorId: 'mint', name: 'Pixel',
+    });
+    expect(normalizeAppearance({ colorId: 'neon', name: 42 })).toMatchObject({ colorId: DEFAULT_COLOR_ID, name: '' });
+  });
+
+  it('knows which materials form the brain on designer characters', () => {
+    expect(resolveOutfitVariant(OUTFITS.find((outfit) => outfit.id === 'hoodie'), true).brainMaterials).toEqual(['Material.002']);
+    expect(resolveOutfitVariant(OUTFITS.find((outfit) => outfit.id === 'wizard'), true).brainMaterials).toEqual(['toc']);
+  });
+});
 
 describe('study reactions', () => {
   it('previews exactly the reactions Acey plays while studying', () => {

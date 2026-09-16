@@ -5,6 +5,7 @@ import {
   ACTION_ARM_ANGLES,
   MASCOT_FLOOR_Y,
   REST_ARM_ANGLES,
+  applyBrainTint,
   applyHeadwearHairMask,
   attachPropSet,
   configureBaseArmRigs,
@@ -21,7 +22,7 @@ import {
   setArmPose,
   shouldShowSharedBase,
 } from './mascotModel';
-import { REACTION_DURATIONS } from './mascotCatalog';
+import { REACTION_DURATIONS, getBrainTint } from './mascotCatalog';
 import { blendMoodMotion, stepMoodWeights } from './mascotMotion';
 
 // Seconds per study reaction. Unknown reactions fall back to a short nod.
@@ -201,6 +202,20 @@ export const createMascotScene = ({
     model.userData.fittedToBase = true;
   };
 
+  // The learner's brain color applies to the shared base and, for designer
+  // characters, to the brain materials they list.
+  let brainTint = null;
+  const syncBrainTint = (outfit = activeOutfit) => {
+    applyBrainTint(contentRoot.getObjectByName('ACEWebReadyBase'), brainTint);
+    if (visibleOutfit && outfit?.fullCharacter) {
+      applyBrainTint(visibleOutfit, brainTint, outfit.brainMaterials || []);
+    }
+  };
+  const setBrainColor = (colorId) => {
+    brainTint = getBrainTint(colorId);
+    syncBrainTint();
+  };
+
   // Props for garment roles live on the shared base's hands. Each set is
   // loaded once; switching roles swaps the attached copy.
   const propSets = new Map();
@@ -277,6 +292,7 @@ export const createMascotScene = ({
         }
       }
       syncProps(outfit);
+      syncBrainTint(outfit);
       syncFloorTarget(outfit);
       onOutfitStatus('ready');
       onOutfitProgress(null);
@@ -341,6 +357,7 @@ export const createMascotScene = ({
         }
         syncProps(activeOutfit);
       }
+      syncBrainTint();
 
       onBaseStatus('ready');
     },
@@ -476,5 +493,5 @@ export const createMascotScene = ({
     renderer.dispose();
   };
 
-  return { showOutfit, setMood, playAction, setPaused, dispose };
+  return { showOutfit, setMood, setBrainColor, playAction, setPaused, dispose };
 };

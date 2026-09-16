@@ -8,10 +8,18 @@ import logger from '../config/logger';
 // moods and accessories can ship from the frontend without a backend release.
 const identifier = z.string().regex(/^[a-z0-9-]{1,40}$/, 'Invalid identifier');
 
+// The name a learner gives Acey: letters (any language), digits, spaces and
+// . ' - only, up to 20 characters. An empty string restores the default name.
+const buddyName = z.string()
+  .transform((value) => value.trim().replace(/\s+/g, ' '))
+  .refine((value) => value === '' || /^[\p{L}\p{N}][\p{L}\p{N} .'-]{0,19}$/u.test(value), 'Invalid name');
+
 const appearanceSchema = z.object({
   outfitId: identifier.optional(),
   moodId: identifier.optional(),
   accessoriesEnabled: z.boolean().optional(),
+  colorId: identifier.optional(),
+  name: buddyName.optional(),
 }).strict();
 
 const preferencesSchema = z.object({
@@ -23,7 +31,7 @@ const onboardingSchema = z.object({
   status: z.enum(['completed', 'skipped', 'dismissed']),
 }).strict();
 
-const updateCompanionSchema = z.object({
+export const updateCompanionSchema = z.object({
   appearance: appearanceSchema.optional(),
   preferences: preferencesSchema.optional(),
   onboarding: onboardingSchema.optional(),
