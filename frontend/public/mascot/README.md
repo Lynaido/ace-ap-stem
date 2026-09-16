@@ -107,6 +107,12 @@ Roles (2026-09-16 night), numbered 01–12:
 | 08 Fashion | `poses/fashion.glb` | `body_AO_TT2.glb` without `pSphere8` (a bind-pose copy of the Technician's hat, harness and belt); its pink designer bag (175 parts) replaced by the purple tote with yellow dots from the render (`tmp/build-fashion-bag.mjs`). Garment id `activewear` (AO_TT, "thời trang"). |
 | 10 Cozy / 11 Gamer | unchanged assets | Renamed: the pink hooded jacket with a mug is Cozy, the hoodie with headphones and controller is Gamer. |
 
+The Original also carries the render's details (`tmp/build-original.mjs`): clear
+domed glass lenses in the glasses (fitted to the rims by `tmp/glasses-rings.mjs`)
+with a crescent of reflected light, a warm glowing bulb tip and an amber line
+where the glass meets the screw base. Approved glows keep their strength
+(`configureModel` no longer caps emissive light on `keepColor` materials).
+
 The Engineer's brain is now its own material (`engineer_brain`, the 2,977-vertex
 piece split out of the skin mesh), so brain colors apply to it too.
 

@@ -65,7 +65,8 @@ export const configureModel = (model, { keepColors = false } = {}) => {
           : color.l;
         material.color.setHSL(color.h, softenedSaturation, softenedLightness);
       }
-      if (Number.isFinite(material.emissiveIntensity)) {
+      // Approved colors keep their glow (the Original's warm bulb light).
+      if (Number.isFinite(material.emissiveIntensity) && !keepColor) {
         material.emissiveIntensity = Math.min(material.emissiveIntensity, 0.32);
       }
       material.needsUpdate = true;
