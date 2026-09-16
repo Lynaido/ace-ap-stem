@@ -134,11 +134,23 @@ export const OUTFITS = [
     // The supplied gown, cap and tassel share one plain white material. Paint
     // them as in the approved Scholar render: a black gown and cap with a gold
     // tassel (cord and tuft hang at x≈-43, its button tops the cap).
+    // The gown is three nested torso layers; the inner two get their own
+    // colors so the vest reads as a separate layer under the open gown.
     regionColors: {
       color: '#26262e',
       regions: [
         { color: '#d8a31f', min: [-47, 38, 0.5], max: [-38.5, 60, 9.5] },
         { color: '#d8a31f', min: [-43.5, 88.5, 2.5], max: [-39.2, 93, 6.8] },
+      ],
+      components: [
+        // Tie: the narrow strip down the front.
+        { color: '#d8a31f', min: [-4.2, 6.5, 15.5], max: [4.2, 21, 18.5] },
+        // Buttons down the vest front.
+        { color: '#b98a1c', min: [-0.6, -2.5, 18], max: [0.6, 13, 19.4] },
+        // Shirt: the innermost torso layer.
+        { color: '#f1f0f6', min: [-22.6, -4.8, -17.8], max: [22.6, 25.4, 17.8] },
+        // Vest: the middle layer, between shirt and gown.
+        { color: '#555b6b', min: [-23.8, -5.6, -18.8], max: [23.8, 26, 20.3] },
       ],
     },
     cuffOverlap: 3.4, handOffsetY: 3.49,

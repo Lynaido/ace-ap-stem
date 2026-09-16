@@ -88,6 +88,11 @@ Follow-ups (later on 2026-09-16):
   that z-fought into speckles. `tmp/build-wizard-book.mjs` replaces them in
   `poses/wizard.glb` with a clean open book (`spell_book`), held still
   (`hold.fixed`) with the palm under its spine.
+- **Engineer wrench**: the delivered wrench material is plain white and vanished
+  against the glove; `build-design-mascots.mjs engineer` makes it brushed steel.
+- **Scholar layers**: `regionColors.components` colors whole connected pieces
+  by bounds, so the gown's nested layers separate: black gown, slate vest with
+  gold buttons, white shirt and a gold tie.
 - **Jacket sides**: beside the torso only vertices above the armpit follow the
   arm (`ARM_FRAME.torsoX` / `armpitY`), so bulky jackets (Fashion, Cozy) no
   longer open a gap at the hip when the arms bend.

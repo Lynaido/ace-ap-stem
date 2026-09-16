@@ -1513,28 +1513,95 @@ export const adjustOutfitGear = (model, gear) => {
   });
 };
 
-// A garment delivered as one plain white material (the Scholar gown, cap and
-// tassel) is painted in its approved colors with vertex colors:
-// `regionColors: { color, regions: [{ color, min: [x, y, z], max: [x, y, z] }] }`
-// in the prepared model's coordinates. The first matching region wins.
+// A garment delivered as one plain white material (the Scholar gown, vest,
+// shirt, tie, cap and tassel) is painted in its approved colors with vertex
+// colors, in the prepared model's coordinates:
+// `regionColors: {
+//   color,
+//   regions: [{ color, min, max }],     // per vertex: the point is inside
+//   components: [{ color, min, max }],  // per connected piece: all of it is inside
+// }`
+// Regions are checked first, then pieces; the first match wins. Pieces tell
+// nested layers apart (a vest inside a gown) where a box around points cannot.
+const boxRule = (rule) => ({
+  color: new THREE.Color(rule.color),
+  box: new THREE.Box3(new THREE.Vector3(...rule.min), new THREE.Vector3(...rule.max)),
+});
+
+// Connected pieces of a mesh, welding vertices that share a position (loaders
+// often split vertices along UV and normal seams). Returns each vertex's piece
+// and each piece's bounds in model space.
+const getMeshPieces = (geometry, matrix) => {
+  const positions = geometry.getAttribute('position');
+  const indices = geometry.getIndex();
+  const { count } = positions;
+  const point = new THREE.Vector3();
+  const welded = new Map();
+  const parent = new Int32Array(count);
+  const weld = new Int32Array(count);
+  for (let index = 0; index < count; index += 1) {
+    point.fromBufferAttribute(positions, index);
+    const key = `${point.x.toFixed(4)},${point.y.toFixed(4)},${point.z.toFixed(4)}`;
+    if (!welded.has(key)) welded.set(key, index);
+    weld[index] = welded.get(key);
+    parent[index] = index;
+  }
+  const find = (value) => {
+    let root = value;
+    while (parent[root] !== root) {
+      parent[root] = parent[parent[root]];
+      root = parent[root];
+    }
+    return root;
+  };
+  const join = (a, b) => {
+    const rootA = find(weld[a]);
+    const rootB = find(weld[b]);
+    if (rootA !== rootB) parent[rootA] = rootB;
+  };
+  const corners = indices ? indices.count : count;
+  for (let corner = 0; corner + 2 < corners; corner += 3) {
+    const a = indices ? indices.getX(corner) : corner;
+    const b = indices ? indices.getX(corner + 1) : corner + 1;
+    const c = indices ? indices.getX(corner + 2) : corner + 2;
+    join(a, b);
+    join(b, c);
+  }
+  const piece = new Int32Array(count);
+  const bounds = new Map();
+  for (let index = 0; index < count; index += 1) {
+    const root = find(weld[index]);
+    piece[index] = root;
+    if (!bounds.has(root)) bounds.set(root, new THREE.Box3());
+    bounds.get(root).expandByPoint(point.fromBufferAttribute(positions, index).applyMatrix4(matrix));
+  }
+  return { piece, bounds };
+};
+
 export const applyRegionColors = (model, regionColors) => {
   if (!regionColors) return;
   model.updateMatrixWorld(true);
   const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert();
   const base = new THREE.Color(regionColors.color);
-  const regions = (regionColors.regions || []).map((region) => ({
-    color: new THREE.Color(region.color),
-    box: new THREE.Box3(new THREE.Vector3(...region.min), new THREE.Vector3(...region.max)),
-  }));
+  const regions = (regionColors.regions || []).map(boxRule);
+  const pieceRules = (regionColors.components || []).map(boxRule);
   const point = new THREE.Vector3();
   model.traverse((node) => {
     if (!node.isMesh || !node.geometry?.getAttribute('position')) return;
     const positions = node.geometry.getAttribute('position');
     const matrix = new THREE.Matrix4().multiplyMatrices(toModel, node.matrixWorld);
+    const pieces = pieceRules.length ? getMeshPieces(node.geometry, matrix) : null;
+    const pieceColors = new Map();
+    pieces?.bounds.forEach((box, root) => {
+      const rule = pieceRules.find((candidate) => candidate.box.containsBox(box));
+      if (rule) pieceColors.set(root, rule.color);
+    });
     const colors = new Float32Array(positions.count * 3);
     for (let index = 0; index < positions.count; index += 1) {
       point.fromBufferAttribute(positions, index).applyMatrix4(matrix);
-      const color = regions.find((region) => region.box.containsPoint(point))?.color || base;
+      const color = regions.find((region) => region.box.containsPoint(point))?.color
+        || (pieces && pieceColors.get(pieces.piece[index]))
+        || base;
       colors.set([color.r, color.g, color.b], index * 3);
     }
     node.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
