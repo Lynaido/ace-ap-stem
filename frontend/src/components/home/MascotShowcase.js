@@ -382,7 +382,11 @@ const MascotShowcase = ({ variant = 'landing' }) => {
                   </div>
                 ) : (
                   <div className="mascot-accessory__empty">
-                    <p>No props for the {activeOutfit.label} role yet. Its outfit is shown as usual.</p>
+                    <p>
+                      {activeOutfit.plain
+                        ? 'The Original Acey wears no outfit or props. Pick a role to dress Acey up:'
+                        : `No props for the ${activeOutfit.label} role yet. Its outfit is shown as usual.`}
+                    </p>
                     <div className="mascot-accessory__roles">
                       <span>Roles with props:</span>
                       {PROP_ROLES.map((outfit) => (

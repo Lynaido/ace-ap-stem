@@ -749,14 +749,14 @@ const createOutfitArmRigs = (model, armPose) => {
   return rigs;
 };
 
-const createSkinMaterial = (hand) => {
-  const source = Array.isArray(hand.material) ? hand.material[0] : hand.material;
-  return new THREE.MeshStandardMaterial({
-    color: source?.color?.clone() || new THREE.Color(0xd8c9ef),
-    roughness: Number.isFinite(source?.roughness) ? source.roughness : 0.62,
-    metalness: Number.isFinite(source?.metalness) ? source.metalness : 0.02,
-  });
-};
+// The synthetic arms match the pearl-white, lavender-tinged skin of the
+// textured hands (the FBX material color is a flat grey placeholder).
+const SKIN_COLOR = '#ece5f7';
+const createSkinMaterial = () => new THREE.MeshStandardMaterial({
+  color: new THREE.Color(SKIN_COLOR),
+  roughness: 0.5,
+  metalness: 0.02,
+});
 
 // The hand mesh is centred for clean re-parenting, but the sleeve joins the
 // hand at its proximal edge rather than at the hand's visual centre. Measure
@@ -1091,7 +1091,7 @@ const addArmAndHand = (model, hand, side) => {
 
   const arm = new THREE.Mesh(
     new THREE.CapsuleGeometry(radius, Math.max(4, totalLength - (radius * 2)), 8, 16),
-    createSkinMaterial(hand)
+    createSkinMaterial()
   );
   arm.name = `ACE-${side}-arm`;
   arm.rotation.z = sign * -Math.PI / 2;

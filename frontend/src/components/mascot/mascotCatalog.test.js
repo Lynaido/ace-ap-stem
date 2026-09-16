@@ -68,7 +68,7 @@ const byId = (id) => OUTFITS.find((outfit) => outfit.id === id);
 
 describe('designer poses with accessories', () => {
   it('uses matching posed characters and keeps every other role in its approved garment', () => {
-    expect(Object.keys(POSED_VARIANTS)).toEqual(['classic', 'activewear', 'artist', 'cloak', 'wizard', 'hoodie']);
+    expect(Object.keys(POSED_VARIANTS)).toEqual(['classic', 'doctor', 'activewear', 'artist', 'cloak', 'wizard', 'hoodie']);
     expect(resolveOutfitVariant(byId('wizard'), true)).toMatchObject({
       url: '/mascot/poses/wizard.glb',
       fullCharacter: true,
@@ -86,13 +86,18 @@ describe('designer poses with accessories', () => {
       fullCharacter: true,
       variant: 'posed',
     });
-    expect(resolveOutfitVariant(byId('activewear'), true).hold.left.grip.meshes).toEqual(['Prongs_low_Microphone_0']);
+    expect(byId('singer')).toMatchObject({ url: '/mascot/poses/singer.glb', fullCharacter: true });
+    expect(byId('singer').hold.left.grip.meshes).toEqual(['Prongs_low_Microphone_0']);
+    expect(resolveOutfitVariant(byId('activewear'), true)).toMatchObject({ label: 'Fashion', url: '/mascot/poses/fashion.glb' });
+    expect(resolveOutfitVariant(byId('doctor'), true)).toMatchObject({ url: '/mascot/poses/healthcare.glb' });
+    expect(resolveOutfitVariant(byId('original'), true)).toBe(byId('original'));
   });
 
   it('gives every role accessories, with props on the approved garment where no matching pose exists', () => {
-    OUTFITS.forEach((outfit) => expect(getOutfitAccessories(outfit)).not.toBeNull());
+    OUTFITS.filter((outfit) => !outfit.plain).forEach((outfit) => expect(getOutfitAccessories(outfit)).not.toBeNull());
+    expect(getOutfitAccessories(byId('original'))).toBeNull();
     expect(Object.keys(PROP_SETS).sort()).toEqual(
-      OUTFITS.filter((outfit) => !outfit.accessories && !POSED_VARIANTS[outfit.id]).map((outfit) => outfit.id).sort()
+      OUTFITS.filter((outfit) => !outfit.plain && !outfit.accessories && !POSED_VARIANTS[outfit.id]).map((outfit) => outfit.id).sort()
     );
     Object.entries(PROP_SETS).forEach(([id, set]) => {
       const outfit = byId(id);
@@ -105,20 +110,21 @@ describe('designer poses with accessories', () => {
   });
 
   it('uses a posed character for a role once one is registered', () => {
-    const doctor = byId('doctor');
-    POSED_VARIANTS.doctor = { url: '/mascot/poses/healthcare.glb', label: 'Stethoscope & clipboard' };
+    // Business has no posed character yet; register one for this test only.
+    const business = byId('vest');
+    POSED_VARIANTS.vest = { url: '/mascot/poses/business.glb', label: 'Briefcase & coffee mug' };
     try {
-      expect(resolveOutfitVariant(doctor, true)).toMatchObject({
-        id: 'doctor',
-        url: '/mascot/poses/healthcare.glb',
+      expect(resolveOutfitVariant(business, true)).toMatchObject({
+        id: 'vest',
+        url: '/mascot/poses/business.glb',
         fullCharacter: true,
         variant: 'posed',
         modelOffsetY: 0,
       });
-      expect(resolveOutfitVariant(doctor, false)).toBe(doctor);
-      expect(getOutfitAccessories(doctor)).toEqual({ label: 'Stethoscope & clipboard', builtIn: false });
+      expect(resolveOutfitVariant(business, false)).toBe(business);
+      expect(getOutfitAccessories(business)).toEqual({ label: 'Briefcase & coffee mug', builtIn: false });
     } finally {
-      delete POSED_VARIANTS.doctor;
+      delete POSED_VARIANTS.vest;
     }
   });
 

@@ -251,9 +251,10 @@ export const createMascotScene = ({
     if (!outfit || disposed) return;
     activeOutfit = outfit;
     const requestId = ++outfitRequest;
-    const key = cacheKey(outfit);
     onOutfitStatus('loading');
     onOutfitProgress(null);
+
+    const key = cacheKey(outfit);
 
     try {
       let model = outfitCache.get(key);

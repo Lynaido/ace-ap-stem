@@ -29,7 +29,7 @@ test('customizes the outfit, color, accessories and name in place', () => {
   expect(tabs.map((tab) => tab.textContent.trim())).toEqual(['Choose Outfit', 'Pick Color', 'Accessories', 'Name Acey']);
 
   // Outfit: every role is a card; choosing one saves it.
-  const scientist = screen.getByRole('button', { name: /03\s*scientist/i });
+  const scientist = screen.getByRole('button', { name: /04\s*scientist/i });
   fireEvent.click(scientist);
   expect(scientist).toHaveAttribute('aria-pressed', 'true');
   expect(JSON.parse(localStorage.getItem('ace-mascot-preferences-v1')).outfitId).toBe('long-vest');

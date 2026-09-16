@@ -48,7 +48,7 @@ test('renders complete mascot personalization controls', () => {
   expect(screen.getByRole('group', { name: /outfit/i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /^mood$/i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /study reactions/i })).toBeInTheDocument();
-  expect(within(screen.getByRole('group', { name: /outfit/i })).getAllByRole('button')).toHaveLength(10);
+  expect(within(screen.getByRole('group', { name: /outfit/i })).getAllByRole('button')).toHaveLength(12);
   expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(2);
 });
 
@@ -66,11 +66,20 @@ test('explains moods and previews every study reaction Acey uses', () => {
   expect(screen.getByRole('button', { name: 'Preview Encourage' })).toHaveAccessibleDescription(/something goes wrong/i);
 });
 
-test('gives every role props and a switch for them', () => {
+test('starts on the Original Acey and gives every other role props with a switch', () => {
   render(<MascotShowcase />);
 
   const outfits = within(screen.getByRole('group', { name: /outfit/i })).getAllByRole('button');
-  outfits.forEach((button) => expect(button).toHaveAccessibleName(/,\s*has props$/i));
+  expect(outfits[0]).toHaveAccessibleName('Original');
+  expect(outfits[0]).toHaveAttribute('aria-pressed', 'true');
+  expect(outfits[0]).not.toHaveAccessibleName(/has props/i);
+  expect(screen.getByText(/original acey wears no outfit or props/i)).toBeInTheDocument();
+  outfits.slice(1).forEach((button) => expect(button).toHaveAccessibleName(/,\s*has props$/i));
+});
+
+test('shows the switch for a role whose props can be turned off', () => {
+  localStorage.setItem('ace-mascot-preferences-v1', JSON.stringify({ outfitId: 'classic', accessoriesEnabled: true }));
+  render(<MascotShowcase />);
   expect(screen.getByRole('switch', { name: 'Show props: Wrench & power drill' })).toBeChecked();
 });
 
@@ -202,11 +211,13 @@ test('shows a props switch that describes what it changes', () => {
 
   const toggle = screen.getByRole('switch', { name: 'Show props: Headphones & game controller' });
   expect(toggle).not.toBeChecked();
-  expect(toggle).toHaveAccessibleDescription('Off: shows the Cozy outfit without props.');
+  expect(toggle).toHaveAccessibleDescription('Off: shows the Gamer outfit without props.');
 });
 
 test('keeps calibrated shoulder poses for layered outfits', () => {
-  expect(OUTFITS).toHaveLength(10);
+  expect(OUTFITS).toHaveLength(12);
+  // Original and Singer are complete designer characters with no garment.
+  expect(OUTFITS.filter((outfit) => outfit.fullCharacter).map((outfit) => outfit.id)).toEqual(['original', 'singer']);
   const layeredOutfits = OUTFITS.filter((outfit) => !outfit.fullCharacter);
   expect(layeredOutfits).toHaveLength(10);
   layeredOutfits.forEach((outfit) => {
@@ -316,9 +327,9 @@ test('applies measured vertical cuff corrections to the three slanted sleeves', 
   );
 
   expect(offsets).toMatchObject({
-    '03': -2.24,
-    '08': 3.49,
-    '10': 5.03,
+    '04': -2.24,
+    '09': 3.49,
+    '12': 5.03,
   });
 });
 
@@ -526,11 +537,11 @@ test('uses full headwear masks only for the supplied headwear outfits', () => {
   );
 
   expect(masks).toEqual({
-    '01': 84,
-    '05': 70,
-    '07': 70,
-    '08': 96,
-    '10': 74.5,
+    '02': 84,
+    '06': 70,
+    '09': 96,
+    '10': 70,
+    '12': 74.5,
   });
 });
 
@@ -593,9 +604,12 @@ test('preserves separated Scientist sleeve roots and gives connected sleeves a m
   });
 });
 
-test('exposes the approved ten outfit names and skips gamer', () => {
+test('exposes the approved role names in order, starting with the Original Acey', () => {
   expect(OUTFITS.map((outfit) => outfit.label)).toEqual([
-    'Engineer', 'Healthcare', 'Scientist', 'Business', 'Creative',
-    'Singer', 'Fashion', 'Scholar', 'Cozy', 'Fantasy',
+    'Original', 'Engineer', 'Healthcare', 'Scientist', 'Business', 'Creative',
+    'Singer', 'Fashion', 'Scholar', 'Cozy', 'Gamer', 'Fantasy',
   ]);
+  expect(OUTFITS.map((outfit) => outfit.number)).toEqual(
+    ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+  );
 });

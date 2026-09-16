@@ -5,7 +5,22 @@
 // vertex medians differ from the area-weighted centre of the real opening.
 export const OUTFITS = [
   {
-    id: 'classic', number: '01', label: 'Engineer', type: 'glb', url: '/mascot/outfits/classic.glb', unitScale: 100,
+    // Original: Acey as designed, the lightbulb body with no outfit. The
+    // default look; learners pick an outfit later.
+    // `plain`: Acey as designed, intentionally without an outfit or props.
+    id: 'original', number: '01', label: 'Original', type: 'glb', plain: true,
+    url: '/mascot/poses/original.glb', unitScale: 1,
+    fullCharacter: true, fullCharacterOffsetY: 0,
+    brainMaterials: ['Material.002'],
+    // The designer body with no outfit (tmp/build-original.mjs): one hand
+    // raised in a hello, the other relaxed, as in the Acey render.
+    hold: {
+      right: { target: [-0.4, 0.6, 0.14], pole: [1, -1, -0.6], roll: -90 },
+      left: { target: [0.36, 0.2, 0.12], pole: [1, 0, -1] },
+    },
+  },
+  {
+    id: 'classic', number: '02', label: 'Engineer', type: 'glb', url: '/mascot/outfits/classic.glb', unitScale: 100,
     modelOffsetY: 11.65,
     // The supplied sleeve root already sits 0.6 units inside the torso.
     // Moving its pivot farther inward makes the resting rotation pull the
@@ -33,14 +48,14 @@ export const OUTFITS = [
     showBaseArms: true, armPose: { shoulderX: 19, shoulderY: 18.6, outerMin: 24 },
   },
   {
-    id: 'doctor', number: '02', label: 'Healthcare', type: 'glb', url: '/mascot/outfits/doctor.glb', unitScale: 100,
+    id: 'doctor', number: '03', label: 'Healthcare', type: 'glb', url: '/mascot/outfits/doctor.glb', unitScale: 100,
     modelOffsetY: 18.84,
     shoulderOverlap: 1.6,
     outfitTint: '#c5e7e1',
     cuffOverlap: 3.4, armPose: { shoulderX: 19, shoulderY: 18.8, outerMin: 45 },
   },
   {
-    id: 'long-vest', number: '03', label: 'Scientist', type: 'glb', url: '/mascot/outfits/long-vest.glb', unitScale: 100,
+    id: 'long-vest', number: '04', label: 'Scientist', type: 'glb', url: '/mascot/outfits/long-vest.glb', unitScale: 100,
     modelOffsetY: 18.84,
     // Each pink sleeve is a separate supplied mesh whose inner edge begins
     // exactly at x=19.3. Keep the rotation centre on that edge: an inset
@@ -51,7 +66,7 @@ export const OUTFITS = [
     armPose: { shoulderX: 19.3, shoulderY: 18.3, outerMin: 43 },
   },
   {
-    id: 'vest', number: '04', label: 'Business', type: 'glb', url: '/mascot/outfits/vest.glb', unitScale: 100,
+    id: 'vest', number: '05', label: 'Business', type: 'glb', url: '/mascot/outfits/vest.glb', unitScale: 100,
     // The supplied vest ends well below the mascot's chin. Lift the complete
     // garment and its authored shoulder pivots together so the collar, cuffs,
     // hands and action poses remain one connected character.
@@ -60,7 +75,7 @@ export const OUTFITS = [
     cuffOverlap: 3.2, armPose: { shoulderX: 18.3, shoulderY: 18.6, outerMin: 45 },
   },
   {
-    id: 'artist', number: '05', label: 'Creative', type: 'glb', url: '/mascot/outfits/artist.glb', unitScale: 100,
+    id: 'artist', number: '06', label: 'Creative', type: 'glb', url: '/mascot/outfits/artist.glb', unitScale: 100,
     modelOffsetY: 17.66,
     // The short-sleeve shoulder has to be cut at its authored outside edge,
     // while its rotation centre stays under the bib. Decoupling those two
@@ -92,7 +107,26 @@ export const OUTFITS = [
     showBaseArms: true, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 24 },
   },
   {
-    id: 'activewear', number: '06', label: 'Singer', type: 'glb', url: '/mascot/outfits/activewear.glb', unitScale: 100,
+    // Singer: the 3D team's body_rig_AO_casi2 character (pink blazer,
+    // headphones, microphone). It has no separate garment, so it is a complete
+    // character whose props are always on.
+    id: 'singer', number: '07', label: 'Singer', type: 'glb', url: '/mascot/poses/singer.glb', unitScale: 1,
+    fullCharacter: true, fullCharacterOffsetY: 0,
+    accessories: { label: 'Headphones & microphone', builtIn: true },
+    brainMaterials: ['Material.004.1001'],
+    // The microphone sits in a fist held up by the mouth; the other arm rests.
+    hold: {
+      left: {
+        target: [0.12, 0.39, 0.28],
+        pole: [1, -1, -0.4],
+        grip: { meshes: ['Prongs_low_Microphone_0'], at: 0.3 },
+      },
+      right: { target: [-0.34, 0.13, 0.08], pole: [1, 0.2, -1] },
+    },
+  },
+  {
+    // Fashion (AO_TT, "thời trang"): lavender top, navy overalls, handbag.
+    id: 'activewear', number: '08', label: 'Fashion', type: 'glb', url: '/mascot/outfits/activewear.glb', unitScale: 100,
     modelOffsetY: 16.14,
     // Its continuous top is split into a moving sleeve and fixed torso at
     // runtime. Keep that cut at the asset's outer shoulder edge, but tuck the
@@ -100,8 +134,7 @@ export const OUTFITS = [
     // beneath the torso through the rest pose and all three-quarter rotations.
     shoulderPivotInset: 1.6,
     shoulderCutOverlap: 0,
-    outfitTint: '#ecb3cb',
-    // The pink top is a connected mesh while the dark bib stays fixed. A
+    // The top is a connected mesh while the dark bib stays fixed. A
     // moving, open sleeve shroud uses the same source cloth to bridge their
     // joint without leaving a U-shaped socket at the rear shoulder.
     outfitArmShroud: {
@@ -111,20 +144,7 @@ export const OUTFITS = [
     cuffOverlap: 3.2, armPose: { shoulderX: 19, shoulderY: 18.55, outerMin: 45 },
   },
   {
-    id: 'cloak', number: '07', label: 'Fashion', type: 'glb', url: '/mascot/outfits/cloak.glb', unitScale: 100,
-    // Measured hood peak is 102.46 versus the base-hair peak 116.40.
-    // This 15.44 lift supplies a 1.5-unit safety clearance at the crown.
-    modelOffsetY: 15.44, integratedHood: 'liftAll',
-    shoulderOverlap: 1.4,
-    // The hood and coat are one connected mesh. Its inner opening reaches
-    // y=70 after the calibrated lift, so no base-brain triangle can show
-    // through the hood cavity.
-    headwearHairCutoffY: 70,
-    outfitTint: '#e8b5d3',
-    cuffOverlap: 3.2, armPose: { shoulderX: 16.3, shoulderY: 19.45, outerMin: 45 },
-  },
-  {
-    id: 'graduation', number: '08', label: 'Scholar', type: 'fbx',
+    id: 'graduation', number: '09', label: 'Scholar', type: 'fbx',
     url: '/mascot/outfits/graduation/graduation.fbx', unitScale: 1,
     modelOffsetY: 17,
     shoulderOverlap: 1.6,
@@ -157,14 +177,27 @@ export const OUTFITS = [
     armPose: { shoulderX: 21.1, shoulderY: 18.8, outerMin: 45 },
   },
   {
-    id: 'hoodie', number: '09', label: 'Cozy', type: 'glb', url: '/mascot/outfits/hoodie.glb', unitScale: 100,
+    id: 'cloak', number: '10', label: 'Cozy', type: 'glb', url: '/mascot/outfits/cloak.glb', unitScale: 100,
+    // Measured hood peak is 102.46 versus the base-hair peak 116.40.
+    // This 15.44 lift supplies a 1.5-unit safety clearance at the crown.
+    modelOffsetY: 15.44, integratedHood: 'liftAll',
+    shoulderOverlap: 1.4,
+    // The hood and coat are one connected mesh. Its inner opening reaches
+    // y=70 after the calibrated lift, so no base-brain triangle can show
+    // through the hood cavity.
+    headwearHairCutoffY: 70,
+    outfitTint: '#e8b5d3',
+    cuffOverlap: 3.2, armPose: { shoulderX: 16.3, shoulderY: 19.45, outerMin: 45 },
+  },
+  {
+    id: 'hoodie', number: '11', label: 'Gamer', type: 'glb', url: '/mascot/outfits/hoodie.glb', unitScale: 100,
     modelOffsetY: 15.72,
     shoulderOverlap: 1.6,
     outfitTint: '#c8b7e8',
     cuffOverlap: 3.4, armPose: { shoulderX: 16.1, shoulderY: 19.45, outerMin: 45 },
   },
   {
-    id: 'wizard', number: '10', label: 'Fantasy', type: 'glb', url: '/mascot/outfits/wizard.glb', unitScale: 100,
+    id: 'wizard', number: '12', label: 'Fantasy', type: 'glb', url: '/mascot/outfits/wizard.glb', unitScale: 100,
     modelOffsetY: 17.12,
     shoulderOverlap: 1.6,
     // The witch-hat brim ends at y=75.1. Keep only the fringe below it so
@@ -262,14 +295,14 @@ export const COLORS = [
     swatch: 'linear-gradient(135deg, #f7a8d8 0%, #b69cff 52%, #8fc1ff 100%)',
     glow: '#b69cff',
     tint: null,
-    blend: ['#ffa6d4', '#9ec4ff', '#c8a8ff'],
+    blend: ['#ffc0e1', '#b9d3ff', '#dac4ff'],
   },
 ];
 
 export const getBrainTint = (colorId) => COLORS.find((color) => color.id === colorId)?.tint || null;
 export const getBrainBlend = (colorId) => COLORS.find((color) => color.id === colorId)?.blend || null;
 
-export const DEFAULT_OUTFIT_ID = 'classic';
+export const DEFAULT_OUTFIT_ID = 'original';
 export const DEFAULT_MOOD_ID = 'ready';
 export const DEFAULT_COLOR_ID = 'lavender';
 export const DEFAULT_BUDDY_NAME = 'Acey';
@@ -303,23 +336,34 @@ export const POSED_VARIANTS = {
   classic: {
     url: '/mascot/poses/engineer.glb',
     label: 'Wrench & power drill',
+    brainMaterials: ['engineer_brain'],
   },
-  // Singer: body_rig_AO_casi2.glb (pink blazer, headphones, microphone). The
-  // microphone sits in a fist held up by the mouth; the other arm rests.
-  activewear: {
-    url: '/mascot/poses/singer.glb',
-    label: 'Headphones & microphone',
-    brainMaterials: ['Material.004.1001'],
+  // Healthcare: body_AO_BS2.glb — white lab coat over mint scrubs with the
+  // stethoscope around the neck (kept still) and a clipboard held up beside
+  // the body.
+  doctor: {
+    url: '/mascot/poses/healthcare.glb',
+    label: 'Stethoscope & clipboard',
+    brainMaterials: ['Material.006'],
     hold: {
-      left: {
-        target: [0.12, 0.39, 0.28],
-        pole: [1, -1, -0.4],
-        grip: { meshes: ['Prongs_low_Microphone_0'], at: 0.3 },
-      },
+      left: { target: [0.5, 0.3, 0.12], pole: [0.3, -1, -0.4] },
       right: { target: [-0.34, 0.13, 0.08], pole: [1, 0.2, -1] },
+      props: { left: ['Cube002'] },
+      fixed: ['Object_4', 'Object_5'],
     },
   },
-  // phu_thuy.glb (2026-09-14): wizard hat, robe and belt match outfits/wizard.glb.
+  // Fashion: body_AO_TT2.glb (lavender top, navy overalls) carrying the purple
+  // tote from the approved render (tmp/build-fashion-bag.mjs). The palm rests
+  // on top of the handle; the bag hangs still at the hip.
+  activewear: {
+    url: '/mascot/poses/fashion.glb',
+    label: 'Handbag',
+    hold: {
+      left: { target: [0.37, 0.27, 0.09], pole: [1, 0, -1] },
+      right: { target: [-0.34, 0.13, 0.08], pole: [1, 0.2, -1] },
+      fixed: ['fashion_tote'],
+    },
+  },
   // Creative: BODY_AO_HoaSi2.glb — brown beret sitting on the brain, white
   // shirt, blue overalls; a paintbrush in one fist and the palette held out.
   artist: {
@@ -336,7 +380,7 @@ export const POSED_VARIANTS = {
       props: { left: ['Cylinder003'] },
     },
   },
-  // Fashion: body_AoKhoacTrumDau2.glb — pink hooded jacket with the brain
+  // Cozy: body_AoKhoacTrumDau2.glb — pink hooded jacket with the brain
   // showing inside the hood; both hands cup the mug.
   cloak: {
     url: '/mascot/poses/hooded-jacket.glb',
@@ -346,6 +390,7 @@ export const POSED_VARIANTS = {
       left: { target: [0.07, 0.31, 0.3], pole: [1, -1, -0.5] },
     },
   },
+  // Fantasy: phu_thuy.glb — wizard hat, robe and belt.
   wizard: {
     url: '/mascot/poses/wizard.glb',
     label: 'Magic wand & spell book',
@@ -384,7 +429,6 @@ export const POSED_VARIANTS = {
 // tmp/extract-props.mjs; see public/mascot/README.md.
 // `holdArms` lists the arms that hold something and rest lifted.
 export const PROP_SETS = {
-  doctor: { url: '/mascot/props/doctor.glb', label: 'Stethoscope & clipboard', holdArms: ['right'] },
   'long-vest': { url: '/mascot/props/long-vest.glb', label: 'Science flask', holdArms: ['left'] },
   vest: { url: '/mascot/props/vest.glb', label: 'Briefcase & coffee mug', holdArms: ['left', 'right'] },
   // The approved Scholar render points the pencil out to the side.
