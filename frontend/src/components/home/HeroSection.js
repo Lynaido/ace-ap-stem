@@ -9,12 +9,12 @@ import './HeroSection.css';
 // the camera that rendered /hero/home-scene.webp (tmp/hero-scene.html).
 const HOME_CHARACTERS = [
   { id: 'classic', x: 57.99, y: 52.56, h: 22, depth: -2.2 },
-  { id: 'graduation', x: 86.82, y: 51.86, h: 22.33, depth: -2.4 },
-  { id: 'long-vest', x: 52.35, y: 71.95, h: 25.07, depth: 0.3 },
-  { id: 'artist', x: 89.23, y: 66.91, h: 25.31, depth: 0 },
+  { id: 'graduation', x: 90.14, y: 47.23, h: 21.34, depth: -3.2 },
+  { id: 'long-vest', x: 46.27, y: 69.9, h: 23.84, depth: -0.4 },
+  { id: 'artist', x: 87.24, y: 67.9, h: 26.07, depth: 0.4 },
   { id: 'original', x: 72.99, y: 84.91, h: 40.84, depth: 1.4 },
-  { id: 'cloak', x: 54.95, y: 86.73, h: 30.61, depth: 3.1 },
-  { id: 'hoodie', x: 91.75, y: 88.59, h: 31.48, depth: 3.4 },
+  { id: 'cloak', x: 58.07, y: 88.08, h: 31.18, depth: 3.3 },
+  { id: 'hoodie', x: 98.34, y: 88.84, h: 31.79, depth: 3.5 },
 ].map((character) => ({ ...character, src: `/hero/acey-${character.id}.webp` }));
 
 const SPARKLES = [

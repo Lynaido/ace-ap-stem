@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaArrowDown, FaArrowRight, FaChevronDown, FaChevronLeft, FaChevronRight, FaTimes } from 'react-icons/fa';
+import { FaArrowDown, FaArrowRight, FaChevronDown, FaChevronLeft, FaChevronRight, FaExternalLinkAlt, FaInstagram, FaTimes, FaUser } from 'react-icons/fa';
 import '@fontsource/caveat/600.css';
 import AceyScene from '../components/home/AceyScene';
 import AceyAvatar from '../components/acey/AceyAvatar';
@@ -86,10 +86,7 @@ const STEPS = [
     title: 'Meet ACEY',
     text: 'After many iterations, ACEY finally came to life — ready to learn, explore, and grow with you.',
     slides: [
-      { src: '/about/acey-wave-hello.webp', alt: 'The finished ACEY waving hello', fit: 'contain' },
-      { src: '/about/process-final.webp', alt: 'The finished colourful Acey in a purple hoodie beside two pastel renders' },
-      { src: '/about/gallery-color-soft-thumb.webp', full: '/about/gallery-color-soft.webp', alt: 'Pastel brain, rosy cheeks and a warm glow' },
-      { src: '/about/acey-hoodie.webp', alt: 'ACEY in his cozy study hoodie', fit: 'contain' },
+      { src: '/about/gallery-color-soft.webp', alt: 'Pastel brain, rosy cheeks and a warm glow' },
     ],
   },
 ];
@@ -176,30 +173,113 @@ const TraitIcon = ({ id }) => {
   );
 };
 
-const LynaeHeart = ({ className = '' }) => (
-  <svg className={className} viewBox="0 0 150 100" aria-hidden="true">
-    <defs>
-      <radialGradient id="about-lynae-heart" cx="40%" cy="30%" r="75%">
-        <stop offset="0" stopColor="#ffe3ef" />
-        <stop offset=".55" stopColor="#ff9fc6" />
-        <stop offset="1" stopColor="#ef6fa6" />
-      </radialGradient>
-      <linearGradient id="about-lynae-wing" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#fff" />
-        <stop offset="1" stopColor="#f8d9ea" />
-      </linearGradient>
-    </defs>
-    <path d="M44 40C30 22 10 22 4 30c10 0 16 4 18 9-9-2-16 1-18 6 9-1 15 1 18 5-6 1-10 4-11 8 12-4 22-2 33-6z" fill="url(#about-lynae-wing)" stroke="#f3b6d5" strokeWidth="1.5" />
-    <path d="M106 40c14-18 34-18 40-10-10 0-16 4-18 9 9-2 16 1 18 6-9-1-15 1-18 5 6 1 10 4 11 8-12-4-22-2-33-6z" fill="url(#about-lynae-wing)" stroke="#f3b6d5" strokeWidth="1.5" />
-    <path d="M75 92C47 74 32 59 32 40c0-13 9-23 21-23 9 0 17 5 22 13 5-8 13-13 22-13 12 0 21 10 21 23 0 19-15 34-43 52z" fill="url(#about-lynae-heart)" />
-    <ellipse cx="56" cy="34" rx="9" ry="5" fill="#fff" opacity=".65" transform="rotate(-25 56 34)" />
-  </svg>
-);
-
 const Scribble = ({ className = '' }) => (
   <svg className={`ace-about__scribble ${className}`} viewBox="0 0 220 24" preserveAspectRatio="none" aria-hidden="true">
     <path d="M4 15c40-8 92-10 136-7 26 2 50 5 76 2" />
     <path d="M18 20c54-6 110-7 176-4" />
+  </svg>
+);
+
+/* Sticker doodles around the founder portrait: a cheerful brain buddy, a
+   winged heart and the little Lynae robot, drawn inline so they stay crisp. */
+const CuteBrain = ({ className = '', wink = false }) => (
+  <svg className={className} viewBox="0 0 120 108" aria-hidden="true">
+    <defs>
+      <linearGradient id="about-brain-fill" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#f3e0ff" />
+        <stop offset=".55" stopColor="#ddd0ff" />
+        <stop offset="1" stopColor="#c9baff" />
+      </linearGradient>
+    </defs>
+    <g fill="url(#about-brain-fill)" stroke="#8f7ce0" strokeWidth="2.4" strokeLinejoin="round">
+      <circle cx="40" cy="30" r="17" />
+      <circle cx="64" cy="22" r="15" />
+      <circle cx="86" cy="34" r="16" />
+      <circle cx="30" cy="50" r="15" />
+      <circle cx="92" cy="56" r="14" />
+      <circle cx="60" cy="44" r="20" />
+    </g>
+    <path d="M22 54c-4 16 6 34 26 39 7 2 15 2 22 0 20-5 30-23 26-39" fill="url(#about-brain-fill)" stroke="#8f7ce0" strokeWidth="2.4" strokeLinejoin="round" />
+    <path d="M22 56h78" stroke="#8f7ce0" strokeWidth="2.2" strokeLinecap="round" opacity=".55" />
+    <g fill="#fff" stroke="#8f7ce0" strokeWidth="2.6">
+      <circle cx="44" cy="72" r="15" />
+      <circle cx="80" cy="72" r="15" />
+    </g>
+    <path d="M59 71c1.6-1.4 3.8-1.4 5.4 0" fill="none" stroke="#8f7ce0" strokeWidth="2.4" strokeLinecap="round" />
+    {wink ? (
+      <>
+        <path d="M38 73c3-4 9-4 12 0" fill="none" stroke="#3f3374" strokeWidth="3.4" strokeLinecap="round" />
+        <path d="M74 73c3-4 9-4 12 0" fill="none" stroke="#3f3374" strokeWidth="3.4" strokeLinecap="round" />
+      </>
+    ) : (
+      <>
+        <circle cx="44" cy="72" r="6.4" fill="#3f3374" />
+        <circle cx="80" cy="72" r="6.4" fill="#3f3374" />
+        <circle cx="46.4" cy="69.6" r="2.2" fill="#fff" />
+        <circle cx="82.4" cy="69.6" r="2.2" fill="#fff" />
+      </>
+    )}
+    <ellipse cx="30" cy="84" rx="6" ry="4" fill="#ffb4d4" opacity=".75" />
+    <ellipse cx="94" cy="84" rx="6" ry="4" fill="#ffb4d4" opacity=".75" />
+    <path d="M55 88c3.4 3.6 9.6 3.6 13 0" fill="none" stroke="#3f3374" strokeWidth="3" strokeLinecap="round" />
+  </svg>
+);
+
+const CuteHeart = ({ className = '' }) => (
+  <svg className={className} viewBox="0 0 140 104" aria-hidden="true">
+    <defs>
+      <radialGradient id="about-cute-heart" cx="38%" cy="30%" r="76%">
+        <stop offset="0" stopColor="#ffe6f1" />
+        <stop offset=".55" stopColor="#ffb0d0" />
+        <stop offset="1" stopColor="#f588b6" />
+      </radialGradient>
+    </defs>
+    <path d="M40 40C27 24 10 25 5 33c9 0 14 4 16 9-8-2-14 1-16 6 8-1 13 1 16 5-5 1-9 4-10 8 11-4 20-3 30-7z" fill="#fff" stroke="#f3a9cd" strokeWidth="2" strokeLinejoin="round" />
+    <path d="M100 40c13-16 30-15 35-7-9 0-14 4-16 9 8-2 14 1 16 6-8-1-13 1-16 5 5 1 9 4 10 8-11-4-20-3-30-7z" fill="#fff" stroke="#f3a9cd" strokeWidth="2" strokeLinejoin="round" />
+    <path d="M70 96C47 79 34 66 34 50c0-11 8-19 18-19 7 0 14 4 18 11 4-7 11-11 18-11 10 0 18 8 18 19 0 16-13 29-36 46z" fill="url(#about-cute-heart)" stroke="#ef86b6" strokeWidth="2.4" strokeLinejoin="round" />
+    <circle cx="58" cy="55" r="3.6" fill="#8a3f66" />
+    <circle cx="82" cy="55" r="3.6" fill="#8a3f66" />
+    <path d="M64 63c3 3 9 3 12 0" fill="none" stroke="#8a3f66" strokeWidth="2.6" strokeLinecap="round" />
+    <ellipse cx="50" cy="62" rx="5" ry="3.4" fill="#ff8ab8" opacity=".6" />
+    <ellipse cx="90" cy="62" rx="5" ry="3.4" fill="#ff8ab8" opacity=".6" />
+  </svg>
+);
+
+const CuteRobot = ({ className = '' }) => (
+  <svg className={className} viewBox="0 0 120 120" aria-hidden="true">
+    <defs>
+      <linearGradient id="about-robot-body" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#dff0ff" />
+        <stop offset="1" stopColor="#a9d4f5" />
+      </linearGradient>
+    </defs>
+    <path d="M60 20v-8" stroke="#8fb9dd" strokeWidth="3.4" strokeLinecap="round" />
+    <circle cx="60" cy="9" r="5" fill="#ffd45e" stroke="#e2ae2f" strokeWidth="2" />
+    <rect x="20" y="20" width="80" height="62" rx="24" fill="url(#about-robot-body)" stroke="#7fb0da" strokeWidth="2.6" />
+    <rect x="31" y="34" width="58" height="34" rx="16" fill="#f4fbff" stroke="#7fb0da" strokeWidth="2.2" />
+    <circle cx="48" cy="50" r="5.4" fill="#3f5a78" />
+    <circle cx="72" cy="50" r="5.4" fill="#3f5a78" />
+    <path d="M55 59c2.6 2.6 7.4 2.6 10 0" fill="none" stroke="#3f5a78" strokeWidth="2.6" strokeLinecap="round" />
+    <ellipse cx="38" cy="58" rx="4.6" ry="3" fill="#ffaecd" opacity=".8" />
+    <ellipse cx="82" cy="58" rx="4.6" ry="3" fill="#ffaecd" opacity=".8" />
+    <rect x="8" y="42" width="12" height="22" rx="6" fill="#c3e3fa" stroke="#7fb0da" strokeWidth="2.2" />
+    <rect x="100" y="42" width="12" height="22" rx="6" fill="#c3e3fa" stroke="#7fb0da" strokeWidth="2.2" />
+    <rect x="34" y="82" width="52" height="26" rx="13" fill="url(#about-robot-body)" stroke="#7fb0da" strokeWidth="2.6" />
+    <path d="M60 104c-9-6-14-11-14-17 0-4 3-7 7-7 3 0 5.6 1.6 7 4 1.4-2.4 4-4 7-4 4 0 7 3 7 7 0 6-5 11-14 17z" fill="#ffb0d0" stroke="#ef86b6" strokeWidth="2.2" strokeLinejoin="round" />
+  </svg>
+);
+
+const Twinkle = ({ className = '' }) => (
+  <svg className={className} viewBox="0 0 40 40" aria-hidden="true">
+    <g stroke="#ffc94a" strokeWidth="3.4" strokeLinecap="round">
+      <path d="M20 6v9M31 12l-6 6M9 12l6 6M20 34v-8" />
+    </g>
+  </svg>
+);
+
+const LynaeWordmark = () => (
+  <svg className="ace-about__lynae-word" viewBox="0 0 120 34" aria-hidden="true">
+    <text x="60" y="26" textAnchor="middle">LYNAE</text>
   </svg>
 );
 
@@ -292,12 +372,16 @@ const StepCarousel = ({ step, index, onOpen }) => {
             </div>
           ))}
         </div>
-        <button type="button" className="ace-about__step-arrow ace-about__step-arrow--prev" onClick={() => go(-1)} aria-label={`Previous ${step.title} image`}>
-          <FaChevronLeft aria-hidden="true" />
-        </button>
-        <button type="button" className="ace-about__step-arrow ace-about__step-arrow--next" onClick={() => go(1)} aria-label={`Next ${step.title} image`}>
-          <FaChevronRight aria-hidden="true" />
-        </button>
+        {count > 1 && (
+          <>
+            <button type="button" className="ace-about__step-arrow ace-about__step-arrow--prev" onClick={() => go(-1)} aria-label={`Previous ${step.title} image`}>
+              <FaChevronLeft aria-hidden="true" />
+            </button>
+            <button type="button" className="ace-about__step-arrow ace-about__step-arrow--next" onClick={() => go(1)} aria-label={`Next ${step.title} image`}>
+              <FaChevronRight aria-hidden="true" />
+            </button>
+          </>
+        )}
       </div>
       <div className="ace-about__step-text">
         <div className="ace-about__step-title">
@@ -306,7 +390,7 @@ const StepCarousel = ({ step, index, onOpen }) => {
         </div>
         <p>{step.text}</p>
         <div className="ace-about__dots">
-          {step.slides.map((item, slideIndex) => (
+          {count > 1 && step.slides.map((item, slideIndex) => (
             <button
               key={item.src}
               type="button"
@@ -569,9 +653,13 @@ const AboutUsPage = () => {
 
       <section className="ace-about__founder" id="meet-founder" aria-labelledby="founder-title" data-reveal>
         <div className="ace-about__founder-copy">
-          <h2 id="founder-title" className="ace-about__h2">Meet the founder.</h2>
+          <p className="ace-about__founder-badge"><FaUser aria-hidden="true" /> Meet the founder</p>
+          <h2 id="founder-title" className="ace-about__display ace-about__founder-title">
+            Meet the<br /><span className="ace-about__gradient">founder.</span><Heart className="ace-about__founder-title-heart" />
+          </h2>
+          <p className="ace-about__body"><strong>Hi! I’m Lyna Ai Do,</strong> a high school student, artist, and aspiring engineer.</p>
           <p className="ace-about__body">
-            Hi! I’m Lyna Ai Do, a high school student, artist, and aspiring engineer. I created ACE AP STEM from my own experience with difficult STEM classes — the late nights, the frustration, and the moments of “I just don’t get it.”
+            I created ACE AP STEM from my own experience with difficult STEM classes — the late nights, the frustration, and the moments of “I just don’t get it.”
           </p>
           <p className="ace-about__body">
             I wanted to build a tool that helps students move through those moments with stronger understanding, not just faster answers.
@@ -582,24 +670,37 @@ const AboutUsPage = () => {
         </div>
 
         <div className="ace-about__founder-photo">
-          <p className="ace-about__hand ace-about__hand--roles" aria-hidden="true">Student<br />Artist<br />Engineer<br />Builder <Heart /></p>
-          <Star className="ace-about__founder-star ace-about__founder-star--a" />
-          <Star className="ace-about__founder-star ace-about__founder-star--b" />
-          <Sparkle className="ace-about__founder-star ace-about__founder-star--c" />
           <div className="ace-about__founder-frame">
-            <img src="/about/founder-lyna.webp" alt="Lyna Ai Do, founder of ACE AP STEM" width="720" height="820" loading="lazy" />
+            <img src="/about/founder-lyna.webp" alt="Lyna Ai Do, founder of ACE AP STEM" width="720" height="818" loading="lazy" />
           </div>
+          {/* Hand-drawn stickers around the portrait, as in the client's design. */}
+          <CuteBrain className="ace-about__sticker ace-about__sticker--brain-a" />
+          <CuteBrain className="ace-about__sticker ace-about__sticker--brain-b" wink />
+          <CuteHeart className="ace-about__sticker ace-about__sticker--heart-a" />
+          <CuteHeart className="ace-about__sticker ace-about__sticker--heart-b" />
+          <CuteRobot className="ace-about__sticker ace-about__sticker--robot" />
+          <Twinkle className="ace-about__sticker ace-about__sticker--twinkle-a" />
+          <Twinkle className="ace-about__sticker ace-about__sticker--twinkle-b" />
+          <Twinkle className="ace-about__sticker ace-about__sticker--twinkle-c" />
+          <Heart className="ace-about__sticker ace-about__sticker--outline-a" />
+          <Heart className="ace-about__sticker ace-about__sticker--outline-b" />
           <div className="ace-about__founder-tag">
-            <strong>Lyna Ai Do</strong>
-            <span>Founder of ACE AP STEM</span>
+            <div>
+              <strong>Lyna Ai Do</strong>
+              <span>Founder of ACE AP STEM</span>
+            </div>
+            <Heart />
           </div>
         </div>
 
         <aside className="ace-about__lynae" aria-labelledby="lynae-title">
-          <p className="ace-about__lynae-kicker">Also founded by Lyna</p>
-          <p className="ace-about__hand ace-about__hand--lynae" aria-hidden="true">Same<br />belief.<br />Bigger<br />Impact. <Heart /></p>
+          <p className="ace-about__lynae-kicker">Also founded by Lyna <Heart /></p>
           <div className="ace-about__lynae-logo">
-            <LynaeHeart className="ace-about__lynae-mark" />
+            <span className="ace-about__lynae-mark">
+              <LynaeWordmark />
+              <CuteRobot className="ace-about__lynae-robot" />
+              <CuteHeart className="ace-about__lynae-heart" />
+            </span>
             <div>
               <h3 id="lynae-title">Lynae</h3>
               <span className="ace-about__lynae-name">Heart &amp; Hardware</span>
@@ -611,10 +712,13 @@ const AboutUsPage = () => {
           </p>
           <div className="ace-about__lynae-foot">
             <a href="https://lynae.org/" target="_blank" rel="noopener noreferrer" className="ace-about__btn ace-about__btn--soft">
-              Visit Lynae Heart &amp; Hardware <FaArrowRight aria-hidden="true" />
+              <FaExternalLinkAlt aria-hidden="true" /> Visit Website <FaArrowRight aria-hidden="true" />
             </a>
-            <LynaeHeart className="ace-about__lynae-float" />
+            <a href="https://instagram.com/lynae_heartware" target="_blank" rel="noopener noreferrer" className="ace-about__btn ace-about__btn--soft">
+              <FaInstagram aria-hidden="true" /> Instagram <FaArrowRight aria-hidden="true" />
+            </a>
           </div>
+          <CuteHeart className="ace-about__sticker ace-about__sticker--lynae" />
         </aside>
       </section>
 

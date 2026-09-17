@@ -255,10 +255,10 @@
 .ace-about__step { position: relative; display: flex; flex-direction: column; padding: 12px 12px 16px; border: 1px solid rgba(225, 214, 252, .9); border-radius: 22px; background: rgba(255, 255, 255, .92); box-shadow: 0 24px 44px -34px rgba(70, 40, 150, .55); transition: opacity .8s cubic-bezier(.2, .8, .2, 1) var(--reveal-delay, 0ms), transform .8s cubic-bezier(.2, .8, .2, 1) var(--reveal-delay, 0ms), box-shadow .3s ease; }
 .ace-about__step.is-visible:hover { box-shadow: 0 30px 50px -30px rgba(70, 40, 150, .6); }
 .ace-about__step:not(:last-child)::after { content: ''; position: absolute; top: 34%; right: -22px; width: 18px; height: 12px; background: no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 12'%3E%3Cpath d='M1 6h16M12 1l6 5-6 5' fill='none' stroke='%238d67ff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-.ace-about__step-media { position: relative; overflow: hidden; aspect-ratio: 1.3; border-radius: 16px; background: #f1ebfb; touch-action: pan-y; }
+.ace-about__step-media { position: relative; overflow: hidden; aspect-ratio: 1.3; border-radius: 16px; background: radial-gradient(circle at 50% 40%, #fff, #f3ecff 70%, #ece1fb); touch-action: pan-y; }
 .ace-about__step-track { display: flex; height: 100%; cursor: zoom-in; transition: transform .7s cubic-bezier(.65, 0, .35, 1); user-select: none; }
 .ace-about__step-slide { flex: 0 0 100%; height: 100%; overflow: hidden; }
-.ace-about__step-slide img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s ease; pointer-events: none; }
+.ace-about__step-slide img { display: block; width: 100%; height: 100%; object-fit: contain; transition: transform 1.2s ease; pointer-events: none; }
 .ace-about__step:hover .ace-about__step-slide img { transform: scale(1.04); }
 .ace-about__step-slide--contain { background: radial-gradient(circle at 50% 60%, #fff 0%, transparent 60%), linear-gradient(160deg, #ffe3f1, #efe3ff 60%, #e3ecff); }
 .ace-about__step-slide--contain img { object-fit: contain; padding: 8px 0 0; }
@@ -293,38 +293,121 @@
 .ace-about__filmstrip li { flex: none; scroll-snap-align: start; }
 .ace-about__filmstrip button { display: block; width: clamp(128px, 13.2vw, 168px); padding: 0; overflow: hidden; border: 2px solid #fff; border-radius: 12px; background: #fff; cursor: zoom-in; box-shadow: 0 12px 22px -16px rgba(40, 20, 90, .7); transition: transform .25s cubic-bezier(.34, 1.56, .64, 1), border-color .2s ease; }
 .ace-about__filmstrip button:hover, .ace-about__filmstrip button:focus-visible { border-color: #8b6cff; transform: translateY(-4px) rotate(-1deg); outline: none; }
-.ace-about__filmstrip img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+.ace-about__filmstrip img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: contain; background: linear-gradient(160deg, #fbf8ff, #f1e9ff); }
 
 
 /* ---------- founder ---------- */
-.ace-about__founder { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .82fr) minmax(0, 1.05fr); gap: 26px; align-items: center; margin-top: 28px; padding: 34px; border: 1px solid var(--ace-border); border-radius: 30px; background: #fff; }
-.ace-about__founder-copy .ace-about__h2 { margin-bottom: 16px; }
-.ace-about__founder-copy .ace-about__body + .ace-about__body { margin-top: 12px; }
-.ace-about__founder-copy .ace-about__btn { margin-top: 24px; }
-.ace-about__founder-photo { position: relative; padding: 10px 0 34px 40px; }
-.ace-about__founder-frame { position: relative; overflow: hidden; aspect-ratio: .88; border-radius: 46% 54% 42% 58% / 44% 40% 60% 56%; background: linear-gradient(160deg, #fde4f3, #eadcff); box-shadow: 0 24px 44px -30px rgba(90, 50, 170, .6); }
-.ace-about__founder-frame img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
-.ace-about__founder-tag { position: absolute; right: 0; bottom: 12px; padding: 10px 16px; border: 1px solid var(--ace-border); border-radius: 14px; background: rgba(255, 255, 255, .96); box-shadow: var(--ace-shadow-soft); }
-.ace-about__founder-tag strong, .ace-about__founder-tag span { display: block; }
-.ace-about__founder-tag strong { font-size: .88rem; }
-.ace-about__founder-tag span { margin-top: 2px; color: var(--ace-muted); font-size: .7rem; }
-.ace-about__hand--roles { position: absolute; left: -10px; top: 18%; z-index: 1; font-size: 1.3rem; color: #8a6cc8; transform: rotate(-8deg); }
-.ace-about__founder-star { position: absolute; z-index: 1; }
-.ace-about__founder-star--a { right: 4%; top: 0; width: 34px; fill: #f7b4d8; }
-.ace-about__founder-star--b { right: -4%; top: 30%; width: 22px; fill: #c9b2ff; }
-.ace-about__founder-star--c { left: 16%; bottom: 20%; width: 22px; fill: #ffd46b; }
+.ace-about__founder {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, .92fr) minmax(0, 1.05fr);
+  gap: 26px;
+  align-items: center;
+  margin-top: 30px;
+  padding: 34px 34px 38px;
+  border: 1px solid rgba(255, 255, 255, .95);
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(232, 220, 255, .55), transparent 40%),
+    radial-gradient(circle at 88% 100%, rgba(255, 214, 236, .5), transparent 42%),
+    #fff;
+  box-shadow: 0 40px 80px -60px rgba(80, 50, 170, .6);
+}
+.ace-about__founder-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 7px 14px;
+  border: 1px solid #e7dbff;
+  border-radius: 999px;
+  color: #6b4bd8;
+  background: #f6f1ff;
+  font-size: .72rem;
+  font-weight: 850;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.ace-about__founder-badge svg { font-size: .74rem; }
+.ace-about__founder-title { font-size: clamp(2.2rem, 3.6vw, 3.1rem); }
+.ace-about__founder-title-heart { width: .42em; height: .4em; margin-left: .12em; color: #f284b8; fill: currentColor; stroke: none; vertical-align: .16em; }
+.ace-about__founder-copy .ace-about__body { max-width: 420px; margin-top: 14px; font-size: .92rem; }
+.ace-about__founder-copy .ace-about__body strong { color: var(--ace-ink); font-weight: 850; }
+.ace-about__founder-copy .ace-about__btn { margin-top: 22px; }
 
-.ace-about__lynae { position: relative; display: flex; flex-direction: column; gap: 14px; padding: 24px 24px 20px; border: 1px solid #f6d6e8; border-radius: 24px; background: linear-gradient(150deg, #fff4fa, #fbeefe 60%, #f4ecff); }
-.ace-about__lynae-kicker { margin: 0; color: #d4478f; font-size: .85rem; font-weight: 850; }
-.ace-about__hand--lynae { position: absolute; right: 16px; top: 16px; font-size: 1.15rem; color: #9d6cc0; text-align: center; transform: rotate(6deg); }
-.ace-about__lynae-logo { display: flex; align-items: center; gap: 12px; width: min(340px, 82%); padding: 12px 16px; border: 1px solid #f7dcea; border-radius: 16px; background: #fff; box-shadow: 0 14px 28px -24px rgba(200, 70, 140, .6); }
-.ace-about__lynae-mark { flex: none; width: 88px; height: auto; }
-.ace-about__lynae-logo h3 { margin: 0; color: #3e2f55; font-family: Georgia, 'Times New Roman', serif; font-size: 1.55rem; font-weight: 500; line-height: 1; }
-.ace-about__lynae-name { display: block; margin-top: 2px; color: #3e2f55; font-size: .8rem; font-weight: 800; }
-.ace-about__lynae-motto { display: block; margin-top: 3px; white-space: nowrap; color: #d4478f; font-size: .62rem; font-weight: 700; }
-.ace-about__lynae .ace-about__body { max-width: 330px; font-size: .86rem; }
-.ace-about__lynae-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
-.ace-about__lynae-float { flex: none; width: 104px; margin: -30px -6px -6px 0; filter: drop-shadow(0 12px 14px rgba(220, 90, 150, .3)); animation: ace-about-float 4.5s ease-in-out infinite; }
+.ace-about__founder-photo { position: relative; padding: 26px 18px 34px; }
+.ace-about__founder-frame {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 7px solid #fff;
+  background: linear-gradient(160deg, #fde4f3, #eadcff);
+  box-shadow: 0 26px 50px -30px rgba(90, 50, 170, .6), 0 0 0 10px rgba(236, 226, 255, .55);
+}
+.ace-about__founder-frame img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 16%; }
+.ace-about__founder-tag {
+  position: absolute;
+  right: -2px;
+  bottom: 10px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid #efe6ff;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 18px 32px -22px rgba(70, 40, 150, .6);
+}
+.ace-about__founder-tag strong { display: block; color: var(--ace-ink); font-size: .88rem; }
+.ace-about__founder-tag span { display: block; margin-top: 2px; color: var(--ace-muted); font-size: .7rem; }
+.ace-about__founder-tag .ace-about__heart { width: 18px; height: 17px; color: #f284b8; fill: currentColor; stroke: none; }
+
+/* stickers */
+.ace-about__sticker { position: absolute; z-index: 2; pointer-events: none; filter: drop-shadow(0 8px 12px rgba(120, 80, 190, .18)); }
+.is-visible .ace-about__sticker { animation: ace-about-float 5.4s ease-in-out infinite; }
+.ace-about__sticker--brain-a { left: -9%; top: 0; width: 32%; animation-delay: -.8s; }
+.ace-about__sticker--brain-b { right: -9%; bottom: 18%; width: 30%; animation-delay: -2.4s; }
+.ace-about__sticker--heart-a { right: -6%; top: 2%; width: 26%; animation-delay: -1.6s; }
+.ace-about__sticker--heart-b { left: 0; bottom: 6%; width: 23%; animation-delay: -3.2s; }
+.ace-about__sticker--robot { left: -12%; bottom: 22%; width: 27%; animation-delay: -2s; }
+.ace-about__sticker--twinkle-a { left: 16%; top: -2%; width: 8%; animation: ace-about-twinkle 3.2s ease-in-out infinite; }
+.ace-about__sticker--twinkle-b { right: 16%; top: 40%; width: 7%; animation: ace-about-twinkle 3.8s ease-in-out .7s infinite; }
+.ace-about__sticker--twinkle-c { left: 24%; bottom: 2%; width: 6.5%; animation: ace-about-twinkle 4.2s ease-in-out 1.4s infinite; }
+.ace-about__sticker--outline-a { right: 24%; top: -3%; width: 8%; height: auto; color: #f2a3c9; stroke: currentColor; fill: none; }
+.ace-about__sticker--outline-b { left: 34%; bottom: -1%; width: 7%; height: auto; color: #c9b2ff; stroke: currentColor; fill: none; }
+.ace-about__sticker--lynae { position: absolute; right: -14px; bottom: -16px; width: 96px; z-index: 1; }
+
+/* Lynae card */
+.ace-about__lynae {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px 24px 22px;
+  border: 1px solid #f7d9ea;
+  border-radius: 26px;
+  background: linear-gradient(150deg, #fff5fa, #fdeefb 55%, #f6effe);
+  box-shadow: 0 30px 60px -48px rgba(200, 80, 150, .7);
+  overflow: hidden;
+}
+.ace-about__lynae-kicker { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0; color: #d4478f; font-size: .88rem; font-weight: 850; }
+.ace-about__lynae-kicker .ace-about__heart { width: 18px; height: 17px; color: #f284b8; }
+.ace-about__lynae-logo { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid #fadff0; border-radius: 18px; background: #fff; box-shadow: 0 16px 30px -26px rgba(200, 70, 140, .7); }
+.ace-about__lynae-mark { position: relative; flex: none; width: 112px; height: 96px; }
+.ace-about__lynae-word { position: absolute; left: 0; top: 0; width: 100%; }
+.ace-about__lynae-word text { fill: #e58cc0; font: 900 20px 'Nunito Sans Variable', sans-serif; letter-spacing: .2em; }
+.ace-about__lynae-robot { position: absolute; left: 0; bottom: 0; width: 50px; }
+.ace-about__lynae-heart { position: absolute; right: 0; bottom: 8px; width: 54px; }
+.ace-about__lynae-logo h3 { margin: 0; color: #3e2f55; font-family: Georgia, 'Times New Roman', serif; font-size: 1.6rem; font-weight: 500; line-height: 1; }
+.ace-about__lynae-name { display: block; margin-top: 3px; color: #3e2f55; font-size: .84rem; font-weight: 800; }
+.ace-about__lynae-motto { display: block; margin-top: 3px; color: #d4478f; font-size: .64rem; font-weight: 700; }
+.ace-about__lynae .ace-about__body { max-width: 360px; font-size: .86rem; }
+.ace-about__lynae-foot { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 2px; }
+.ace-about__lynae-foot .ace-about__btn { gap: 8px; }
+.ace-about__lynae-foot .ace-about__btn svg:first-child { color: #d4478f; }
 
 /* ---------- CTA ---------- */
 .ace-about__cta { position: relative; display: grid; grid-template-columns: minmax(170px, .72fr) minmax(0, 1.5fr) minmax(90px, .38fr); align-items: center; gap: 20px; overflow: hidden; margin-top: 36px; padding: 44px 44px 64px 90px; border-radius: 34px; color: #fff; background: radial-gradient(circle at 20% 110%, #5a3fc4 0%, transparent 45%), radial-gradient(circle at 90% -10%, #3b2fa0 0%, transparent 45%), linear-gradient(135deg, #1c1a66, #2a2083 55%, #231b73); box-shadow: var(--ace-shadow); }
@@ -427,7 +510,8 @@
   .ace-about__sketchbook-count { order: 3; flex: 1; white-space: normal; }
   .ace-about__sketchbook-nav { order: 4; }
   .ace-about__founder { padding: 24px 18px; border-radius: 24px; }
-  .ace-about__founder-photo { padding-left: 30px; }
+  .ace-about__founder-photo { padding: 22px 26px 30px; }
+  .ace-about__lynae-foot .ace-about__btn { flex: 1 1 auto; }
   .ace-about__lynae-logo { width: 100%; }
   .ace-about__lynae-motto, .ace-about__btn--soft { white-space: normal; }
   .ace-about__lynae-mark { width: 64px; }
@@ -441,6 +525,6 @@
   [data-reveal], .ace-about__trait, .ace-about__callout, .ace-about__closer-arrows path, .ace-about__trait i { opacity: 1; transform: none; transition: none; stroke-dashoffset: 0; }
   .ace-about__trait i { width: 34px; }
   .ace-about__rise, .ace-about__brand, .ace-about__live-acey, .ace-about__live-fallback, .ace-about__hero-cue span, .ace-about__closer-img,
-  .ace-about__story-acey img, .ace-about__wave-lines, .ace-about__book-icon, .ace-about__lynae-float, .ace-about__viewer, .ace-about__dots i { animation: none !important; }
+  .ace-about__story-acey img, .ace-about__wave-lines, .ace-about__book-icon, .ace-about__sticker, .ace-about__viewer, .ace-about__dots i { animation: none !important; }
   .ace-about__btn, .ace-about__step-track, .ace-about__step-slide img, .ace-about__filmstrip button { transition: none; }
 }
