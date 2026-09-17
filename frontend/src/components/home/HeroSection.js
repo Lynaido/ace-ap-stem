@@ -1,71 +1,135 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  FaArrowRight,
-  FaAtom,
-  FaCode,
-  FaFlask,
-  FaSquareRootAlt,
-} from 'react-icons/fa';
+import { FaArrowRight, FaCheck, FaPlay } from 'react-icons/fa';
 import { useAppContext } from '../../context/AppContext';
+import AceyScene from './AceyScene';
 import './HeroSection.css';
 
-const subjectTiles = [
-  { label: 'AP Physics', icon: FaAtom, tone: 'blue' },
-  { label: 'AP Chemistry', icon: FaFlask, tone: 'pink' },
-  { label: 'AP Calculus', icon: FaSquareRootAlt, tone: 'orange' },
-  { label: 'AP Computer Science', icon: FaCode, tone: 'green' },
+// Feet position (x, y) and height (h) in % of the 16:9 scene, measured from
+// the camera that rendered /hero/home-scene.webp (tmp/hero-scene.html).
+const HOME_CHARACTERS = [
+  { id: 'classic', x: 57.99, y: 52.56, h: 22, depth: -2.2 },
+  { id: 'graduation', x: 86.82, y: 51.86, h: 22.33, depth: -2.4 },
+  { id: 'long-vest', x: 52.35, y: 71.95, h: 25.07, depth: 0.3 },
+  { id: 'artist', x: 89.23, y: 66.91, h: 25.31, depth: 0 },
+  { id: 'original', x: 72.99, y: 84.91, h: 40.84, depth: 1.4 },
+  { id: 'cloak', x: 54.95, y: 86.73, h: 30.61, depth: 3.1 },
+  { id: 'hoodie', x: 91.75, y: 88.59, h: 31.48, depth: 3.4 },
+].map((character) => ({ ...character, src: `/hero/acey-${character.id}.webp` }));
+
+const SPARKLES = [
+  { x: 49, y: 22, size: 16 },
+  { x: 67, y: 12, size: 12, tone: 'pink' },
+  { x: 97, y: 36, size: 14, tone: 'violet' },
+  { x: 63, y: 44, size: 10, tone: 'white' },
+  { x: 80, y: 30, size: 11 },
 ];
+
+const STATS = [
+  { icon: 'cap', value: 1000, suffix: '+', label: 'Students supported' },
+  { icon: 'doc', value: 50000, suffix: '+', label: 'Problems solved' },
+  { icon: 'spark', value: 4.9, decimals: 1, suffix: '/5', label: 'User satisfaction' },
+  { icon: 'heart', text: 'A kinder', label: 'way to learn STEM' },
+];
+
+const StatIcon = ({ name }) => {
+  const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round', viewBox: '0 0 24 24', 'aria-hidden': true };
+  if (name === 'cap') return <svg {...common}><path d="M2 9l10-5 10 5-10 5z" /><path d="M6 11v5c2 2 10 2 12 0v-5M22 9v6" /></svg>;
+  if (name === 'doc') return <svg {...common}><path d="M6 3h9l4 4v14H6z" /><path d="M14 3v5h5M9 12h7M9 16h7" /></svg>;
+  if (name === 'spark') return <svg {...common}><path d="M12 3c.6 4.8 2.4 7.4 8 9-5.6 1.6-7.4 4.2-8 9-.6-4.8-2.4-7.4-8-9 5.6-1.6 7.4-4.2 8-9z" /></svg>;
+  return <svg {...common}><path d="M12 20C6.5 16.2 3 12.9 3 8.7 3 6 5 4 7.6 4c1.8 0 3.4 1 4.4 2.5C13 5 14.6 4 16.4 4 19 4 21 6 21 8.7c0 4.2-3.5 7.5-9 11.3z" /></svg>;
+};
+
+// Counts up once the stats card scrolls into view.
+const CountUp = ({ value, decimals = 0, suffix = '' }) => {
+  const ref = useRef(null);
+  const [shown, setShown] = useState(value);
+
+  useEffect(() => {
+    const node = ref.current;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (!node || reduce || typeof IntersectionObserver !== 'function') return undefined;
+    let frame = 0;
+    setShown(0);
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      observer.disconnect();
+      const start = performance.now();
+      const step = (now) => {
+        const t = Math.min(1, (now - start) / 1600);
+        setShown(value * (1 - (1 - t) ** 4));
+        if (t < 1) frame = requestAnimationFrame(step);
+      };
+      frame = requestAnimationFrame(step);
+    }, { threshold: 0.4 });
+    observer.observe(node);
+    return () => { observer.disconnect(); cancelAnimationFrame(frame); };
+  }, [value]);
+
+  const text = shown.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  return <span ref={ref}>{text}{suffix}</span>;
+};
 
 const HeroSection = () => {
   const { isAuthenticated } = useAppContext();
 
   return (
     <section className="ace-hero" aria-labelledby="ace-hero-title">
-      <div className="ace-hero__glow ace-hero__glow--one" aria-hidden="true" />
-      <div className="ace-hero__glow ace-hero__glow--two" aria-hidden="true" />
+      <AceyScene
+        className="ace-hero__scene"
+        scene={{ large: '/hero/home-scene.webp', small: '/hero/home-scene-sm.webp' }}
+        over="/hero/home-over.webp"
+        characters={HOME_CHARACTERS}
+        sparkles={SPARKLES}
+        focusX={1}
+        focusY={1}
+      />
+      <div className="ace-hero__veil" aria-hidden="true" />
 
       <div className="ace-hero__inner">
         <div className="ace-hero__copy">
-          <p className="ace-section-kicker">Your AP STEM study companion</p>
-          <h1 id="ace-hero-title">
-            Master AP STEM <span className="ace-gradient-text">with an AI companion.</span>
+          <p className="ace-hero__kicker ace-hero__reveal" style={{ '--i': 0 }}>Your AP STEM study companion</p>
+          <h1 id="ace-hero-title" className="ace-hero__reveal" style={{ '--i': 1 }}>
+            Master<br />AP STEM<br /><span className="ace-hero__brand">with ACEy.</span>
           </h1>
-          <p className="ace-hero__lede">
-            Choose a question, get focused guidance, and keep every solution, hint, and concept note connected.
+          <p className="ace-hero__lede ace-hero__reveal" style={{ '--i': 2 }}>
+            Solve problems, get step-by-step hints, build deeper understanding — with ACEy by your side.
           </p>
 
-          <div className="ace-hero__actions">
+          <div className="ace-hero__actions ace-hero__reveal" style={{ '--i': 3 }}>
             <Link className="ace-hero__primary" to={isAuthenticated ? '/solve-problems' : '/sign-up'}>
               {isAuthenticated ? 'Open your workspace' : 'Start learning'}
               <FaArrowRight aria-hidden="true" />
             </Link>
-            <a className="ace-hero__secondary" href="#ace-demo">Watch the product tour</a>
+            <a className="ace-hero__secondary" href="#ace-demo">
+              <span className="ace-hero__play"><FaPlay aria-hidden="true" /></span>
+              Watch the video
+            </a>
           </div>
 
-          <div className="ace-hero__trust" aria-label="Available learning flow">
-            <span>Upload or type</span>
-            <span>Choose the exact part</span>
-            <span>Learn and save</span>
-          </div>
+          <ul className="ace-hero__trust ace-hero__reveal" style={{ '--i': 4 }} aria-label="How ACEy helps">
+            <li><FaCheck aria-hidden="true" />Upload or type</li>
+            <li><FaCheck aria-hidden="true" />Step-by-step guidance</li>
+            <li><FaCheck aria-hidden="true" />Personalized practice</li>
+          </ul>
         </div>
+      </div>
 
-        <div className="ace-hero__visual" aria-label="ACE study companion supports AP STEM subjects">
-          <div className="ace-hero__orbit" aria-hidden="true" />
-          <div className="ace-sprite ace-sprite--wave ace-hero__mascot" aria-hidden="true" />
-
-          {subjectTiles.map(({ label, icon: Icon, tone }, index) => (
-            <div key={label} className={`ace-hero__subject ace-hero__subject--${index + 1} ace-hero__subject--${tone}`}>
-              <span><Icon aria-hidden="true" /></span>
-              <strong>{label}</strong>
-            </div>
+      <div className="ace-hero__bottom">
+        <ul className="ace-hero__stats" aria-label="ACE AP STEM at a glance">
+          {STATS.map((stat) => (
+            <li key={stat.label}>
+              <span className="ace-hero__stat-icon"><StatIcon name={stat.icon} /></span>
+              <strong>{stat.text || <CountUp value={stat.value} decimals={stat.decimals} suffix={stat.suffix} />}</strong>
+              <span>{stat.label}</span>
+            </li>
           ))}
-
-          <div className="ace-hero__speech">
-            <span aria-hidden="true">✦</span>
-            <p>Hi, I am ACE. What are we learning today?</p>
-          </div>
-        </div>
+        </ul>
+        <a className="ace-hero__scroll" href="#ace-demo" aria-label="Scroll to the product demo">
+          <span className="ace-hero__mouse" aria-hidden="true"><i /></span>
+          <span>Scroll</span>
+          <FaArrowRight className="ace-hero__scroll-arrow" aria-hidden="true" />
+        </a>
       </div>
     </section>
   );

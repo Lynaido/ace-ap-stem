@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { FaBars, FaSignOutAlt, FaTimes, FaUser } from 'react-icons/fa';
+import { FaArrowRight, FaBars, FaSignOutAlt, FaTimes, FaUser } from 'react-icons/fa';
 import { useAppContext } from '../../context/AppContext';
 import './Header.css';
 
@@ -98,7 +98,7 @@ const Header = () => {
           ) : (
             <>
               <Link to="/sign-in" className="ace-public-nav__signin">Sign in</Link>
-              <Link to="/sign-up" className="ace-public-nav__signup">Get started</Link>
+              <Link to="/sign-up" className="ace-public-nav__signup">Get started <FaArrowRight aria-hidden="true" /></Link>
             </>
           )}
         </div>
