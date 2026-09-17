@@ -23,8 +23,10 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
+  /* A soft glow behind the headline only, so the room still reaches the
+     left edge instead of fading into an empty band. */
   background:
-    linear-gradient(90deg, rgba(252, 249, 255, .92) 0%, rgba(252, 249, 255, .78) 26%, rgba(252, 249, 255, .32) 42%, transparent 54%),
+    radial-gradient(46% 74% at 22% 48%, rgba(252, 249, 255, .95) 0%, rgba(252, 249, 255, .8) 42%, rgba(252, 249, 255, .3) 70%, transparent 88%),
     linear-gradient(0deg, rgba(246, 239, 255, .9) 0%, transparent 22%);
 }
 
@@ -233,7 +235,7 @@
 /* On wide screens the copy would drift to the middle of an empty room;
    widen the hero rail so it keeps hugging the left with the cast on the right. */
 @media (min-width: 1400px) {
-  .ace-hero__inner, .ace-hero__bottom { width: min(var(--ace-content), calc(100% - 80px)); }
+  .ace-hero__inner, .ace-hero__bottom { width: min(var(--ace-content), calc(100% - 40px)); }
   .ace-hero__copy { max-width: 600px; }
 }
 
@@ -246,7 +248,7 @@
 }
 
 @media (max-width: 1100px) {
-  .ace-hero__veil { background: linear-gradient(90deg, rgba(252, 249, 255, .94) 0%, rgba(252, 249, 255, .8) 36%, rgba(252, 249, 255, .2) 60%, transparent 70%), linear-gradient(0deg, rgba(246, 239, 255, .9) 0%, transparent 22%); }
+  .ace-hero__veil { background: radial-gradient(56% 78% at 24% 48%, rgba(252, 249, 255, .96) 0%, rgba(252, 249, 255, .84) 44%, rgba(252, 249, 255, .34) 72%, transparent 90%), linear-gradient(0deg, rgba(246, 239, 255, .9) 0%, transparent 22%); }
   .ace-hero__copy { max-width: 480px; }
 }
 
