@@ -18,17 +18,18 @@ import { ACEY_REACTIONS } from '../acey/aceyBrain';
 import { normalizeAppearance } from '../acey/AceyContext';
 
 describe('brain colors and buddy name', () => {
-  it('offers distinct colors with the designer lavender as the default', () => {
+  it('offers distinct colors with the Dreamy blend first, as the default', () => {
     expect(COLORS[0].id).toBe(DEFAULT_COLOR_ID);
-    expect(getBrainTint(DEFAULT_COLOR_ID)).toBeNull();
+    expect(DEFAULT_COLOR_ID).toBe('dreamy');
+    expect(getBrainTint('lavender')).toBeNull();
     expect(new Set(COLORS.map((color) => color.id)).size).toBe(COLORS.length);
-    // Every other color is either one tint or a three-color blend.
-    COLORS.slice(1).filter((color) => !color.blend)
+    // Lavender is the model's own brain; every other color is one tint or a blend.
+    COLORS.filter((color) => !color.blend && color.id !== 'lavender')
       .forEach((color) => expect(getBrainTint(color.id)).toMatch(/^#[0-9a-f]{6}$/));
     expect(getBrainTint('unknown')).toBeNull();
     expect(getBrainBlend('dreamy')).toEqual([expect.stringMatching(/^#[0-9a-f]{6}$/), expect.any(String), expect.any(String)]);
     expect(getBrainTint('dreamy')).toBeNull();
-    expect(getBrainBlend(DEFAULT_COLOR_ID)).toBeNull();
+    expect(getBrainBlend('lavender')).toBeNull();
   });
 
   it('keeps names short and plain, falling back to Acey', () => {

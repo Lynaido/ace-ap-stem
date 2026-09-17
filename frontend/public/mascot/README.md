@@ -113,6 +113,13 @@ with a crescent of reflected light, a warm glowing bulb tip and an amber line
 where the glass meets the screw base. Approved glows keep their strength
 (`configureModel` no longer caps emissive light on `keepColor` materials).
 
+2026-09-17: the Original's head is a glass bulb like the render. The head shell
+(the 668-vertex piece of `polySurface1.003`, which shares its material with the
+hands) moves to its own translucent, glossy `acey_glass_shell` material (alpha
+0.5, roughness 0.1), and the inner layer under it (`Material.007`) is white so
+the head reads pearly rather than violet. Dreamy is now the default brain color
+(`DEFAULT_COLOR_ID`, first in `COLORS`); Lavender keeps the model's own brain.
+
 The Engineer's brain is now its own material (`engineer_brain`, the 2,977-vertex
 piece split out of the skin mesh), so brain colors apply to it too.
 

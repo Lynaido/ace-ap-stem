@@ -31,8 +31,6 @@
 }
 
 .video-wrapper {
-  --encoded-side-bar-width: 12.15%;
-  --mask-overlap: 4px;
   position: relative;
   width: 100%;
   height: 100%;
@@ -54,33 +52,18 @@
   flex-shrink: 0;
 }
 
-.video-wrapper::before,
-.video-wrapper::after {
-  content: "";
+/* The visible part of the recording, with rounded corners: everything around
+   it is painted white by the window's spread shadow (the wrapper clips it).
+   VideoSlideshow positions it on the letterboxed picture; the percentages are
+   the fallback before the video's size is known. */
+.video-window {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: calc(var(--encoded-side-bar-width) + var(--mask-overlap));
-  background: #ffffff;
-  pointer-events: none;
-  z-index: 3;
-}
-
-.video-wrapper::before {
-  left: 0;
-}
-
-.video-wrapper::after {
-  right: 0;
-}
-
-.video-top-mask {
-  position: absolute;
-  top: 0;
-  left: calc(var(--encoded-side-bar-width) - var(--mask-overlap));
-  right: calc(var(--encoded-side-bar-width) - var(--mask-overlap));
-  height: 10.25%;
-  background: #ffffff;
+  top: 10.25%;
+  left: 12.15%;
+  right: 12.15%;
+  bottom: 2.5%;
+  border-radius: clamp(10px, 2.4vw, 18px);
+  box-shadow: 0 0 0 200vmax #ffffff;
   pointer-events: none;
   z-index: 3;
 }

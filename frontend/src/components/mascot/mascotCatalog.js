@@ -279,14 +279,6 @@ export const REACTION_DURATIONS = Object.fromEntries(
 // lavender). Technician's brain is baked into its single texture and stays
 // under the hard hat, so it has no brainMaterials.
 export const COLORS = [
-  { id: 'lavender', label: 'Lavender', swatch: '#b69cff', tint: null },
-  { id: 'bubblegum', label: 'Bubblegum', swatch: '#f58dc8', tint: '#ff9fd3' },
-  { id: 'peach', label: 'Peach', swatch: '#ff9d5c', tint: '#ffb68a' },
-  { id: 'sunny', label: 'Sunny', swatch: '#ffcf4a', tint: '#ffdb6e' },
-  { id: 'mint', label: 'Mint', swatch: '#4fcf93', tint: '#8feabb' },
-  { id: 'sky', label: 'Sky', swatch: '#62c8f2', tint: '#98dcff' },
-  { id: 'ocean', label: 'Ocean', swatch: '#4f82f4', tint: '#8aa6ff' },
-  { id: 'grape', label: 'Grape', swatch: '#8b5cf6', tint: '#a88bff' },
   // The approved lightbulb render: a soft pink, sky-blue and violet blend
   // across the brain rather than one color (`blend`, see applyBrainTint).
   {
@@ -297,6 +289,14 @@ export const COLORS = [
     tint: null,
     blend: ['#ffc0e1', '#b9d3ff', '#dac4ff'],
   },
+  { id: 'lavender', label: 'Lavender', swatch: '#b69cff', tint: null },
+  { id: 'bubblegum', label: 'Bubblegum', swatch: '#f58dc8', tint: '#ff9fd3' },
+  { id: 'peach', label: 'Peach', swatch: '#ff9d5c', tint: '#ffb68a' },
+  { id: 'sunny', label: 'Sunny', swatch: '#ffcf4a', tint: '#ffdb6e' },
+  { id: 'mint', label: 'Mint', swatch: '#4fcf93', tint: '#8feabb' },
+  { id: 'sky', label: 'Sky', swatch: '#62c8f2', tint: '#98dcff' },
+  { id: 'ocean', label: 'Ocean', swatch: '#4f82f4', tint: '#8aa6ff' },
+  { id: 'grape', label: 'Grape', swatch: '#8b5cf6', tint: '#a88bff' },
 ];
 
 export const getBrainTint = (colorId) => COLORS.find((color) => color.id === colorId)?.tint || null;
@@ -304,7 +304,8 @@ export const getBrainBlend = (colorId) => COLORS.find((color) => color.id === co
 
 export const DEFAULT_OUTFIT_ID = 'original';
 export const DEFAULT_MOOD_ID = 'ready';
-export const DEFAULT_COLOR_ID = 'lavender';
+// The approved Acey look: the soft pink, sky-blue and violet brain.
+export const DEFAULT_COLOR_ID = 'dreamy';
 export const DEFAULT_BUDDY_NAME = 'Acey';
 export const BUDDY_NAME_MAX_LENGTH = 20;
 
