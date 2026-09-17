@@ -335,6 +335,11 @@ export const chatAPI = {
     return apiClient.get('/api/chat/threads');
   },
 
+  // Problems the student can ask the tutor about, with their latest conversation
+  getTutorProblems: async () => {
+    return apiClient.get('/api/chat/problems');
+  },
+
   // Get specific thread with messages
   getThread: async (threadId) => {
     return apiClient.get(`/api/chat/threads/${threadId}`);

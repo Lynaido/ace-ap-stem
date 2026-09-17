@@ -60,6 +60,28 @@ export const getThreads = async (req: Request, res: Response) => {
 };
 
 /**
+ * Problems available in the AI Tutor picker with their latest conversation
+ * GET /api/chat/problems
+ */
+export const getTutorProblems = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const problems = await chatService.getTutorProblems(userId);
+
+    res.json({
+      success: true,
+      data: problems,
+    });
+  } catch (error) {
+    console.error('Error fetching tutor problems:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch problems',
+    });
+  }
+};
+
+/**
  * Get specific thread with messages
  * GET /api/chat/threads/:id
  */

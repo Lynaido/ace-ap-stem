@@ -4,9 +4,27 @@ import Input from '../primitives/Input';
 import { chatAPI } from '../../utils/api';
 import { useAppContext } from '../../context/AppContext';
 import { emitAceyEvent } from '../acey/aceyEvents';
+import ChatMessageContent from './ChatMessageContent';
 import './ChatPanel.css';
 
-const ChatPanel = ({ threadId = null, problemId = null, initialMessages, className = '' }) => {
+// `resumeThreadId` switches the panel to "conversation owner" mode (AI Tutor
+// page): it starts from that thread (or a fresh one when null), keeps the intro
+// message above the loaded history and reports thread changes through
+// `onConversationChange`. Without it the panel follows the global active thread.
+const ChatPanel = ({
+  threadId = null,
+  problemId = null,
+  initialMessages,
+  className = '',
+  resumeThreadId,
+  onConversationChange,
+  suggestions = [],
+  placeholder = 'Ask a follow-up question...',
+  title = 'AI Tutor',
+  subtitle = 'Conversational guidance for every step',
+  hideHeader = false,
+  disabledReason = '',
+}) => {
   const {
     user,
     activeThreadId,
@@ -15,17 +33,22 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
     clearActiveThread
   } = useAppContext();
 
+  const ownsConversation = resumeThreadId !== undefined;
+
   // Use global state if available, otherwise use props or local state
   const [messages, setMessages] = useState(
-    activeThreadId === threadId && activeThreadMessages.length > 0
+    !ownsConversation && activeThreadId === threadId && activeThreadMessages.length > 0
       ? activeThreadMessages
       : initialMessages || []
   );
   const [inputValue, setInputValue] = useState('');
-  const [currentThreadId, setCurrentThreadId] = useState(activeThreadId || threadId);
+  const [currentThreadId, setCurrentThreadId] = useState(
+    ownsConversation ? resumeThreadId : activeThreadId || threadId
+  );
 
   // Reset thread when the problemId changes to start a fresh contextual conversation
   useEffect(() => {
+    if (ownsConversation) return;
     setCurrentThreadId(null);
     setMessages(initialMessages || []);
     clearActiveThread();
@@ -33,33 +56,36 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
   }, [problemId]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isAwaitingReply, setIsAwaitingReply] = useState(false);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(Boolean(ownsConversation && resumeThreadId));
   const [streamingMessage, setStreamingMessage] = useState('');
   const [needsReload, setNeedsReload] = useState(0);
-  const messagesEndRef = useRef(null);
+  const messagesRef = useRef(null);
   const eventSourceRef = useRef(null);
   const pendingUserMessageIdRef = useRef(null);
   const isSendingRef = useRef(false); // Guard against double message submission
+  const conversationChangeRef = useRef(onConversationChange);
+  conversationChangeRef.current = onConversationChange;
+  const initialMessagesRef = useRef(initialMessages);
+  initialMessagesRef.current = initialMessages;
 
   const panelClassName = ['chat-panel', className].filter(Boolean).join(' ');
 
   // Prevent initial route navigation from jumping to bottom due to smooth scrolling
   const initialRenderRef = useRef(true);
 
+  // Scroll only the message list, never the page around the panel.
   const scrollToBottom = () => {
-    const node = messagesEndRef.current;
+    const node = messagesRef.current;
     if (!node) return;
-    // First render: use instant scroll (or skip) so page doesn't jump
-    if (initialRenderRef.current) {
-      initialRenderRef.current = false;
-      node.scrollIntoView({ behavior: 'instant', block: 'end' });
-      return;
-    }
-    node.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    const behavior = initialRenderRef.current ? 'auto' : 'smooth';
+    initialRenderRef.current = false;
+    node.scrollTo({ top: node.scrollHeight, behavior });
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, streamingMessage]);
+  }, [messages, streamingMessage, isAwaitingReply]);
 
   const teardownStream = useCallback(() => {
     if (eventSourceRef.current) {
@@ -92,9 +118,18 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
       const streamUrl = chatAPI.getStreamUrl(threadIdToUse);
       const eventSource = new EventSource(streamUrl);
       eventSourceRef.current = eventSource;
+      setIsAwaitingReply(true);
 
       eventSource.onmessage = (event) => {
-        if (event.data === '[DONE]') {
+        let isDone = event.data === '[DONE]';
+        if (!isDone) {
+          try {
+            isDone = JSON.parse(event.data)?.type === 'done';
+          } catch (err) {
+            // handled below
+          }
+        }
+        if (isDone) {
           // Save the streamed content to messages array so it doesn't disappear from UI
           setStreamingMessage((currentStreamContent) => {
             if (currentStreamContent) {
@@ -109,6 +144,7 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
             return currentStreamContent;
           });
           teardownStream();
+          setIsAwaitingReply(false);
           // Trigger a single reload after a short delay to fetch the database version
           // This replaces the temporary message with the properly saved one
           setTimeout(() => {
@@ -120,12 +156,23 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
         try {
           const data = JSON.parse(event.data);
           if (data.type === 'chunk') {
+            setIsAwaitingReply(false);
             setIsStreaming(true);
             setStreamingMessage((prev) => prev + data.content);
           } else if (data.type === 'error') {
             console.error('Stream error:', data.error);
             teardownStream();
+            setIsAwaitingReply(false);
             pendingUserMessageIdRef.current = null;
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `stream-error-${Date.now()}`,
+                role: 'assistant',
+                content: 'Sorry, I could not finish that answer. Please try asking again.',
+                createdAt: new Date(),
+              },
+            ]);
           } else if (data.type === 'connected') {
             console.log('SSE connected');
           }
@@ -137,6 +184,7 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
       eventSource.onerror = (error) => {
         console.error('SSE error:', error);
         teardownStream();
+        setIsAwaitingReply(false);
         pendingUserMessageIdRef.current = null;
       };
     },
@@ -156,9 +204,16 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
           role: msg.role.toLowerCase(),
           createdAt: msg.createdAt,
         }));
-      setMessages(loadedMessages);
+      setMessages(
+        ownsConversation
+          ? [...(initialMessagesRef.current || []), ...loadedMessages]
+          : loadedMessages
+      );
       // Update global state to persist across pages
       setActiveThread(currentThreadId, loadedMessages);
+      if (ownsConversation) {
+        conversationChangeRef.current?.({ threadId: currentThreadId, messageCount: loadedMessages.length });
+      }
 
       const lastMessage = loadedMessages[loadedMessages.length - 1];
       if (lastMessage && lastMessage.role === 'user') {
@@ -179,8 +234,16 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
       }
     } catch (error) {
       console.error('Error loading thread:', error);
+      if (ownsConversation) {
+        // The saved conversation is gone: continue with a fresh one.
+        setCurrentThreadId(null);
+        setMessages(initialMessagesRef.current || []);
+        conversationChangeRef.current?.({ threadId: null, messageCount: 0 });
+      }
+    } finally {
+      setIsHistoryLoading(false);
     }
-  }, [currentThreadId, user, startStream, setActiveThread]);
+  }, [currentThreadId, user, startStream, setActiveThread, ownsConversation]);
 
   // Load thread messages on mount, when thread changes, or when reload is triggered
   useEffect(() => {
@@ -199,8 +262,8 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
   // Clean up SSE on unmount
   useEffect(() => () => teardownStream(), [teardownStream]);
 
-  const handleSendMessage = useCallback(async (e) => {
-    e.preventDefault();
+  const sendMessage = useCallback(async (rawContent) => {
+    const content = String(rawContent || '').trim();
 
     // Guard against double submission with ref-based check
     if (isSendingRef.current) {
@@ -208,7 +271,7 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
       return;
     }
 
-    if (inputValue.trim() === '' || isLoading || !user) return;
+    if (content === '' || isLoading || !user || disabledReason) return;
 
     // Set guard immediately (synchronous)
     isSendingRef.current = true;
@@ -216,13 +279,14 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
     const userMessage = {
       id: Date.now().toString(),
       role: 'user',
-      content: inputValue,
+      content,
       createdAt: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
+    setIsAwaitingReply(true);
     emitAceyEvent('question-asked');
 
     try {
@@ -235,6 +299,9 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
         setCurrentThreadId(activeThreadIdLocal);
         // Update global state with new thread
         setActiveThread(activeThreadIdLocal, messages);
+        if (ownsConversation) {
+          conversationChangeRef.current?.({ threadId: activeThreadIdLocal, messageCount: 1 });
+        }
       }
 
       // Send message
@@ -270,6 +337,7 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
     } catch (error) {
       console.error('Error sending message:', error);
       pendingUserMessageIdRef.current = null;
+      setIsAwaitingReply(false);
       setMessages((prev) => [
         ...prev,
         {
@@ -283,50 +351,98 @@ const ChatPanel = ({ threadId = null, problemId = null, initialMessages, classNa
       setIsLoading(false);
       isSendingRef.current = false; // Reset guard after completion
     }
-  }, [inputValue, isLoading, user, currentThreadId, problemId, messages, setActiveThread, startStream]);
+  }, [isLoading, user, disabledReason, currentThreadId, problemId, messages, setActiveThread, startStream, ownsConversation]);
+
+  const handleSendMessage = useCallback((e) => {
+    e.preventDefault();
+    sendMessage(inputValue);
+  }, [sendMessage, inputValue]);
+
+  const isBusy = isLoading || isAwaitingReply || isStreaming;
+  const hasUserMessage = messages.some((msg) => msg.role === 'user');
+  const showSuggestions = suggestions.length > 0 && !hasUserMessage && !isHistoryLoading && !disabledReason;
+  const inputDisabled = isLoading || !user || Boolean(disabledReason);
 
   return (
     <div className={panelClassName}>
-      <div className="chat-header">
-        <div className="chat-title-group">
-          <h3>AI Tutor</h3>
-          <span className="chat-subtitle">Conversational guidance for every step</span>
+      {!hideHeader && (
+        <div className="chat-header">
+          <div className="chat-title-group">
+            <h3>{title}</h3>
+            <span className="chat-subtitle">{subtitle}</span>
+          </div>
         </div>
-      </div>
-      <div className="chat-messages" aria-live="polite" aria-busy={isLoading || isStreaming}>
+      )}
+      <div
+        ref={messagesRef}
+        className="chat-messages"
+        aria-live="polite"
+        aria-busy={isBusy || isHistoryLoading}
+      >
         {messages.map((msg) => (
           <div key={msg.id} className={`message ${msg.role}`}>
             <div className="message-content">
-              <p>{msg.content || msg.text}</p>
+              {msg.role === 'user'
+                ? <p>{msg.content || msg.text}</p>
+                : <ChatMessageContent content={msg.content || msg.text} />}
             </div>
           </div>
         ))}
-        {isStreaming && streamingMessage && (
-          <div className="message assistant streaming">
+        {isHistoryLoading && (
+          <div className="chat-history-loading" role="status">
+            <span className="chat-dots" aria-hidden="true"><i /><i /><i /></span>
+            Loading your conversation…
+          </div>
+        )}
+        {isAwaitingReply && !streamingMessage && (
+          <div className="message assistant thinking" role="status">
             <div className="message-content">
-              <p>{streamingMessage}<span className="typing-cursor">▊</span></p>
+              <span className="chat-dots" aria-hidden="true"><i /><i /><i /></span>
+              <span className="chat-sr-only">ACE is thinking</span>
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
+        {isStreaming && streamingMessage && (
+          <div className="message assistant streaming">
+            <div className="message-content">
+              <ChatMessageContent content={streamingMessage} streaming />
+            </div>
+          </div>
+        )}
       </div>
       <div className="chat-input-area">
+        {showSuggestions && (
+          <div className="chat-suggestions" aria-label="Suggested questions">
+            {suggestions.map((suggestion) => (
+              <button
+                type="button"
+                key={suggestion}
+                className="chat-suggestion"
+                onClick={() => sendMessage(suggestion)}
+                disabled={inputDisabled || isBusy}
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        )}
         <form onSubmit={handleSendMessage} className="chat-form" aria-label="Message the AI Tutor">
-          <div className="chat-input-shell">
+          <div className={`chat-input-shell${disabledReason ? ' is-locked' : ''}`}>
             <Input
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Ask a follow-up question..."
+              placeholder={disabledReason || placeholder}
               aria-label="Message to AI Tutor"
               className="chat-input"
-              disabled={isLoading || !user}
+              disabled={inputDisabled}
+              maxLength={2000}
             />
             <Button
               type="submit"
               variant="primary"
               className="send-button"
-              disabled={isLoading || !user}
+              disabled={inputDisabled || !inputValue.trim()}
               aria-label={isLoading ? 'Sending message' : 'Send message'}
             >
               {isLoading ? 'Sending...' : 'Send'}

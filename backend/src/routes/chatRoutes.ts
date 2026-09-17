@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   createThread,
   getThreads,
+  getTutorProblems,
   getThreadById,
   sendMessage,
   streamResponse,
@@ -16,6 +17,7 @@ router.use(authenticateToken);
 
 // Thread management
 router.post('/threads', createThread);           // Create new chat thread
+router.get('/problems', getTutorProblems);          // Problems for the tutor picker
 router.get('/threads', getThreads);              // List user's threads
 router.get('/threads/:id', getThreadById);       // Get thread with messages
 router.delete('/threads/:id', deleteThread);     // Delete thread

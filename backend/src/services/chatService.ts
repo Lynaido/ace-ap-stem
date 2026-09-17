@@ -86,7 +86,7 @@ Description: ${problem.description}
     });
   }
 
-  systemPrompt += `\nAs an AI tutor, help the user with this exact problem and the currently available solution, hints, and concept notes. If the user asks about a visible step, formula, or hint, ground your answer in the context above. Explain without fabricating missing details, and ask for clarification if the visible context is not enough. Keep responses concise, encouraging, and educational.`;
+  systemPrompt += `\nAs an AI tutor, help the user with this exact problem and the currently available solution, hints, and concept notes. If the user asks about a visible step, formula, or hint, ground your answer in the context above. Explain without fabricating missing details, and ask for clarification if the visible context is not enough. Guide with questions and hints before revealing a full answer unless the student asks for it. Keep responses concise, encouraging, and educational. Write math with \\( ... \\) inline and \\[ ... \\] for displayed equations.`;
 
   return systemPrompt;
 };
@@ -172,6 +172,90 @@ export const createThread = async (userId: string, data: CreateThreadData) => {
   }
 
   return thread;
+};
+
+/**
+ * Problems the student can pick in the AI Tutor, each with its most recent
+ * problem-linked conversation (threads carry the problem id on their SYSTEM
+ * context message, not on the thread row).
+ */
+export const getTutorProblems = async (userId: string) => {
+  const [problems, contextMessages] = await Promise.all([
+    prisma.problem.findMany({
+      where: { userId },
+      orderBy: { updatedAt: 'desc' },
+      take: 200,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        subject: true,
+        difficulty: true,
+        status: true,
+        imageUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        assets: { select: { mimeType: true } },
+        _count: { select: { solutions: true, hints: true, conceptNotes: true } },
+      },
+    }),
+    prisma.message.findMany({
+      where: { role: 'SYSTEM', thread: { userId } },
+      select: {
+        threadId: true,
+        metadata: true,
+        thread: { select: { updatedAt: true, _count: { select: { messages: true } } } },
+      },
+    }),
+  ]);
+
+  const conversations = new Map<string, { threadId: string; updatedAt: Date; messageCount: number }>();
+  contextMessages.forEach((message) => {
+    const problemId = (message.metadata as any)?.problemId;
+    const messageCount = message.thread._count.messages - 1; // exclude the SYSTEM context
+    if (!problemId || messageCount <= 0) return;
+    const current = conversations.get(problemId);
+    if (!current || current.updatedAt < message.thread.updatedAt) {
+      conversations.set(problemId, {
+        threadId: message.threadId,
+        updatedAt: message.thread.updatedAt,
+        messageCount,
+      });
+    }
+  });
+
+  return problems.map(({ assets, imageUrl, _count, ...problem }) => ({
+    ...problem,
+    hasImage: Boolean(imageUrl) || assets.some((asset) => asset.mimeType.startsWith('image/')),
+    counts: _count,
+    conversation: conversations.get(problem.id) || null,
+  }));
+};
+
+/**
+ * Original problem images for a problem-linked thread, so the tutor can see
+ * diagrams and handwriting instead of only the extracted text.
+ */
+const buildProblemImageMessage = async (userId: string, problemId: string) => {
+  const assets = await prisma.problemAsset.findMany({
+    where: { problemId, problem: { userId }, mimeType: { startsWith: 'image/' } },
+    orderBy: { createdAt: 'asc' },
+    take: 2,
+    select: { mimeType: true, fileData: true, fileSize: true },
+  });
+  const images = assets.filter((asset) => asset.fileData && asset.fileSize <= 8 * 1024 * 1024);
+  if (images.length === 0) return null;
+
+  return {
+    role: 'user',
+    content: [
+      { type: 'text', text: 'Original problem image(s) for reference. Use them together with the problem context.' },
+      ...images.map((asset) => ({
+        type: 'image_url',
+        image_url: { url: `data:${asset.mimeType};base64,${Buffer.from(asset.fileData!).toString('base64')}` },
+      })),
+    ],
+  };
 };
 
 /**
@@ -368,6 +452,16 @@ export const streamAIResponse = async (
 
     // Build context messages
     const contextMessages = buildChatContext(thread.messages);
+
+    const problemId = (thread.messages.find((msg) => msg.role === 'SYSTEM')?.metadata as any)?.problemId;
+    if (problemId) {
+      try {
+        const imageMessage = await buildProblemImageMessage(userId, problemId);
+        if (imageMessage) contextMessages.splice(1, 0, imageMessage);
+      } catch (imageError) {
+        logger.warn('Could not attach problem images to tutor context', { threadId, problemId, imageError });
+      }
+    }
 
     // Stream from OpenAI
     const stream = await openai.chat.completions.create({

@@ -8,7 +8,7 @@ const humanizeKey = (key) => key
 
 const MathFallback = ({ source }) => <span className="math-fallback">{source}</span>;
 
-const MathText = ({ source }) => {
+export const MathText = ({ source }) => {
   const blockParts = String(source).split(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\])/g);
 
   return blockParts.map((part, index) => {
