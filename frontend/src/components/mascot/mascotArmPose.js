@@ -176,15 +176,20 @@ const createArmSkeleton = (model, frame) => {
 //     right: { ... },
 //     props: { left: [meshName, ...], right: [...] },
 //     fixed: [meshName, ...],
-//     headwear: { materials: [...], fromY, lift } }
+//     headwear: { materials: [...], fromY, lift },
+//     frame: { elbowBlend: [...], ... },
+//     wave: { side: 'right', degrees: 22, speed: 9 } }
+// `frame` overrides ARM_FRAME for this character (a softer elbow blend).
+// `wave` swings that forearm about its elbow (see waveCharacterArm).
 // `fixed` meshes (a prop resting in front of the body) never follow an arm.
 // `target` is where the palm goes (character space, metres) and `pole` the
 // direction the elbow points, given for the left arm and mirrored for the
 // right. `grip` meshes are moved into that hand's fist by their handle
 // (`at` of the way up their long axis, turned `spin` degrees about it) and the
 // fingers curl around them; `props` meshes simply follow the forearm.
-export const poseCharacterArms = (model, hold, frame = ARM_FRAME) => {
+export const poseCharacterArms = (model, hold, baseFrame = ARM_FRAME) => {
   if (!model || !hold || model.userData.armPose) return model?.userData.armPose || null;
+  const frame = hold.frame ? { ...baseFrame, ...hold.frame } : baseFrame;
   model.updateMatrixWorld(true);
   const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert();
   const meshes = [];
@@ -331,6 +336,38 @@ export const poseCharacterArms = (model, hold, frame = ARM_FRAME) => {
     joints[side].elbow.quaternion.copy(fore);
   });
   model.updateMatrixWorld(true);
-  model.userData.armPose = { skeleton, joints, skinned };
+  const restFore = {
+    left: joints.left.elbow.quaternion.clone(),
+    right: joints.right.elbow.quaternion.clone(),
+  };
+  model.userData.armPose = { skeleton, joints, skinned, hold, restFore };
   return model.userData.armPose;
+};
+
+// Waving: bursts of a side-to-side hand swing about the elbow, in the plane
+// facing the viewer, with a short rest between bursts. Returns the swing
+// angle in radians for `elapsed` seconds.
+export const getWaveAngle = (wave, elapsed) => {
+  if (!wave) return 0;
+  const period = wave.period ?? 4.2;
+  const active = wave.active ?? 2.6;
+  const phase = ((elapsed % period) + period) % period;
+  if (phase >= active) return 0;
+  const envelope = Math.sin((phase / active) * Math.PI) ** 2;
+  return THREE.MathUtils.degToRad(wave.degrees ?? 22)
+    * Math.sin(phase * (wave.speed ?? 9)) * envelope;
+};
+
+// Turns the waving forearm by `angle` about the model's z axis while the
+// upper arm stays put: fore' = upper⁻¹ · Rz(angle) · upper · fore.
+export const waveCharacterArm = (model, angle) => {
+  const armPose = model?.userData.armPose;
+  const side = armPose?.hold?.wave?.side;
+  if (!side) return;
+  const { shoulder, elbow } = armPose.joints[side];
+  const swing = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), angle);
+  elbow.quaternion.copy(shoulder.quaternion).invert()
+    .multiply(swing)
+    .multiply(shoulder.quaternion)
+    .multiply(armPose.restFore[side]);
 };

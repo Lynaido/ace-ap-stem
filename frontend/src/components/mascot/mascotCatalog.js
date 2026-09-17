@@ -15,8 +15,11 @@ export const OUTFITS = [
     // The designer body with no outfit (tmp/build-original.mjs): one hand
     // raised in a hello, the other relaxed, as in the Acey render.
     hold: {
-      right: { target: [-0.4, 0.6, 0.14], pole: [1, -1, -0.6], roll: -90 },
-      left: { target: [0.36, 0.2, 0.12], pole: [1, 0, -1] },
+      right: { target: [-0.415, 0.49, 0.09], pole: [1, -0.6, 0.3], roll: -90 },
+      left: { target: [0.35, 0.08, 0.16], pole: [1, -0.2, -1] },
+      // Round elbows on the slender arm tubes.
+      frame: { elbowBlend: [0.33, 0.48] },
+      wave: { side: 'right', degrees: 22, speed: 9 },
     },
   },
   {

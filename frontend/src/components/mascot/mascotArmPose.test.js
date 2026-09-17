@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ARM_FRAME, getArmWeights, poseCharacterArms, solveArmHold } from './mascotArmPose';
+import { ARM_FRAME, getArmWeights, getWaveAngle, poseCharacterArms, solveArmHold } from './mascotArmPose';
 
 const placePalm = (side, { upper, fore }) => {
   const sign = side === 'right' ? -1 : 1;
@@ -53,4 +53,14 @@ test('rebuilds a T-pose character as skinned meshes and moves the held prop with
   expect(tip.x).toBeLessThan(0.45);
   expect(tip.z).toBeGreaterThan(0.1);
   expect(poseCharacterArms(model, { left: { target } })).toBe(pose);
+});
+
+test('waves in bursts and rests between them', () => {
+  const wave = { degrees: 20, speed: 9, period: 4, active: 2 };
+  const angles = Array.from({ length: 40 }, (_, i) => getWaveAngle(wave, i * 0.05));
+  expect(Math.max(...angles)).toBeGreaterThan(0.1);
+  expect(Math.min(...angles)).toBeLessThan(-0.1);
+  angles.forEach((angle) => expect(Math.abs(angle)).toBeLessThanOrEqual(THREE.MathUtils.degToRad(20)));
+  expect(getWaveAngle(wave, 3)).toBe(0);
+  expect(getWaveAngle(undefined, 1)).toBe(0);
 });

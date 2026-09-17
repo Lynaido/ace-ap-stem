@@ -24,6 +24,7 @@ import {
 } from './mascotModel';
 import { REACTION_DURATIONS, getBrainBlend, getBrainTint } from './mascotCatalog';
 import { blendMoodMotion, stepMoodWeights } from './mascotMotion';
+import { getWaveAngle, waveCharacterArm } from './mascotArmPose';
 
 // Seconds per study reaction. Unknown reactions fall back to a short nod.
 export const ACTION_DURATIONS = REACTION_DURATIONS;
@@ -469,6 +470,13 @@ export const createMascotScene = ({
     const baseModel = contentRoot.getObjectByName('ACEWebReadyBase');
     setArmPose(baseModel, armAngles, wristWave);
     setArmPose(visibleOutfit, armAngles);
+    // Designer characters posed with a raised hand (the Original) wave it,
+    // and wave faster during the hello reaction.
+    const wave = visibleOutfit?.userData.armPose?.hold?.wave;
+    if (wave) {
+      const helloWave = currentAction?.id === 'hello' ? wristWave * 1.6 : 0;
+      waveCharacterArm(visibleOutfit, reduceMotion ? 0 : getWaveAngle(wave, elapsed) + helloWave);
+    }
 
     const targets = baseModel?.userData.faceTargets;
     const mood = MOOD_FACE_SCALE[currentMood] || MOOD_FACE_SCALE.ready;
