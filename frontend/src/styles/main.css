@@ -176,6 +176,10 @@
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
 }
+/* Big screens keep a wider reading rail so pages do not float in empty margins. */
+@media (min-width: 1500px) { :root { --ace-content: 1360px; } }
+@media (min-width: 1750px) { :root { --ace-content: 1480px; } }
+
 
 /* ------------------- */
 /* Global Styles       */

@@ -26,10 +26,10 @@ const SPARKLES = [
 ];
 
 const STATS = [
-  { icon: 'cap', value: 1000, suffix: '+', label: 'Students supported' },
-  { icon: 'doc', value: 50000, suffix: '+', label: 'Problems solved' },
+  { icon: 'cap', value: 500, suffix: '+', label: 'Students supported' },
+  { icon: 'doc', value: 10000, suffix: '+', label: 'Problems solved' },
   { icon: 'spark', value: 4.9, decimals: 1, suffix: '/5', label: 'User satisfaction' },
-  { icon: 'heart', text: 'A kinder', label: 'way to learn STEM' },
+  { icon: 'books', value: 10, suffix: '+', label: 'AP STEM subjects' },
 ];
 
 const StatIcon = ({ name }) => {
@@ -37,6 +37,7 @@ const StatIcon = ({ name }) => {
   if (name === 'cap') return <svg {...common}><path d="M2 9l10-5 10 5-10 5z" /><path d="M6 11v5c2 2 10 2 12 0v-5M22 9v6" /></svg>;
   if (name === 'doc') return <svg {...common}><path d="M6 3h9l4 4v14H6z" /><path d="M14 3v5h5M9 12h7M9 16h7" /></svg>;
   if (name === 'spark') return <svg {...common}><path d="M12 3c.6 4.8 2.4 7.4 8 9-5.6 1.6-7.4 4.2-8 9-.6-4.8-2.4-7.4-8-9 5.6-1.6 7.4-4.2 8-9z" /></svg>;
+  if (name === 'books') return <svg {...common}><path d="M4 19h13M6 19V8h4v11M12 19V5h4v14M17.4 19l2.6-9.6-3.4-.9" /></svg>;
   return <svg {...common}><path d="M12 20C6.5 16.2 3 12.9 3 8.7 3 6 5 4 7.6 4c1.8 0 3.4 1 4.4 2.5C13 5 14.6 4 16.4 4 19 4 21 6 21 8.7c0 4.2-3.5 7.5-9 11.3z" /></svg>;
 };
 

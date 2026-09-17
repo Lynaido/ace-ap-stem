@@ -10,13 +10,13 @@ import './AboutUsPage.css';
 // camera that rendered it (tmp/hero-scene.html). The Original in the middle is
 // the live 3D Acey, so it is not in this list (see HERO_LIVE_SLOT).
 const HERO_CHARACTERS = [
-  { id: 'classic', x: 10.02, y: 62.33, h: 27.03, depth: -0.6 },
-  { id: 'long-vest', x: 39.79, y: 64.16, h: 21.03, depth: -3.6 },
-  { id: 'graduation', x: 82.37, y: 53.91, h: 24.29, depth: -2.4 },
-  { id: 'hoodie', x: 25.21, y: 72.53, h: 29.83, depth: 1.2 },
-  { id: 'vest', x: 76.47, y: 70.77, h: 27.76, depth: 0.2 },
-  { id: 'artist', x: 5.39, y: 80.76, h: 34.48, depth: 2.8 },
-  { id: 'cloak', x: 94.64, y: 82.69, h: 33.11, depth: 2.6 },
+  { id: 'classic', x: 18.64, y: 63.26, h: 22.62, depth: -0.6 },
+  { id: 'long-vest', x: 41.2, y: 64.1, h: 18.11, depth: -3.6 },
+  { id: 'graduation', x: 84.04, y: 54.11, h: 20.7, depth: -2.4 },
+  { id: 'hoodie', x: 31.43, y: 71.34, h: 24.46, depth: 1.2 },
+  { id: 'vest', x: 68.06, y: 69.87, h: 23.05, depth: 0.2 },
+  { id: 'artist', x: 6.94, y: 79.29, h: 27.59, depth: 2.8 },
+  { id: 'cloak', x: 93.14, y: 78.99, h: 26.64, depth: 2.6 },
 ].map((character) => ({ ...character, src: `/hero/acey-${character.id}.webp` }));
 
 const HERO_SPARKLES = [
