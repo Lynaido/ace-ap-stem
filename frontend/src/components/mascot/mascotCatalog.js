@@ -444,7 +444,7 @@ export const PROP_SETS = {
     url: '/mascot/props/graduation.glb',
     label: 'Pencil & books',
     holdArms: ['right', 'left'],
-    holdPose: { right: { down: 12, forward: 8 }, left: { down: 44, forward: 64 } },
+    holdPose: { right: { down: 12, forward: 8 }, left: { down: 38, forward: 80 } },
   },
 };
 
