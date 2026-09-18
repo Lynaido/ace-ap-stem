@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ARM_FRAME, getArmWeights, getWaveAngle, poseCharacterArms, solveArmHold } from './mascotArmPose';
+import { ARM_FRAME, getArmWeights, getWaveAngle, poseCharacterArms, shortenArmFrame, solveArmHold } from './mascotArmPose';
 
 const placePalm = (side, { upper, fore }) => {
   const sign = side === 'right' ? -1 : 1;
@@ -63,4 +63,12 @@ test('waves in bursts and rests between them', () => {
   angles.forEach((angle) => expect(Math.abs(angle)).toBeLessThanOrEqual(THREE.MathUtils.degToRad(20)));
   expect(getWaveAngle(wave, 3)).toBe(0);
   expect(getWaveAngle(undefined, 1)).toBe(0);
+});
+
+test('shorter arms halve the shoulder-to-wrist stretch and slide the hand in', () => {
+  const frame = shortenArmFrame(ARM_FRAME, { from: 0.2, to: 0.45, scale: 0.5 });
+  expect(frame.shoulderX).toBe(ARM_FRAME.shoulderX);
+  expect(frame.elbowX).toBeCloseTo(0.2 + ((ARM_FRAME.elbowX - 0.2) * 0.5));
+  expect(frame.palmX).toBeCloseTo(ARM_FRAME.palmX - 0.125);
+  expect(frame.elbowBlend[0]).toBeLessThan(ARM_FRAME.elbowBlend[0]);
 });

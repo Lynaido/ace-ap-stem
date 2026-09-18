@@ -15,10 +15,13 @@ export const OUTFITS = [
     // The designer body with no outfit (tmp/build-original.mjs): one hand
     // raised in a hello: both hands up beside the face, waving together.
     hold: {
-      right: { target: [-0.415, 0.49, 0.09], pole: [1, -0.6, 0.3], roll: -90 },
-      left: { target: [0.415, 0.49, 0.09], pole: [1, -0.6, 0.3], roll: -90 },
+      right: { target: [-0.348, 0.449, 0.065], pole: [1, -0.6, 0.3], roll: -90 },
+      left: { target: [0.348, 0.449, 0.065], pole: [1, -0.6, 0.3], roll: -90 },
       // Round elbows on the slender arm tubes.
       frame: { elbowBlend: [0.33, 0.48] },
+      // Short arms as in the approved design render (client, 2026-09-18):
+      // the tube between the shoulder and the wrist is half as long.
+      armLength: { from: 0.2, to: 0.45, scale: 0.5 },
       wave: { side: 'both', degrees: 22, speed: 9 },
     },
   },
@@ -435,12 +438,13 @@ export const POSED_VARIANTS = {
 export const PROP_SETS = {
   'long-vest': { url: '/mascot/props/long-vest.glb', label: 'Science flask', holdArms: ['left'] },
   vest: { url: '/mascot/props/vest.glb', label: 'Briefcase & coffee mug', holdArms: ['left', 'right'] },
-  // The approved Scholar render points the pencil out to the side.
+  // The approved Scholar render points the pencil out to the side; the other
+  // arm comes down and in to hug a stack of books against the body.
   graduation: {
     url: '/mascot/props/graduation.glb',
     label: 'Pencil & books',
-    holdArms: ['right'],
-    holdPose: { right: { down: 12, forward: 8 } },
+    holdArms: ['right', 'left'],
+    holdPose: { right: { down: 12, forward: 8 }, left: { down: 44, forward: 64 } },
   },
 };
 

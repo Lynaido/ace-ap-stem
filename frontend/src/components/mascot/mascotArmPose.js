@@ -39,6 +39,27 @@ export const ARM_FRAME = {
   gripX: 0.617,
 };
 
+// Shorter arms (`hold.armLength: { from, to, scale }`): along each arm the
+// stretch between `from` and `to` (distance from the body centre; the tube
+// from the shoulder to the wrist) is scaled by `scale` and everything beyond
+// it (the hand) slides inward by what was removed. The arm frame is remapped
+// the same way so the joints stay at the new elbow and palm.
+const shortenReach = (reach, { from, to, scale }) => {
+  if (reach <= from) return reach;
+  if (reach <= to) return from + ((reach - from) * scale);
+  return reach - ((to - from) * (1 - scale));
+};
+const FRAME_REACH_KEYS = ['elbowX', 'palmX', 'knuckleX', 'handMinX', 'gripX'];
+const FRAME_RANGE_KEYS = ['shoulderBlend', 'elbowBlend', 'torsoX'];
+export const shortenArmFrame = (frame, armLength) => {
+  const next = { ...frame };
+  FRAME_REACH_KEYS.forEach((key) => { next[key] = shortenReach(frame[key], armLength); });
+  FRAME_RANGE_KEYS.forEach((key) => { next[key] = frame[key].map((value) => shortenReach(value, armLength)); });
+  return next;
+};
+const isArmPoint = (point, frame) => point.y >= frame.minY && point.y <= frame.maxY
+  && Math.abs(point.z - frame.axisZ) <= frame.maxAbsZ;
+
 // Two-bone IK: returns the upper-arm and forearm rotations that put the palm
 // (rest point `frame.palmX` along the arm) on `target`, with the elbow bent
 // toward `pole`. Rotations are relative to the T-pose.
@@ -189,7 +210,8 @@ const createArmSkeleton = (model, frame) => {
 // fingers curl around them; `props` meshes simply follow the forearm.
 export const poseCharacterArms = (model, hold, baseFrame = ARM_FRAME) => {
   if (!model || !hold || model.userData.armPose) return model?.userData.armPose || null;
-  const frame = hold.frame ? { ...baseFrame, ...hold.frame } : baseFrame;
+  const customFrame = hold.frame ? { ...baseFrame, ...hold.frame } : baseFrame;
+  const frame = hold.armLength ? shortenArmFrame(customFrame, hold.armLength) : customFrame;
   model.updateMatrixWorld(true);
   const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert();
   const meshes = [];
@@ -231,6 +253,17 @@ export const poseCharacterArms = (model, hold, baseFrame = ARM_FRAME) => {
       fixed: fixedMeshes.has(mesh.name) || fixedMeshes.has(mesh.parent?.name),
     };
   });
+
+  if (hold.armLength) {
+    baked.forEach((item) => {
+      if (item.fixed) return;
+      item.points.forEach((point) => {
+        if (!isArmPoint(point, customFrame)) return;
+        const reach = Math.abs(point.x);
+        point.x = Math.sign(point.x) * shortenReach(reach, hold.armLength);
+      });
+    });
+  }
 
   // Hats sit higher so the brain shows under the brim, as in the approved
   // renders: `headwear: { materials: [...], fromY, lift }` raises every vertex

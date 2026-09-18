@@ -8,15 +8,16 @@ import './AboutUsPage.css';
 
 // Feet (x, y) and height (h) in % of /hero/about-scene.webp, measured from the
 // camera that rendered it (tmp/hero-scene.html). The Original in the middle is
-// the live 3D Acey, so it is not in this list (see HERO_LIVE_SLOT).
+// the live 3D Acey, so it is not in this list. Front and back rows alternate
+// and everyone stays inside 9–91% of the frame, so no one is cut off.
 const HERO_CHARACTERS = [
-  { id: 'classic', x: 18.64, y: 63.26, h: 22.62, depth: -0.6 },
-  { id: 'long-vest', x: 41.2, y: 64.1, h: 18.11, depth: -3.6 },
-  { id: 'graduation', x: 84.04, y: 54.11, h: 20.7, depth: -2.4 },
-  { id: 'hoodie', x: 31.43, y: 71.34, h: 24.46, depth: 1.2 },
-  { id: 'vest', x: 68.06, y: 69.87, h: 23.05, depth: 0.2 },
-  { id: 'artist', x: 6.94, y: 79.29, h: 27.59, depth: 2.8 },
-  { id: 'cloak', x: 93.14, y: 78.99, h: 26.64, depth: 2.6 },
+  { id: 'artist', x: 15.96, y: 80.57, h: 26.9, depth: 3.4 },
+  { id: 'classic', x: 22.31, y: 52.8, h: 18.77, depth: -2.12 },
+  { id: 'hoodie', x: 33.18, y: 75.19, h: 26.26, depth: 3 },
+  { id: 'vest', x: 67.33, y: 82.76, h: 25.83, depth: 2.85 },
+  { id: 'long-vest', x: 73.37, y: 53.09, h: 18.92, depth: -1.5 },
+  { id: 'cloak', x: 79.72, y: 84.25, h: 26.82, depth: 3.4 },
+  { id: 'graduation', x: 85.77, y: 53.98, h: 19.83, depth: -1.5 },
 ].map((character) => ({ ...character, src: `/hero/acey-${character.id}.webp` }));
 
 const HERO_SPARKLES = [
@@ -177,109 +178,6 @@ const Scribble = ({ className = '' }) => (
   <svg className={`ace-about__scribble ${className}`} viewBox="0 0 220 24" preserveAspectRatio="none" aria-hidden="true">
     <path d="M4 15c40-8 92-10 136-7 26 2 50 5 76 2" />
     <path d="M18 20c54-6 110-7 176-4" />
-  </svg>
-);
-
-/* Sticker doodles around the founder portrait: a cheerful brain buddy, a
-   winged heart and the little Lynae robot, drawn inline so they stay crisp. */
-const CuteBrain = ({ className = '', wink = false }) => (
-  <svg className={className} viewBox="0 0 120 108" aria-hidden="true">
-    <defs>
-      <linearGradient id="about-brain-fill" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor="#f3e0ff" />
-        <stop offset=".55" stopColor="#ddd0ff" />
-        <stop offset="1" stopColor="#c9baff" />
-      </linearGradient>
-    </defs>
-    <g fill="url(#about-brain-fill)" stroke="#8f7ce0" strokeWidth="2.4" strokeLinejoin="round">
-      <circle cx="40" cy="30" r="17" />
-      <circle cx="64" cy="22" r="15" />
-      <circle cx="86" cy="34" r="16" />
-      <circle cx="30" cy="50" r="15" />
-      <circle cx="92" cy="56" r="14" />
-      <circle cx="60" cy="44" r="20" />
-    </g>
-    <path d="M22 54c-4 16 6 34 26 39 7 2 15 2 22 0 20-5 30-23 26-39" fill="url(#about-brain-fill)" stroke="#8f7ce0" strokeWidth="2.4" strokeLinejoin="round" />
-    <path d="M22 56h78" stroke="#8f7ce0" strokeWidth="2.2" strokeLinecap="round" opacity=".55" />
-    <g fill="#fff" stroke="#8f7ce0" strokeWidth="2.6">
-      <circle cx="44" cy="72" r="15" />
-      <circle cx="80" cy="72" r="15" />
-    </g>
-    <path d="M59 71c1.6-1.4 3.8-1.4 5.4 0" fill="none" stroke="#8f7ce0" strokeWidth="2.4" strokeLinecap="round" />
-    {wink ? (
-      <>
-        <path d="M38 73c3-4 9-4 12 0" fill="none" stroke="#3f3374" strokeWidth="3.4" strokeLinecap="round" />
-        <path d="M74 73c3-4 9-4 12 0" fill="none" stroke="#3f3374" strokeWidth="3.4" strokeLinecap="round" />
-      </>
-    ) : (
-      <>
-        <circle cx="44" cy="72" r="6.4" fill="#3f3374" />
-        <circle cx="80" cy="72" r="6.4" fill="#3f3374" />
-        <circle cx="46.4" cy="69.6" r="2.2" fill="#fff" />
-        <circle cx="82.4" cy="69.6" r="2.2" fill="#fff" />
-      </>
-    )}
-    <ellipse cx="30" cy="84" rx="6" ry="4" fill="#ffb4d4" opacity=".75" />
-    <ellipse cx="94" cy="84" rx="6" ry="4" fill="#ffb4d4" opacity=".75" />
-    <path d="M55 88c3.4 3.6 9.6 3.6 13 0" fill="none" stroke="#3f3374" strokeWidth="3" strokeLinecap="round" />
-  </svg>
-);
-
-const CuteHeart = ({ className = '' }) => (
-  <svg className={className} viewBox="0 0 140 104" aria-hidden="true">
-    <defs>
-      <radialGradient id="about-cute-heart" cx="38%" cy="30%" r="76%">
-        <stop offset="0" stopColor="#ffe6f1" />
-        <stop offset=".55" stopColor="#ffb0d0" />
-        <stop offset="1" stopColor="#f588b6" />
-      </radialGradient>
-    </defs>
-    <path d="M40 40C27 24 10 25 5 33c9 0 14 4 16 9-8-2-14 1-16 6 8-1 13 1 16 5-5 1-9 4-10 8 11-4 20-3 30-7z" fill="#fff" stroke="#f3a9cd" strokeWidth="2" strokeLinejoin="round" />
-    <path d="M100 40c13-16 30-15 35-7-9 0-14 4-16 9 8-2 14 1 16 6-8-1-13 1-16 5 5 1 9 4 10 8-11-4-20-3-30-7z" fill="#fff" stroke="#f3a9cd" strokeWidth="2" strokeLinejoin="round" />
-    <path d="M70 96C47 79 34 66 34 50c0-11 8-19 18-19 7 0 14 4 18 11 4-7 11-11 18-11 10 0 18 8 18 19 0 16-13 29-36 46z" fill="url(#about-cute-heart)" stroke="#ef86b6" strokeWidth="2.4" strokeLinejoin="round" />
-    <circle cx="58" cy="55" r="3.6" fill="#8a3f66" />
-    <circle cx="82" cy="55" r="3.6" fill="#8a3f66" />
-    <path d="M64 63c3 3 9 3 12 0" fill="none" stroke="#8a3f66" strokeWidth="2.6" strokeLinecap="round" />
-    <ellipse cx="50" cy="62" rx="5" ry="3.4" fill="#ff8ab8" opacity=".6" />
-    <ellipse cx="90" cy="62" rx="5" ry="3.4" fill="#ff8ab8" opacity=".6" />
-  </svg>
-);
-
-const CuteRobot = ({ className = '' }) => (
-  <svg className={className} viewBox="0 0 120 120" aria-hidden="true">
-    <defs>
-      <linearGradient id="about-robot-body" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#dff0ff" />
-        <stop offset="1" stopColor="#a9d4f5" />
-      </linearGradient>
-    </defs>
-    <path d="M60 20v-8" stroke="#8fb9dd" strokeWidth="3.4" strokeLinecap="round" />
-    <circle cx="60" cy="9" r="5" fill="#ffd45e" stroke="#e2ae2f" strokeWidth="2" />
-    <rect x="20" y="20" width="80" height="62" rx="24" fill="url(#about-robot-body)" stroke="#7fb0da" strokeWidth="2.6" />
-    <rect x="31" y="34" width="58" height="34" rx="16" fill="#f4fbff" stroke="#7fb0da" strokeWidth="2.2" />
-    <circle cx="48" cy="50" r="5.4" fill="#3f5a78" />
-    <circle cx="72" cy="50" r="5.4" fill="#3f5a78" />
-    <path d="M55 59c2.6 2.6 7.4 2.6 10 0" fill="none" stroke="#3f5a78" strokeWidth="2.6" strokeLinecap="round" />
-    <ellipse cx="38" cy="58" rx="4.6" ry="3" fill="#ffaecd" opacity=".8" />
-    <ellipse cx="82" cy="58" rx="4.6" ry="3" fill="#ffaecd" opacity=".8" />
-    <rect x="8" y="42" width="12" height="22" rx="6" fill="#c3e3fa" stroke="#7fb0da" strokeWidth="2.2" />
-    <rect x="100" y="42" width="12" height="22" rx="6" fill="#c3e3fa" stroke="#7fb0da" strokeWidth="2.2" />
-    <rect x="34" y="82" width="52" height="26" rx="13" fill="url(#about-robot-body)" stroke="#7fb0da" strokeWidth="2.6" />
-    <path d="M60 104c-9-6-14-11-14-17 0-4 3-7 7-7 3 0 5.6 1.6 7 4 1.4-2.4 4-4 7-4 4 0 7 3 7 7 0 6-5 11-14 17z" fill="#ffb0d0" stroke="#ef86b6" strokeWidth="2.2" strokeLinejoin="round" />
-  </svg>
-);
-
-const Twinkle = ({ className = '' }) => (
-  <svg className={className} viewBox="0 0 40 40" aria-hidden="true">
-    <g stroke="#ffc94a" strokeWidth="3.4" strokeLinecap="round">
-      <path d="M20 6v9M31 12l-6 6M9 12l6 6M20 34v-8" />
-    </g>
-  </svg>
-);
-
-const LynaeWordmark = () => (
-  <svg className="ace-about__lynae-word" viewBox="0 0 120 34" aria-hidden="true">
-    <text x="60" y="26" textAnchor="middle">LYNAE</text>
   </svg>
 );
 
@@ -671,19 +569,8 @@ const AboutUsPage = () => {
 
         <div className="ace-about__founder-photo">
           <div className="ace-about__founder-frame">
-            <img src="/about/founder-lyna.webp" alt="Lyna Ai Do, founder of ACE AP STEM" width="720" height="818" loading="lazy" />
+            <img src="/about/founder-lyna-avatar.webp" alt="Lyna Ai Do, founder of ACE AP STEM" width="640" height="640" loading="lazy" />
           </div>
-          {/* Hand-drawn stickers around the portrait, as in the client's design. */}
-          <CuteBrain className="ace-about__sticker ace-about__sticker--brain-a" />
-          <CuteBrain className="ace-about__sticker ace-about__sticker--brain-b" wink />
-          <CuteHeart className="ace-about__sticker ace-about__sticker--heart-a" />
-          <CuteHeart className="ace-about__sticker ace-about__sticker--heart-b" />
-          <CuteRobot className="ace-about__sticker ace-about__sticker--robot" />
-          <Twinkle className="ace-about__sticker ace-about__sticker--twinkle-a" />
-          <Twinkle className="ace-about__sticker ace-about__sticker--twinkle-b" />
-          <Twinkle className="ace-about__sticker ace-about__sticker--twinkle-c" />
-          <Heart className="ace-about__sticker ace-about__sticker--outline-a" />
-          <Heart className="ace-about__sticker ace-about__sticker--outline-b" />
           <div className="ace-about__founder-tag">
             <div>
               <strong>Lyna Ai Do</strong>
@@ -696,11 +583,7 @@ const AboutUsPage = () => {
         <aside className="ace-about__lynae" aria-labelledby="lynae-title">
           <p className="ace-about__lynae-kicker">Also founded by Lyna <Heart /></p>
           <div className="ace-about__lynae-logo">
-            <span className="ace-about__lynae-mark">
-              <LynaeWordmark />
-              <CuteRobot className="ace-about__lynae-robot" />
-              <CuteHeart className="ace-about__lynae-heart" />
-            </span>
+            <img className="ace-about__lynae-mark" src="/about/lynae-logo.webp" alt="Lynae logo: a little robot hugging a winged heart" width="320" height="320" loading="lazy" />
             <div>
               <h3 id="lynae-title">Lynae</h3>
               <span className="ace-about__lynae-name">Heart &amp; Hardware</span>
@@ -718,7 +601,6 @@ const AboutUsPage = () => {
               <FaInstagram aria-hidden="true" /> Instagram <FaArrowRight aria-hidden="true" />
             </a>
           </div>
-          <CuteHeart className="ace-about__sticker ace-about__sticker--lynae" />
         </aside>
       </section>
 
