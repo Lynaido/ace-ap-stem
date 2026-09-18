@@ -638,7 +638,7 @@ const AboutUsPage = () => {
             <svg className="ace-about__wave-lines" viewBox="0 0 60 60">
               <path d="M40 8c-8 2-14 7-17 14M50 20c-8 1-13 5-16 11M46 36c-5 0-9 2-12 5" />
             </svg>
-            <img src="/about/acey-wave-hello.webp" alt="" width="555" height="720" loading="lazy" />
+            <img src="/about/acey-wave-hello.webp" alt="" width="646" height="720" loading="lazy" />
           </div>
         </div>
 

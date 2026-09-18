@@ -8,13 +8,15 @@ import './HeroSection.css';
 // Feet position (x, y) and height (h) in % of the 16:9 scene, measured from
 // the camera that rendered /hero/home-scene.webp (tmp/hero-scene.html).
 const HOME_CHARACTERS = [
-  { id: 'classic', x: 55.99, y: 52.56, h: 22, depth: -2.2 },
-  { id: 'graduation', x: 89.33, y: 58.18, h: 21.13, depth: -3.2 },
-  { id: 'long-vest', x: 45.52, y: 70.12, h: 23.83, depth: -0.4 },
-  { id: 'artist', x: 81.31, y: 67.23, h: 26.08, depth: 0.4 },
-  { id: 'original', x: 70.43, y: 84.91, h: 40.84, depth: 1.4 },
-  { id: 'cloak', x: 55.04, y: 87.72, h: 31.19, depth: 3.3 },
-  { id: 'hoodie', x: 92.64, y: 90.86, h: 31.73, depth: 3.5 },
+  { id: 'classic', x: 51.49, y: 52.56, h: 22, depth: -2.2 },
+  { id: 'graduation', x: 84.83, y: 58.18, h: 21.13, depth: -3.2 },
+  { id: 'long-vest', x: 41.02, y: 70.12, h: 23.83, depth: -0.4 },
+  { id: 'artist', x: 76.81, y: 67.23, h: 26.08, depth: 0.4 },
+  // The Original waves both hands above the desk, so its cutout ends at the
+  // bulb tip rather than a lowered hand.
+  { id: 'original', x: 65.93, y: 77.8, h: 32.8, depth: 1.4 },
+  { id: 'cloak', x: 50.54, y: 87.72, h: 31.19, depth: 3.3 },
+  { id: 'hoodie', x: 88.14, y: 90.86, h: 31.73, depth: 3.5 },
 ].map((character) => ({ ...character, src: `/hero/acey-${character.id}.webp` }));
 
 const SPARKLES = [

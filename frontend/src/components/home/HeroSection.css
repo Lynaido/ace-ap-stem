@@ -26,14 +26,15 @@
   /* A soft glow behind the headline only, so the room still reaches the
      left edge instead of fading into an empty band. */
   background:
-    radial-gradient(46% 74% at 22% 48%, rgba(252, 249, 255, .95) 0%, rgba(252, 249, 255, .8) 42%, rgba(252, 249, 255, .3) 70%, transparent 88%),
+    radial-gradient(46% 74% at 19% 48%, rgba(252, 249, 255, .95) 0%, rgba(252, 249, 255, .8) 42%, rgba(252, 249, 255, .3) 70%, transparent 88%),
     linear-gradient(0deg, rgba(246, 239, 255, .9) 0%, transparent 22%);
 }
 
+/* The copy hugs the left edge of the screen rather than the content rail. */
 .ace-hero__inner {
   position: relative;
-  width: min(var(--ace-content), 100%);
-  margin: 0 auto;
+  width: 100%;
+  padding-left: clamp(0px, 2.6vw, 52px);
   flex: 1;
   display: flex;
   align-items: center;
@@ -235,7 +236,7 @@
 /* On wide screens the copy would drift to the middle of an empty room;
    widen the hero rail so it keeps hugging the left with the cast on the right. */
 @media (min-width: 1400px) {
-  .ace-hero__inner, .ace-hero__bottom { width: min(var(--ace-content), calc(100% - 40px)); }
+  .ace-hero__bottom { width: min(var(--ace-content), calc(100% - 40px)); }
   .ace-hero__copy { max-width: 600px; }
 }
 
@@ -255,7 +256,7 @@
 @media (max-width: 760px) {
   .ace-hero { min-height: 0; padding: 34px 16px 22px; background: linear-gradient(180deg, #fbf8ff 0%, #f1e8ff 100%); }
   .ace-hero__veil { display: none; }
-  .ace-hero__inner { flex: none; }
+  .ace-hero__inner { flex: none; padding-left: 0; }
   .ace-hero__copy { max-width: none; padding-bottom: 0; }
   .ace-hero h1 { font-size: clamp(2.9rem, 13.5vw, 3.9rem); }
   .ace-hero__actions > a { flex: 1 1 auto; }

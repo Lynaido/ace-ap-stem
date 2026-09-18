@@ -13,13 +13,13 @@ export const OUTFITS = [
     fullCharacter: true, fullCharacterOffsetY: 0,
     brainMaterials: ['Material.002'],
     // The designer body with no outfit (tmp/build-original.mjs): one hand
-    // raised in a hello, the other relaxed, as in the Acey render.
+    // raised in a hello: both hands up beside the face, waving together.
     hold: {
       right: { target: [-0.415, 0.49, 0.09], pole: [1, -0.6, 0.3], roll: -90 },
-      left: { target: [0.35, 0.08, 0.16], pole: [1, -0.2, -1] },
+      left: { target: [0.415, 0.49, 0.09], pole: [1, -0.6, 0.3], roll: -90 },
       // Round elbows on the slender arm tubes.
       frame: { elbowBlend: [0.33, 0.48] },
-      wave: { side: 'right', degrees: 22, speed: 9 },
+      wave: { side: 'both', degrees: 22, speed: 9 },
     },
   },
   {

@@ -178,7 +178,7 @@ const createArmSkeleton = (model, frame) => {
 //     fixed: [meshName, ...],
 //     headwear: { materials: [...], fromY, lift },
 //     frame: { elbowBlend: [...], ... },
-//     wave: { side: 'right', degrees: 22, speed: 9 } }
+//     wave: { side: 'right' | 'left' | 'both', degrees: 22, speed: 9 } }
 // `frame` overrides ARM_FRAME for this character (a softer elbow blend).
 // `wave` swings that forearm about its elbow (see waveCharacterArm).
 // `fixed` meshes (a prop resting in front of the body) never follow an arm.
@@ -360,14 +360,19 @@ export const getWaveAngle = (wave, elapsed) => {
 
 // Turns the waving forearm by `angle` about the model's z axis while the
 // upper arm stays put: fore' = upper⁻¹ · Rz(angle) · upper · fore.
+// `side: 'both'` waves both hands as mirror images of each other.
 export const waveCharacterArm = (model, angle) => {
   const armPose = model?.userData.armPose;
   const side = armPose?.hold?.wave?.side;
   if (!side) return;
-  const { shoulder, elbow } = armPose.joints[side];
-  const swing = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), angle);
-  elbow.quaternion.copy(shoulder.quaternion).invert()
-    .multiply(swing)
-    .multiply(shoulder.quaternion)
-    .multiply(armPose.restFore[side]);
+  const sides = side === 'both' ? ['right', 'left'] : [side];
+  sides.forEach((current) => {
+    const { shoulder, elbow } = armPose.joints[current];
+    const mirrored = current === 'left' && side === 'both' ? -angle : angle;
+    const swing = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), mirrored);
+    elbow.quaternion.copy(shoulder.quaternion).invert()
+      .multiply(swing)
+      .multiply(shoulder.quaternion)
+      .multiply(armPose.restFore[current]);
+  });
 };
