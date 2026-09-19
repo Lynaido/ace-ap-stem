@@ -136,8 +136,10 @@ const curlFinger = (point, normal, sign, frame) => {
 };
 
 // Where a held prop's handle is and which way it runs: the principal axis of
-// its vertices, pointing up, and the point `at` of the way along it.
-const measureHandle = (points, at = 0.3) => {
+// its vertices, pointing up, and the point `at` of the way along it. A flat
+// prop (a clipboard) is held by its edge: `shift` moves the handle point that
+// far (metres) across it, along its second principal axis.
+const measureHandle = (points, at = 0.3, shift = 0) => {
   const centre = new THREE.Vector3();
   points.forEach((point) => centre.add(point));
   centre.divideScalar(points.length);
@@ -156,6 +158,21 @@ const measureHandle = (points, at = 0.3) => {
     ).normalize();
   }
   if (axis.y < 0) axis.negate();
+  const across = new THREE.Vector3(1, 0, 0);
+  if (shift) {
+    // Power iteration on the covariance with the first axis projected out.
+    if (Math.abs(axis.x) > 0.9) across.set(0, 1, 0);
+    for (let step = 0; step < 24; step += 1) {
+      across.addScaledVector(axis, -across.dot(axis)).normalize();
+      across.set(
+        (cov[0] * across.x) + (cov[1] * across.y) + (cov[2] * across.z),
+        (cov[1] * across.x) + (cov[3] * across.y) + (cov[4] * across.z),
+        (cov[2] * across.x) + (cov[4] * across.y) + (cov[5] * across.z)
+      );
+    }
+    across.addScaledVector(axis, -across.dot(axis)).normalize();
+    if (across.x < 0) across.negate();
+  }
   let low = Infinity;
   let high = -Infinity;
   points.forEach((point) => {
@@ -163,7 +180,10 @@ const measureHandle = (points, at = 0.3) => {
     low = Math.min(low, t);
     high = Math.max(high, t);
   });
-  return { axis, point: centre.addScaledVector(axis, low + ((high - low) * at)) };
+  return {
+    axis,
+    point: centre.addScaledVector(axis, low + ((high - low) * at)).addScaledVector(across, shift),
+  };
 };
 
 const createArmSkeleton = (model, frame) => {
@@ -193,7 +213,7 @@ const createArmSkeleton = (model, frame) => {
 // Rebuilds a character's visible meshes as skinned meshes on a five-bone arm
 // skeleton, then applies `hold`:
 //   { left: { target: [x, y, z], pole: [out, up, forward], roll,
-//             grip: { meshes: [name, ...], at: 0.3, spin: 0 } },
+//             grip: { meshes: [name, ...], at: 0.3, spin: 0, shift: 0 } },
 //     right: { ... },
 //     props: { left: [meshName, ...], right: [...] },
 //     fixed: [meshName, ...],
@@ -206,8 +226,9 @@ const createArmSkeleton = (model, frame) => {
 // `target` is where the palm goes (character space, metres) and `pole` the
 // direction the elbow points, given for the left arm and mirrored for the
 // right. `grip` meshes are moved into that hand's fist by their handle
-// (`at` of the way up their long axis, turned `spin` degrees about it) and the
-// fingers curl around them; `props` meshes simply follow the forearm.
+// (`at` of the way up their long axis, turned `spin` degrees about it, and
+// `shift` metres across a flat prop to hold it by its edge) and the fingers
+// curl around them; `props` meshes simply follow the forearm.
 export const poseCharacterArms = (model, hold, baseFrame = ARM_FRAME) => {
   if (!model || !hold || model.userData.armPose) return model?.userData.armPose || null;
   const customFrame = hold.frame ? { ...baseFrame, ...hold.frame } : baseFrame;
@@ -285,7 +306,7 @@ export const poseCharacterArms = (model, hold, baseFrame = ARM_FRAME) => {
     const parts = baked.filter((item) => item.grip === side);
     const points = parts.flatMap((item) => item.points);
     if (!points.length) return;
-    const handle = measureHandle(points, grip.at ?? 0.3);
+    const handle = measureHandle(points, grip.at ?? 0.3, grip.shift || 0);
     const sign = side === 'right' ? -1 : 1;
     const turn = new THREE.Quaternion().setFromUnitVectors(handle.axis, new THREE.Vector3(0, 0, 1));
     turn.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(grip.spin || 0)));

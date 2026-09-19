@@ -42,7 +42,7 @@ test('customizes the outfit, color, accessories and name in place', () => {
 
   // Accessories: the switch for the chosen role.
   fireEvent.click(screen.getByRole('tab', { name: /accessories/i }));
-  const propsSwitch = screen.getByRole('switch', { name: 'Show props: Science flask' });
+  const propsSwitch = screen.getByRole('switch', { name: 'Show props: Science flask & microscope' });
   fireEvent.click(propsSwitch);
   expect(propsSwitch).not.toBeChecked();
 

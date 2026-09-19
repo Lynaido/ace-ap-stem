@@ -78,6 +78,14 @@ export const OUTFITS = [
     // hands and action poses remain one connected character.
     modelOffsetY: 17,
     shoulderOverlap: 1.6,
+    // Each sleeve is a separate tube (radius 6.5, vertices only at its ends)
+    // whose open inner end showed as a pale rim behind the shoulder once the
+    // arm swings forward to hold a prop. A short tube of the suit cloth, a
+    // touch wider than the sleeve, starts inside the jacket and covers it.
+    outfitArmShroud: {
+      materialName: 'openPBR_shader1', color: '#0c2c64', innerX: 12.5, outerX: 30,
+      shoulderRadius: 7.1, cuffRadius: 6.7,
+    },
     cuffOverlap: 3.2, armPose: { shoulderX: 18.3, shoulderY: 18.6, outerMin: 45 },
   },
   {
@@ -128,6 +136,9 @@ export const OUTFITS = [
         grip: { meshes: ['Prongs_low_Microphone_0'], at: 0.3 },
       },
       right: { target: [-0.34, 0.13, 0.08], pole: [1, 0.2, -1] },
+      // A softer elbow: the sharp bend folded the blazer sleeve into a crease
+      // that caught the light as a pale line (client, 2026-09-19).
+      frame: { elbowBlend: [0.33, 0.48] },
     },
   },
   {
@@ -178,6 +189,14 @@ export const OUTFITS = [
         // Vest: the middle layer, between shirt and gown.
         { color: '#555b6b', min: [-23.8, -5.6, -18.8], max: [23.8, 26, 20.3] },
       ],
+    },
+    // The sleeve tapers to a narrow cap where it enters the gown, which
+    // showed as a pale seam at the back of the shoulder; a short tube of the
+    // gown cloth (radius 6, the sleeve's own is 5.3-5.9) fills that root.
+    // regionColors paints it black with the rest of the gown.
+    outfitArmShroud: {
+      materialName: 'openPBR_shader1', innerX: 16, outerX: 31,
+      shoulderRadius: 6.1, cuffRadius: 6.0,
     },
     cuffOverlap: 3.4, handOffsetY: 3.49,
     armPose: { shoulderX: 21.1, shoulderY: 18.8, outerMin: 45 },
@@ -346,16 +365,20 @@ export const POSED_VARIANTS = {
     brainMaterials: ['engineer_brain'],
   },
   // Healthcare: body_AO_BS2.glb — white lab coat over mint scrubs with the
-  // stethoscope around the neck (kept still) and a clipboard held up beside
-  // the body.
+  // stethoscope around the neck (kept still). The fist holds the clipboard by
+  // its outer edge in front of the body, paper toward the viewer (client,
+  // 2026-09-19). Coat sleeves recolored by tmp/build-healthcare-sleeves.mjs.
   doctor: {
     url: '/mascot/poses/healthcare.glb',
     label: 'Stethoscope & clipboard',
     brainMaterials: ['Material.006'],
     hold: {
-      left: { target: [0.5, 0.3, 0.12], pole: [0.3, -1, -0.4] },
+      left: {
+        target: [0.33, 0.3, 0.26],
+        pole: [1, -1, -0.5],
+        grip: { meshes: ['Cube002'], at: 0.35, shift: 0.075, spin: 140 },
+      },
       right: { target: [-0.34, 0.13, 0.08], pole: [1, 0.2, -1] },
-      props: { left: ['Cube002'] },
       fixed: ['Object_4', 'Object_5'],
     },
   },
@@ -372,7 +395,10 @@ export const POSED_VARIANTS = {
     },
   },
   // Creative: BODY_AO_HoaSi2.glb — brown beret sitting on the brain, white
-  // shirt, blue overalls; a paintbrush in one fist and the palette held out.
+  // shirt, blue overalls; a paintbrush in one fist and the palette resting on
+  // the other, open palm (laid flat by tmp/build-artist-palette.mjs; the hand
+  // turns palm-up so no finger cuts through it, tipped 40° past flat so the
+  // paint faces the viewer).
   artist: {
     url: '/mascot/poses/artist.glb',
     label: 'Paintbrush & palette',
@@ -383,7 +409,7 @@ export const POSED_VARIANTS = {
         pole: [1, -1, -0.5],
         grip: { meshes: ['Cylinder', 'Cylinder001', 'Cylinder002'], at: 0.3 },
       },
-      left: { target: [0.46, 0.27, 0.14], pole: [0.3, -1, -1] },
+      left: { target: [0.46, 0.27, 0.14], pole: [0.3, -1, -1], roll: 220 },
       props: { left: ['Cylinder003'] },
     },
   },
@@ -436,8 +462,17 @@ export const POSED_VARIANTS = {
 // tmp/extract-props.mjs; see public/mascot/README.md.
 // `holdArms` lists the arms that hold something and rest lifted.
 export const PROP_SETS = {
-  'long-vest': { url: '/mascot/props/long-vest.glb', label: 'Science flask', holdArms: ['left'] },
-  vest: { url: '/mascot/props/vest.glb', label: 'Briefcase & coffee mug', holdArms: ['left', 'right'] },
+  // The flask in one fist; a microscope stands on the floor by the other
+  // hand, as in the approved Scientist render (client, 2026-09-19).
+  'long-vest': { url: '/mascot/props/long-vest.glb', label: 'Science flask & microscope', holdArms: ['left'] },
+  // The mug arm comes up in front of the chest (client, 2026-09-19); the
+  // briefcase hangs from the other hand.
+  vest: {
+    url: '/mascot/props/vest.glb',
+    label: 'Briefcase & coffee mug',
+    holdArms: ['left', 'right'],
+    holdPose: { left: { down: 8, forward: 72 } },
+  },
   // The approved Scholar render points the pencil out to the side; the other
   // arm comes down and in to hug a stack of books against the body.
   graduation: {

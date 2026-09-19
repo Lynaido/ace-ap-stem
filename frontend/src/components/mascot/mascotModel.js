@@ -840,6 +840,16 @@ const addOutfitArmShrouds = (model, outfit) => {
     disposeShoulderShroud(rig.userData.outfitArmShroud);
 
     const sign = side === 'right' ? 1 : -1;
+    const material = cloneMaterial(sourceMaterial);
+    // A textured cloth (one atlas for the whole suit) would wrap its entire
+    // atlas around the tube, and a vertex-painted one has no colors on it;
+    // `color` gives the tube the cloth's plain color.
+    if (profile.color) {
+      material.map = null;
+      material.vertexColors = false;
+      material.color.set(profile.color);
+      material.needsUpdate = true;
+    }
     const shroud = new THREE.Mesh(
       new THREE.CylinderGeometry(
         profile.cuffRadius / localScale,
@@ -849,7 +859,7 @@ const addOutfitArmShrouds = (model, outfit) => {
         4,
         true
       ),
-      cloneMaterial(sourceMaterial)
+      material
     );
     shroud.name = `ACE-${side}-moving-garment-shoulder-shroud`;
     shroud.rotation.z = sign * -Math.PI / 2;
@@ -948,12 +958,19 @@ const FIST = {
   thumbX: [3.5, 5.5],
   // Middle of the four fingers across the hand.
   gripZ: -1.75,
+  // Rolled thumb-up, the wrist end of the hand stands taller than the inside
+  // of a narrow sleeve and pokes through its underside. The part of the hand
+  // behind the wrist joint (hidden in the sleeve) narrows toward the joint
+  // line: to `wristScale` at `wristTaper[0]` units behind it, unchanged from
+  // `wristTaper[1]` on.
+  wristTaper: [-2.5, 0.5],
+  wristScale: 0.62,
 };
 
 // A fist is rolled thumb-up, so the handle through it runs vertically.
 const GRIP_ROLL = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
 
-const createFistGeometry = (hand, openQuaternion, side) => {
+const createFistGeometry = (hand, openQuaternion, side, joint = null) => {
   const sign = side === 'right' ? 1 : -1;
   const geometry = hand.geometry.clone();
   const positions = geometry.getAttribute('position');
@@ -997,6 +1014,16 @@ const createFistGeometry = (hand, openQuaternion, side) => {
       const curledNx = (nx * cos) + (normal.y * sin);
       normal.y = (-nx * sin) + (normal.y * cos);
       nx = curledNx;
+    }
+
+    if (joint) {
+      const along = x - (joint.x * sign);
+      const keep = THREE.MathUtils.smoothstep(along, FIST.wristTaper[0], FIST.wristTaper[1]);
+      if (keep < 1) {
+        const k = FIST.wristScale + ((1 - FIST.wristScale) * keep);
+        point.y = joint.y + ((point.y - joint.y) * k);
+        point.z = joint.z + ((point.z - joint.z) * k);
+      }
     }
 
     point.x = x * sign;
@@ -1044,7 +1071,8 @@ const setHandGrip = (rig, gripping) => {
   const { hand } = rig;
   rig.gripping = gripping;
   if (gripping) {
-    rig.fistGeometry = rig.fistGeometry || createFistGeometry(hand, rig.openQuaternion, rig.side);
+    rig.fistGeometry = rig.fistGeometry
+      || createFistGeometry(hand, rig.openQuaternion, rig.side, rig.handWristOffset);
     hand.geometry = rig.fistGeometry;
     hand.quaternion.copy(rig.openQuaternion).premultiply(GRIP_ROLL);
     // Roll about the wrist joint so the hand stays joined to its sleeve.

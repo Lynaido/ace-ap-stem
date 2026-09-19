@@ -11,11 +11,11 @@ import './AboutUsPage.css';
 // the live 3D Acey, so it is not in this list. Front and back rows alternate
 // and everyone stays inside 9–91% of the frame, so no one is cut off.
 const HERO_CHARACTERS = [
-  { id: 'artist', x: 15.96, y: 80.57, h: 26.9, depth: 3.4 },
+  { id: 'artist', x: 16.05, y: 80.57, h: 26.9, depth: 3.4 },
   { id: 'classic', x: 22.31, y: 52.8, h: 18.77, depth: -2.12 },
   { id: 'hoodie', x: 33.18, y: 75.19, h: 26.26, depth: 3 },
-  { id: 'vest', x: 67.33, y: 82.76, h: 25.83, depth: 2.85 },
-  { id: 'long-vest', x: 73.37, y: 53.09, h: 18.92, depth: -1.5 },
+  { id: 'vest', x: 68.32, y: 82.76, h: 25.83, depth: 2.85 },
+  { id: 'long-vest', x: 73.67, y: 53.09, h: 18.92, depth: -1.5 },
   { id: 'cloak', x: 79.72, y: 84.25, h: 26.82, depth: 3.4 },
   { id: 'graduation', x: 85.77, y: 53.98, h: 19.83, depth: -1.5 },
 ].map((character) => ({ ...character, src: `/hero/acey-${character.id}.webp` }));
@@ -555,25 +555,22 @@ const AboutUsPage = () => {
           <h2 id="founder-title" className="ace-about__display ace-about__founder-title">
             Meet the<br /><span className="ace-about__gradient">founder.</span><Heart className="ace-about__founder-title-heart" />
           </h2>
-          <p className="ace-about__body"><strong>Hi! I’m Lyna Ai Do,</strong> a high school student, artist, and aspiring engineer.</p>
+          <p className="ace-about__body"><strong>Hi! I’m Linh Ai Do (Lyna),</strong> a high school student, artist, and aspiring engineer.</p>
           <p className="ace-about__body">
             I created ACE AP STEM from my own experience with difficult STEM classes — the late nights, the frustration, and the moments of “I just don’t get it.”
           </p>
           <p className="ace-about__body">
             I wanted to build a tool that helps students move through those moments with stronger understanding, not just faster answers.
           </p>
-          <a href="https://instagram.com/lynae_heartware" target="_blank" rel="noopener noreferrer" className="ace-about__btn ace-about__btn--primary">
-            Follow my journey <FaArrowRight aria-hidden="true" />
-          </a>
         </div>
 
         <div className="ace-about__founder-photo">
           <div className="ace-about__founder-frame">
-            <img src="/about/founder-lyna-avatar.webp" alt="Lyna Ai Do, founder of ACE AP STEM" width="640" height="640" loading="lazy" />
+            <img src="/about/founder-lyna-avatar.webp" alt="Linh Ai Do (Lyna), founder of ACE AP STEM" width="640" height="640" loading="lazy" />
           </div>
           <div className="ace-about__founder-tag">
             <div>
-              <strong>Lyna Ai Do</strong>
+              <strong>Linh Ai Do (Lyna)</strong>
               <span>Founder of ACE AP STEM</span>
             </div>
             <Heart />
