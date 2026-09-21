@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaArrowRight, FaCheck, FaPlay } from 'react-icons/fa';
+import { FaArrowRight, FaCheck } from 'react-icons/fa';
 import { useAppContext } from '../../context/AppContext';
 import AceyScene from './AceyScene';
 import './HeroSection.css';
@@ -104,10 +104,6 @@ const HeroSection = () => {
               {isAuthenticated ? 'Open your workspace' : 'Start learning'}
               <FaArrowRight aria-hidden="true" />
             </Link>
-            <a className="ace-hero__secondary" href="#ace-demo">
-              <span className="ace-hero__play"><FaPlay aria-hidden="true" /></span>
-              Watch the video
-            </a>
           </div>
 
           <ul className="ace-hero__trust ace-hero__reveal" style={{ '--i': 4 }} aria-label="How ACEy helps">
@@ -128,7 +124,7 @@ const HeroSection = () => {
             </li>
           ))}
         </ul>
-        <a className="ace-hero__scroll" href="#ace-demo" aria-label="Scroll to the product demo">
+        <a className="ace-hero__scroll" href="#features" aria-label="Scroll to the features">
           <span className="ace-hero__mouse" aria-hidden="true"><i /></span>
           <span>Scroll</span>
           <FaArrowRight className="ace-hero__scroll-arrow" aria-hidden="true" />

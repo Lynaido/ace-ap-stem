@@ -2,10 +2,8 @@ import React, { Suspense, lazy, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import HeroSection from '../components/home/HeroSection';
 
-// Placeholder components for other sections
-import HowItWorks from '../components/home/HowItWorks';
+// Other landing sections
 import FeatureCards from '../components/home/FeatureCards';
-import Testimonials from '../components/home/Testimonials';
 import FaqSection from '../components/home/FaqSection';
 import CtaBanner from '../components/home/CtaBanner';
 
@@ -29,7 +27,6 @@ const LandingPage = () => {
   return (
     <>
       <HeroSection />
-      <HowItWorks />
       <FeatureCards />
       <Suspense
         // Keep the study-buddy anchor available while its code-split 3D
@@ -40,7 +37,6 @@ const LandingPage = () => {
       >
         <MascotShowcase />
       </Suspense>
-      <Testimonials />
       <FaqSection />
       <CtaBanner />
     </>
