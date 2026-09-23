@@ -93,10 +93,10 @@ const HeroSection = () => {
         <div className="ace-hero__copy">
           <p className="ace-hero__kicker ace-hero__reveal" style={{ '--i': 0 }}>Your AP STEM study companion</p>
           <h1 id="ace-hero-title" className="ace-hero__reveal" style={{ '--i': 1 }}>
-            Master<br />AP STEM<br /><span className="ace-hero__brand">with ACEy.</span>
+            Master<br />AP STEM<br /><span className="ace-hero__brand">with ACE.</span>
           </h1>
           <p className="ace-hero__lede ace-hero__reveal" style={{ '--i': 2 }}>
-            Solve problems, get step-by-step hints, build deeper understanding — with ACEy by your side.
+            Solve problems, get step-by-step hints, build deeper understanding — with ACE by your side.
           </p>
 
           <div className="ace-hero__actions ace-hero__reveal" style={{ '--i': 3 }}>
@@ -106,7 +106,7 @@ const HeroSection = () => {
             </Link>
           </div>
 
-          <ul className="ace-hero__trust ace-hero__reveal" style={{ '--i': 4 }} aria-label="How ACEy helps">
+          <ul className="ace-hero__trust ace-hero__reveal" style={{ '--i': 4 }} aria-label="How ACE helps">
             <li><FaCheck aria-hidden="true" />Upload or type</li>
             <li><FaCheck aria-hidden="true" />Step-by-step guidance</li>
             <li><FaCheck aria-hidden="true" />Personalized practice</li>

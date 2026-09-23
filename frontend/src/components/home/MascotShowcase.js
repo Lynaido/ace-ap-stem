@@ -224,7 +224,7 @@ const MascotShowcase = ({ variant = 'landing' }) => {
             {isWorkspace ? 'Your study buddy' : <>Meet your new study buddy <span aria-hidden="true">✦</span></>}
           </p>
           {isWorkspace ? (
-            <Heading>Customize Acey.</Heading>
+            <Heading>Customize ACE.</Heading>
           ) : (
             <Heading>
               <span className="ace-headline-line">Your ACE.</span>{' '}
@@ -392,7 +392,7 @@ const MascotShowcase = ({ variant = 'landing' }) => {
                   <div className="mascot-accessory__empty">
                     <p>
                       {activeOutfit.plain
-                        ? 'The Original Acey wears no outfit or props. Pick a role to dress Acey up:'
+                        ? 'The Original ACE wears no outfit or props. Pick a role to dress ACE up:'
                         : `No props for the ${activeOutfit.label} role yet. Its outfit is shown as usual.`}
                     </p>
                     <div className="mascot-accessory__roles">

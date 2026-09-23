@@ -5,7 +5,7 @@ const MascotShowcase = lazy(() => import('../components/home/MascotShowcase'));
 
 const CustomizeAceyPage = () => (
   <div className="customize-acey-page">
-    <Suspense fallback={<p className="customize-acey-page__loading" role="status">Preparing Acey…</p>}>
+    <Suspense fallback={<p className="customize-acey-page__loading" role="status">Preparing ACE…</p>}>
       <MascotShowcase variant="workspace" />
     </Suspense>
   </div>

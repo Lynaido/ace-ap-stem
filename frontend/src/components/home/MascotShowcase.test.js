@@ -73,7 +73,7 @@ test('starts on the Original Acey and gives every other role props with a switch
   expect(outfits[0]).toHaveAccessibleName('Original');
   expect(outfits[0]).toHaveAttribute('aria-pressed', 'true');
   expect(outfits[0]).not.toHaveAccessibleName(/has props/i);
-  expect(screen.getByText(/original acey wears no outfit or props/i)).toBeInTheDocument();
+  expect(screen.getByText(/original ace wears no outfit or props/i)).toBeInTheDocument();
   outfits.slice(1).forEach((button) => expect(button).toHaveAccessibleName(/,\s*has props$/i));
 });
 

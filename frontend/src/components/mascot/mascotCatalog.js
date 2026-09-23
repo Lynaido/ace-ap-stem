@@ -331,7 +331,7 @@ export const DEFAULT_OUTFIT_ID = 'original';
 export const DEFAULT_MOOD_ID = 'ready';
 // The approved Acey look: the soft pink, sky-blue and violet brain.
 export const DEFAULT_COLOR_ID = 'dreamy';
-export const DEFAULT_BUDDY_NAME = 'Acey';
+export const DEFAULT_BUDDY_NAME = 'ACE';
 export const BUDDY_NAME_MAX_LENGTH = 20;
 
 // Mirrors the backend rule: letters (any language), digits, spaces and . ' -
@@ -339,6 +339,8 @@ export const BUDDY_NAME_MAX_LENGTH = 20;
 export const normalizeBuddyName = (value) => {
   if (typeof value !== 'string') return '';
   const name = value.trim().replace(/\s+/g, ' ');
+  // The buddy used to be called "Acey"; that saved name is the default now.
+  if (/^acey$/i.test(name)) return '';
   return /^[\p{L}\p{N}][\p{L}\p{N} .'-]{0,19}$/u.test(name) ? name : '';
 };
 

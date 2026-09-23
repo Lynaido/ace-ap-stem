@@ -87,7 +87,7 @@ const AppShell = ({ children }) => {
               <div className="product-user-menu__panel" id="product-user-actions">
                 <p>{user?.email || 'Ready to learn'}</p>
                 <Link className="product-user-menu__link" to="/customize-acey">
-                  <FaMagic aria-hidden="true" /> Customize Acey
+                  <FaMagic aria-hidden="true" /> Customize ACE
                 </Link>
                 <button type="button" onClick={logout}><FaSignOutAlt aria-hidden="true" /> Sign out</button>
               </div>

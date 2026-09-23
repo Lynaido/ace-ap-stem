@@ -14,10 +14,10 @@ beforeEach(() => localStorage.clear());
 
 test('introduces the study buddy with a chat link and example topics', () => {
   renderPanel();
-  expect(screen.getByRole('heading', { name: /this is acey!/i })).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: /chat with acey/i })).toHaveAttribute('href', '/tutor');
+  expect(screen.getByRole('heading', { name: /this is ace!/i })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: /chat with ace/i })).toHaveAttribute('href', '/tutor');
   expect(screen.getByText('AP strategies')).toBeInTheDocument();
-  expect(screen.getByText(/acey is typing/i)).toBeInTheDocument();
+  expect(screen.getByText(/ace is typing/i)).toBeInTheDocument();
 });
 
 test('customizes the outfit, color, accessories and name in place', () => {
@@ -26,7 +26,7 @@ test('customizes the outfit, color, accessories and name in place', () => {
   expect(studio).toHaveAttribute('data-acey-target', 'customize-acey');
 
   const tabs = within(screen.getByRole('tablist')).getAllByRole('tab');
-  expect(tabs.map((tab) => tab.textContent.trim())).toEqual(['Choose Outfit', 'Pick Color', 'Accessories', 'Name Acey']);
+  expect(tabs.map((tab) => tab.textContent.trim())).toEqual(['Choose Outfit', 'Pick Color', 'Accessories', 'Name ACE']);
 
   // Outfit: every role is a card; choosing one saves it.
   const scientist = screen.getByRole('button', { name: /04\s*scientist/i });
@@ -47,7 +47,7 @@ test('customizes the outfit, color, accessories and name in place', () => {
   expect(propsSwitch).not.toBeChecked();
 
   // Name: saved names appear across the panel; invalid names are refused.
-  fireEvent.click(screen.getByRole('tab', { name: /name acey/i }));
+  fireEvent.click(screen.getByRole('tab', { name: /name ace/i }));
   const input = screen.getByLabelText(/your buddy's name/i);
   fireEvent.change(input, { target: { value: '<Nova>' } });
   fireEvent.click(screen.getByRole('button', { name: 'Save name' }));
@@ -64,5 +64,5 @@ test('moves between tabs with the arrow keys', () => {
   fireEvent.keyDown(outfitTab, { key: 'ArrowRight' });
   expect(screen.getByRole('tab', { name: /pick color/i })).toHaveAttribute('aria-selected', 'true');
   fireEvent.keyDown(screen.getByRole('tab', { name: /pick color/i }), { key: 'End' });
-  expect(screen.getByRole('tab', { name: /name acey/i })).toHaveAttribute('aria-selected', 'true');
+  expect(screen.getByRole('tab', { name: /name ace/i })).toHaveAttribute('aria-selected', 'true');
 });

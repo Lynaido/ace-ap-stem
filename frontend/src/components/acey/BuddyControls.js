@@ -7,7 +7,7 @@ import {
 } from '../mascot/mascotCatalog';
 import './BuddyControls.css';
 
-export const NAME_SUGGESTIONS = ['Acey', 'Nova', 'Pixel', 'Sparky', 'Newton'];
+export const NAME_SUGGESTIONS = ['ACE', 'Nova', 'Pixel', 'Sparky', 'Newton'];
 
 // Arrow keys move the choice within a radio group, as native radios do.
 const nextIndex = (key, index, count) => {

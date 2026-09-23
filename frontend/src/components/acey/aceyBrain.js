@@ -115,7 +115,7 @@ export const EVENT_MESSAGES = {
 };
 
 export const TUTORIAL_STEPS = [
-  { id: 'intro', text: "Hi! I'm Acey 👋 I'll show you around!", reaction: ACEY_REACTIONS.HELLO, route: '/dashboard' },
+  { id: 'intro', text: "Hi! I'm ACE 👋 I'll show you around!", reaction: ACEY_REACTIONS.HELLO, route: '/dashboard' },
   { id: 'upload', text: "First, you can upload any AP STEM problem you're stuck on.", reaction: ACEY_REACTIONS.FOCUS, route: '/solve-problems', target: 'upload-problem' },
   { id: 'learn', text: 'Then, you can choose how you want to learn: step-by-step hints, concept notes, or the full solution.', reaction: ACEY_REACTIONS.THINK, route: '/solve-problems', target: 'learning-options' },
   { id: 'notes', text: 'You can also save useful explanations to your Notes Hub!', reaction: ACEY_REACTIONS.FOCUS, target: 'notes-hub' },

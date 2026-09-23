@@ -260,7 +260,7 @@ const AceyBuddyPanel = () => {
                       onClick={() => update({ outfitId: outfit.id })}
                     >
                       <strong>{outfit.label}</strong>
-                      <small>{outfit.plain ? 'No outfit, just Acey' : getOutfitAccessories(outfit)?.label}</small>
+                      <small>{outfit.plain ? 'No outfit, just ACE' : getOutfitAccessories(outfit)?.label}</small>
                     </button>
                   ))}
                 </div>

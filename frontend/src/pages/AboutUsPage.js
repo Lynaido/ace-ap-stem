@@ -65,7 +65,7 @@ const STEPS = [
     title: 'Bringing It to Life',
     text: 'We turned the logo into a 3D model, exploring different shapes, proportions, and expressions.',
     slides: [
-      { src: '/about/process-shape.webp', alt: 'Grey 3D sculpts of Acey in Blender and Maya' },
+      { src: '/about/process-shape.webp', alt: 'Grey 3D sculpts of ACE in Blender and Maya' },
       { src: '/about/gallery-sculpt-blender-thumb.webp', full: '/about/gallery-sculpt-blender.webp', alt: 'First 3D sculpt with a simple rig' },
       { src: '/about/gallery-sculpt-maya-thumb.webp', full: '/about/gallery-sculpt-maya.webp', alt: 'Refining the sculpt: waving arm and friendly smile' },
       { src: '/about/gallery-color-first-thumb.webp', full: '/about/gallery-color-first.webp', alt: 'First colour pass in soft violet' },
@@ -74,9 +74,9 @@ const STEPS = [
   {
     id: 'experiments',
     title: 'Exploring Possibilities',
-    text: 'ACEY tried on many styles — scientist, wizard, artist, and more — until a personality truly felt right.',
+    text: 'ACE tried on many styles — scientist, wizard, artist, and more — until a personality truly felt right.',
     slides: [
-      { src: '/about/process-experiments.webp', alt: 'A grey wizard sculpt of Acey next to coloured outfit versions' },
+      { src: '/about/process-experiments.webp', alt: 'A grey wizard sculpt of ACE next to coloured outfit versions' },
       { src: '/about/gallery-outfit-wizard-thumb.webp', full: '/about/gallery-outfit-wizard.webp', alt: 'Sculpting the wizard hat and robe' },
       { src: '/about/gallery-outfit-technician-thumb.webp', full: '/about/gallery-outfit-technician.webp', alt: 'Trying a technician outfit with a tool belt' },
       { src: '/about/gallery-outfit-texture-thumb.webp', full: '/about/gallery-outfit-texture.webp', alt: 'Painting textures for the outfits' },
@@ -84,8 +84,8 @@ const STEPS = [
   },
   {
     id: 'final',
-    title: 'Meet ACEY',
-    text: 'After many iterations, ACEY finally came to life — ready to learn, explore, and grow with you.',
+    title: 'Meet ACE',
+    text: 'After many iterations, ACE finally came to life — ready to learn, explore, and grow with you.',
     slides: [
       { src: '/about/gallery-color-soft.webp', alt: 'Pastel brain, rosy cheeks and a warm glow' },
     ],
@@ -110,7 +110,7 @@ const GALLERY = [
   ['outfit-technician', 'Trying a technician outfit with a tool belt'],
   ['outfit-wizard', 'Sculpting the wizard hat and robe'],
   ['outfit-texture', 'Painting textures for the outfits'],
-  ['acey-hoodie', 'ACEY in his cozy study hoodie'],
+  ['acey-hoodie', 'ACE in his cozy study hoodie'],
 ].map(([id, caption]) => ({
   id,
   caption,
@@ -334,7 +334,7 @@ const Sketchbook = ({ onOpen }) => {
         <SketchBookIcon />
         <div className="ace-about__sketchbook-title">
           <h3>A peek inside the sketchbook</h3>
-          <p>Early ideas, rough drafts, and little details that shaped ACEY.</p>
+          <p>Early ideas, rough drafts, and little details that shaped ACE.</p>
         </div>
         <span className="ace-about__sketchbook-count">{GALLERY.length}+ sketches from the real process</span>
         <div className="ace-about__sketchbook-nav">
@@ -381,10 +381,10 @@ const AboutHero = () => {
         sparkles={HERO_SPARKLES}
         veil
       >
-        <button type="button" className="ace-about__live-acey" onClick={hello} aria-label="Say hi to ACEY">
+        <button type="button" className="ace-about__live-acey" onClick={hello} aria-label="Say hi to ACE">
           <img className="ace-about__live-fallback" src="/hero/acey-original.webp" alt="" />
           <AceyAvatar appearance={HERO_APPEARANCE} reaction={reaction} compact={false} />
-          <span className={`ace-about__hi${greeting ? ' is-on' : ''}`}>Hi! I’m ACEY! <Heart /></span>
+          <span className={`ace-about__hi${greeting ? ' is-on' : ''}`}>Hi! I’m ACE! <Heart /></span>
         </button>
       </AceyScene>
       <div className="ace-about__hero-veil" aria-hidden="true" />
@@ -392,11 +392,11 @@ const AboutHero = () => {
       <div className="ace-about__hero-copy">
         <p className="ace-about__eyebrow ace-about__rise" style={{ '--i': 0 }}>About us</p>
         <h1 id="about-title" className="ace-about__rise" style={{ '--i': 1 }}>
-          Meet <span className="ace-about__brand">ACEY</span><span className="ace-about__brand-dot" aria-hidden="true">.</span>
+          Meet <span className="ace-about__brand">ACE</span><span className="ace-about__brand-dot" aria-hidden="true">.</span>
         </h1>
         <p className="ace-about__tagline ace-about__rise" style={{ '--i': 2 }}>A smarter, kinder, more curious you.</p>
         <p className="ace-about__lead ace-about__rise" style={{ '--i': 3 }}>
-          <strong>ACEY</strong> is the heart of ACE AP STEM — your AI study buddy, motivator, and cheerleader through every challenge.
+          <strong>ACE</strong> is the heart of ACE AP STEM — your AI study buddy, motivator, and cheerleader through every challenge.
         </p>
         <div className="ace-about__actions ace-about__rise" style={{ '--i': 4 }}>
           <a href="#acey-story" className="ace-about__btn ace-about__btn--primary">Our Story <FaArrowRight aria-hidden="true" /></a>
@@ -464,12 +464,12 @@ const AboutUsPage = () => {
 
       <section className="ace-about__who" id="who-is-acey" aria-labelledby="who-title">
         <div className="ace-about__who-copy" data-reveal>
-          <p className="ace-about__eyebrow">About ACEY</p>
+          <p className="ace-about__eyebrow">About ACE</p>
           <h2 id="who-title" className="ace-about__display">
-            But who is<br /><span className="ace-about__marked"><span className="ace-about__gradient">ACEY</span><Scribble /></span>?
+            But who is<br /><span className="ace-about__marked"><span className="ace-about__gradient">ACE</span><Scribble /></span>?
           </h2>
           <p className="ace-about__who-lead">
-            ACEY is a learning companion built around a simple idea: students learn better when they feel supported, not judged. ACEY is here to make every question less intimidating and every step forward a little more joyful.
+            ACE is a learning companion built around a simple idea: students learn better when they feel supported, not judged. ACE is here to make every question less intimidating and every step forward a little more joyful.
           </p>
           <ul className="ace-about__traits">
             {TRAITS.map((trait, index) => (
@@ -485,11 +485,11 @@ const AboutUsPage = () => {
         </div>
 
         <figure className="ace-about__closer" data-reveal>
-          <figcaption className="ace-about__closer-label">A closer look at ACEY</figcaption>
+          <figcaption className="ace-about__closer-label">A closer look at ACE</figcaption>
           <div className="ace-about__closer-stage">
             <img
               src="/about/acey-closeup.webp"
-              alt="Close-up of ACEY: a pastel brain, big eyes behind round glasses, a smile and a lightbulb base"
+              alt="Close-up of ACE: a pastel brain, big eyes behind round glasses, a smile and a lightbulb base"
               className="ace-about__closer-img"
               width="905"
               height="1000"
@@ -529,7 +529,7 @@ const AboutUsPage = () => {
               <span className="ace-about__marked ace-about__marked--pink"><span className="ace-about__gradient ace-about__gradient--pink">buddy</span><Scribble /></span>.
             </h2>
             <p className="ace-about__story-lead">
-              ACEY started with a simple idea: what if studying felt a little less lonely? It began as a logo — a lightbulb and a brain. Through countless sketches, experiments, and late-night ideas, that logo slowly came to life as ACEY.
+              ACE started with a simple idea: what if studying felt a little less lonely? It began as a logo — a lightbulb and a brain. Through countless sketches, experiments, and late-night ideas, that logo slowly came to life as ACE.
             </p>
           </div>
           <div className="ace-about__story-acey" aria-hidden="true">
@@ -621,11 +621,11 @@ const AboutUsPage = () => {
           <div className="ace-about__cta-cloud" />
         </div>
         <div className="ace-about__cta-copy">
-          <h2 id="cta-title">You bring the question.<br />ACEY helps you find the way.</h2>
+          <h2 id="cta-title">You bring the question.<br />ACE helps you find the way.</h2>
           <p>Curious minds. Brighter futures.</p>
           <div className="ace-about__actions">
             <Link to="/solve-problems" className="ace-about__btn ace-about__btn--primary">
-              Start learning with ACEY <FaArrowRight aria-hidden="true" />
+              Start learning with ACE <FaArrowRight aria-hidden="true" />
             </Link>
             <a href="#acey-story" className="ace-about__btn ace-about__btn--outline">Our story</a>
           </div>
