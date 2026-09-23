@@ -57,6 +57,13 @@
   text-transform: uppercase;
 }
 
+.mascot-showcase__eyebrow span {
+  display: inline-block;
+  margin-left: 0.3em;
+  color: #8f7cf8;
+  letter-spacing: 0;
+}
+
 .mascot-showcase__copy h2 {
   max-width: 16ch;
   margin: 0;
@@ -116,7 +123,7 @@
 
 .mascot-companion-bar {
   display: grid;
-  grid-template-columns: minmax(230px, 0.78fr) minmax(300px, 1.15fr) minmax(235px, 0.82fr);
+  grid-template-columns: minmax(230px, 0.8fr) minmax(300px, 1.6fr);
   gap: 1rem;
   align-items: stretch;
   padding: 1rem;

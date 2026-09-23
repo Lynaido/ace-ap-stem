@@ -99,7 +99,7 @@ const AppShell = ({ children }) => {
       <footer className="product-footer">
         <div>
           <span><strong>ACE</strong> AP STEM</span>
-          <p>Keep learning focused on the question that matters.</p>
+          <p>Master the Concept. Ace the Problem.</p>
         </div>
         <nav aria-label="Workspace footer">
           <Link to="/about-us">About</Link>

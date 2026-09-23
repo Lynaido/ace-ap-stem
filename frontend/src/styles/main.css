@@ -276,6 +276,46 @@ a:hover {
   -webkit-text-fill-color: transparent;
 }
 
+/* Two-line brand headlines: a dark first line, a gradient second line. */
+.ace-headline-line { display: block; }
+
+.ace-headline-accent {
+  display: inline-block;
+  padding-bottom: 0.08em;
+  color: var(--ace-violet);
+  background: linear-gradient(96deg, #7b5cf5 0%, #9d4fe8 42%, #d84fb8 78%, #ef61ba 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ace-headline-accent--cool {
+  background-image: linear-gradient(96deg, #8a5cf6 0%, #7466f6 45%, #5b82f7 100%);
+}
+
+.ace-headline-accent--soft {
+  background-image: linear-gradient(96deg, #a58cf4 0%, #b36bdc 45%, #d94da9 100%);
+}
+
+.ace-headline-italic {
+  font-style: italic;
+  letter-spacing: -0.01em;
+}
+
+/* Hand-drawn sparkle dashes after a headline word. */
+.ace-headline-spark {
+  display: inline-block;
+  width: 0.5em;
+  height: 0.55em;
+  margin-left: 0.04em;
+  vertical-align: 0.5em;
+  overflow: visible;
+  fill: none;
+  stroke: #6f7cf7;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {

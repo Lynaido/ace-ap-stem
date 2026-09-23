@@ -43,7 +43,7 @@
 
 .tutor-hero-copy { position: relative; z-index: 1; flex: 1; }
 .tutor-eyebrow { display: block; margin-bottom: .4rem; color: var(--ace-blue, #4f82f4); font-size: .72rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
-.tutor-hero h1 { margin: 0; font-size: clamp(1.55rem, 3vw, 2.45rem); line-height: 1.08; letter-spacing: -0.012em; }
+.tutor-hero h1 { margin: 0; font-size: clamp(1.75rem, 3.4vw, 2.85rem); line-height: 1.08; letter-spacing: -0.012em; }
 .tutor-hero p { margin: .55rem 0 0; color: var(--ace-muted, #696b8e); line-height: 1.55; }
 .tutor-status { display: inline-flex; align-items: center; gap: .5rem; flex: 0 0 auto; padding: .55rem .75rem; color: #17805c; font-size: .78rem; font-weight: 800; border: 1px solid #c9f1e2; border-radius: 999px; background: rgba(255,255,255,.78); }
 .tutor-status span { width: 8px; height: 8px; border-radius: 50%; background: var(--ace-green, #2fc78a); box-shadow: 0 0 0 4px rgba(47,199,138,.13); }

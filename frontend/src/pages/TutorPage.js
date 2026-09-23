@@ -323,7 +323,10 @@ const TutorPage = () => {
           <div className="tutor-hero-mascot" aria-hidden="true" />
           <div className="tutor-hero-copy">
             <span className="tutor-eyebrow">Your study buddy</span>
-            <h1>Ask, explore, and understand.</h1>
+            <h1>
+              <span className="ace-headline-italic">Go beyond</span>{' '}
+              <span className="ace-headline-accent">the answer.</span>
+            </h1>
             <p>
               {problems && !hasProblems
                 ? 'Solve a problem first, then ask ACE about any step, formula, or concept in it.'

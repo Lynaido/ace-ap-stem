@@ -44,7 +44,7 @@ afterEach(() => {
 test('renders complete mascot personalization controls', () => {
   render(<MascotShowcase />);
 
-  expect(screen.getByRole('heading', { name: /make ace feel like your own/i })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /your ace. your vibe./i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /outfit/i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /^mood$/i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /study reactions/i })).toBeInTheDocument();

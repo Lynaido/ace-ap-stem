@@ -471,7 +471,7 @@ export const PROP_SETS = {
     url: '/mascot/props/vest.glb',
     label: 'Briefcase & coffee mug',
     holdArms: ['left', 'right'],
-    holdPose: { left: { down: 8, forward: 72 } },
+    holdPose: { left: { down: 16, forward: 72, bend: 40 } },
   },
   // The approved Scholar render points the pencil out to the side; the other
   // arm comes down and in to hug a stack of books against the body.

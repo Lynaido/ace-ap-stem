@@ -401,6 +401,8 @@ export const createMascotScene = ({
     restAngles.right = THREE.MathUtils.lerp(restAngles.right, restTarget.right, 0.12);
     restAngles.forwardLeft = THREE.MathUtils.lerp(restAngles.forwardLeft || 0, restTarget.forwardLeft || 0, 0.12);
     restAngles.forwardRight = THREE.MathUtils.lerp(restAngles.forwardRight || 0, restTarget.forwardRight || 0, 0.12);
+    restAngles.bendLeft = THREE.MathUtils.lerp(restAngles.bendLeft || 0, restTarget.bendLeft || 0, 0.12);
+    restAngles.bendRight = THREE.MathUtils.lerp(restAngles.bendRight || 0, restTarget.bendRight || 0, 0.12);
     const armAngles = { ...restAngles };
     let wristWave = 0;
 
@@ -425,6 +427,8 @@ export const createMascotScene = ({
       // Reaction poses are authored side-on; bring held arms back out for them.
       armAngles.forwardLeft = THREE.MathUtils.lerp(restAngles.forwardLeft || 0, 0, envelope);
       armAngles.forwardRight = THREE.MathUtils.lerp(restAngles.forwardRight || 0, 0, envelope);
+      armAngles.bendLeft = THREE.MathUtils.lerp(restAngles.bendLeft || 0, 0, envelope);
+      armAngles.bendRight = THREE.MathUtils.lerp(restAngles.bendRight || 0, 0, envelope);
 
       if (currentAction.id === 'hello') {
         tilt -= 0.025 * envelope;

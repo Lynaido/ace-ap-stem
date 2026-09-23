@@ -522,7 +522,10 @@ const SolveProblemsPage = () => {
       <header className="solve-page-intro">
         <div className="solve-page-intro-copy">
           <span className="solve-page-eyebrow">ACE Problem Studio</span>
-          <h1>Turn a tough question into a clear next step.</h1>
+          <h1>
+            <span className="ace-headline-line">Understand it.</span>{' '}
+            <span className="ace-headline-line ace-headline-accent">Solve it step by step.</span>
+          </h1>
           <p>Upload a problem, choose exactly what you want to work on, and learn with guidance built around your question.</p>
         </div>
         <div className="solve-page-mascot" aria-hidden="true" />
@@ -538,9 +541,9 @@ const SolveProblemsPage = () => {
                     <p>Create and save a new problem to your library</p>
                   </div>
                 ) : (
-                  <Link to="/notes-hub" className="notes-link" aria-label="Go to Notes Hub (List of Notes)">
+                  <Link to="/notes-hub" className="notes-link" aria-label="Go to Notes Hub">
                     <span className="notes-link-icon" aria-hidden="true">📒</span>
-                    <span className="notes-link-text">List of Notes</span>
+                    <span className="notes-link-text">Notes Hub</span>
                   </Link>
                 )}
               </div>

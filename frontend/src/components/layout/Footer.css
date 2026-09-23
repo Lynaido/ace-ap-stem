@@ -78,7 +78,7 @@
   line-height: 1.02;
 }
 
-.ace-mobile-promo__copy > p:last-child {
+.ace-mobile-promo__copy > p:not(.ace-mobile-promo__label) {
   max-width: 430px;
   margin: 11px 0 0;
   color: rgba(255, 255, 255, 0.88);
@@ -86,6 +86,28 @@
   font-weight: 620;
   line-height: 1.55;
 }
+
+.ace-mobile-promo__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  margin-top: 18px;
+  padding: 0 20px;
+  border-radius: 14px;
+  color: var(--ace-ink);
+  background: #fff;
+  box-shadow: 0 14px 26px -16px rgba(30, 18, 96, 0.75);
+  font-weight: 880;
+  transition: transform var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+
+.ace-mobile-promo__cta:hover {
+  color: var(--ace-violet);
+  transform: translateY(-2px);
+}
+
+.ace-mobile-promo__cta svg { font-size: 0.85em; }
 
 .ace-mobile-promo__stores {
   display: grid;
@@ -168,6 +190,24 @@
   margin: 20px 0 0;
   color: var(--ace-muted);
   line-height: 1.65;
+}
+
+.ace-footer__brand > .ace-footer__tagline {
+  display: grid;
+  gap: 2px;
+  color: var(--ace-ink);
+  font-size: 1.02rem;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.ace-footer__tagline span {
+  width: fit-content;
+  color: var(--ace-violet);
+  background: linear-gradient(96deg, #7b5cf5, #d84fb8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .ace-footer__badges { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 22px; }

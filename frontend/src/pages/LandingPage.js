@@ -5,7 +5,6 @@ import HeroSection from '../components/home/HeroSection';
 // Other landing sections
 import FeatureCards from '../components/home/FeatureCards';
 import FaqSection from '../components/home/FaqSection';
-import CtaBanner from '../components/home/CtaBanner';
 
 const MascotShowcase = lazy(() => import('../components/home/MascotShowcase'));
 
@@ -38,7 +37,6 @@ const LandingPage = () => {
         <MascotShowcase />
       </Suspense>
       <FaqSection />
-      <CtaBanner />
     </>
   );
 };

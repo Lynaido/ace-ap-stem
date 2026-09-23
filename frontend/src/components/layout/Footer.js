@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaEnvelope, FaQuestionCircle } from 'react-icons/fa';
+import { FaArrowRight, FaEnvelope, FaQuestionCircle } from 'react-icons/fa';
 import './Footer.css';
 
 const APP_STORE_URL = 'https://apps.apple.com/us/app/ace-ap-stem/id6780169317';
@@ -17,6 +17,7 @@ const Footer = () => (
           <p className="ace-mobile-promo__label">ACE AP STEM mobile app</p>
           <h2 id="ace-mobile-promo-title">ACE is in your pocket.</h2>
           <p>Keep every study session close, wherever you are.</p>
+          <Link to="/sign-up" className="ace-mobile-promo__cta">Get started <FaArrowRight aria-hidden="true" /></Link>
         </div>
         <div className="ace-mobile-promo__stores" aria-label="Download the ACE AP STEM mobile app">
           <a href={APP_STORE_URL} target="_blank" rel="noreferrer" aria-label="Download ACE AP STEM on the App Store">
@@ -36,7 +37,7 @@ const Footer = () => (
             <img src="/logo.png" alt="ACE AP STEM logo" width="48" height="48" onError={(event) => { event.currentTarget.src = '/logo192.png'; }} />
             <span><strong>ACE</strong><small>AP STEM</small></span>
           </Link>
-          <p>Your all-in-one AI-powered workspace for AP STEM success.</p>
+          <p className="ace-footer__tagline">Master the Concept. <span>Ace the Problem.</span></p>
           <div className="ace-footer__badges">
             <Link to="/contact"><FaEnvelope aria-hidden="true" /> Contact</Link>
             <Link to="/faq"><FaQuestionCircle aria-hidden="true" /> FAQ</Link>
@@ -67,7 +68,6 @@ const Footer = () => (
 
       <div className="ace-footer__bottom">
         <p>© {new Date().getFullYear()} ACE AP STEM. All rights reserved.</p>
-        <p>Guidance built for understanding.</p>
       </div>
     </div>
   </footer>

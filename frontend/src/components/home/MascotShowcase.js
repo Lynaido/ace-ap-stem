@@ -220,17 +220,30 @@ const MascotShowcase = ({ variant = 'landing' }) => {
     >
       <div className="mascot-showcase__container">
         <div className="mascot-showcase__copy">
-          <p className="mascot-showcase__eyebrow">{isWorkspace ? 'Your study buddy' : 'Meet your study buddy'}</p>
-          <Heading>{isWorkspace ? 'Customize Acey.' : 'Make ACE feel like your own.'}</Heading>
-          <p>
-            {isWorkspace
-              ? `Choose a role, brain color, accessories, name and mood. ${name} keeps this look on your Dashboard, Solve, AI Tutor, Notes Hub and Study Mode.`
-              : 'Pick a role, set the mood, and let ACE react as you learn. Every outfit stays fitted while ACE rests, waves hello, focuses with you, and celebrates progress.'}
+          <p className="mascot-showcase__eyebrow">
+            {isWorkspace ? 'Your study buddy' : <>Meet your new study buddy <span aria-hidden="true">✦</span></>}
           </p>
+          {isWorkspace ? (
+            <Heading>Customize Acey.</Heading>
+          ) : (
+            <Heading>
+              <span className="ace-headline-line">Your ACE.</span>{' '}
+              <span className="ace-headline-line">
+                <span className="ace-headline-accent ace-headline-accent--cool">Your vibe.</span>
+                <svg className="ace-headline-spark" viewBox="0 0 20 22" aria-hidden="true" focusable="false">
+                  <path d="M3.2 13.1 4.6 5.2M6.9 15.1l5.7-5.7M8.9 18.8l7.9-1.4" />
+                </svg>
+              </span>
+            </Heading>
+          )}
+          {isWorkspace && (
+            <p>
+              {`Choose a role, brain color, accessories, name and mood. ${name} keeps this look on your Dashboard, Solve, AI Tutor, Notes Hub and Study Mode.`}
+            </p>
+          )}
           <div className="mascot-showcase__notes" aria-label="Mascot features">
             <span>{OUTFITS.length} character roles</span>
             <span>Designer poses with props</span>
-            <span>{isAuthenticated ? 'Saved to your account' : 'Your choice is remembered'}</span>
           </div>
         </div>
 
@@ -246,11 +259,6 @@ const MascotShowcase = ({ variant = 'landing' }) => {
             <div className="mascot-companion-bar__chat" aria-label="ACE status">
               <span>ACE</span>
               <p>{announcement}</p>
-            </div>
-            <div className="mascot-companion-bar__topics" aria-label="What ACE can help with">
-              <span>Homework questions</span>
-              <span>Concept explanations</span>
-              <span>Practice and review</span>
             </div>
           </div>
 

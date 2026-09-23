@@ -29,7 +29,7 @@
 
 .solve-problems-page .solve-page-intro-copy { position: relative; z-index: 2; max-width: 690px; }
 .solve-problems-page .solve-page-eyebrow { display:block; margin-bottom:.5rem; color:var(--ace-violet,#6c3df4); font-size:.74rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
-.solve-problems-page .solve-page-intro h1 { max-width:650px; margin:0; font-size:clamp(1.65rem,3.2vw,2.65rem); line-height:1.08; letter-spacing:-0.012em; }
+.solve-problems-page .solve-page-intro h1 { max-width:680px; margin:0; font-size:clamp(1.8rem,3.6vw,3.05rem); line-height:1.08; letter-spacing:-0.012em; }
 .solve-problems-page .solve-page-intro p { max-width:620px; margin:.75rem 0 0; color:var(--ace-muted,#696b8e); font-size:clamp(.92rem,1.4vw,1.02rem); line-height:1.65; }
 
 .solve-problems-page .solve-page-mascot {

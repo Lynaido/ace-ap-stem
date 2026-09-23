@@ -287,7 +287,10 @@ const StudyModePage = () => {
         <header className="study-mode-hero">
           <div className="study-mode-hero-copy">
             <span className="study-mode-hero-eyebrow">Build your practice path</span>
-            <h1>Study with a plan that fits today.</h1>
+            <h1>
+              <span className="ace-headline-line">Turn what you&rsquo;ve learned</span>{' '}
+              <span className="ace-headline-line ace-headline-accent ace-headline-accent--soft">into real progress.</span>
+            </h1>
             <p>
               Select your study mode, choose a saved problem, and generate AI-powered practice variants
               tailored to your learning goals.

@@ -8,10 +8,12 @@ const FeatureCards = () => (
     <div className="ace-capabilities__inner">
       <header className="ace-capabilities__header">
         <div>
-          <p className="ace-section-kicker">Everything you need to learn</p>
-          <h2 id="ace-capabilities-title" className="ace-section-title">One companion. <span className="ace-gradient-text">Three focused spaces.</span></h2>
+          <p className="ace-section-kicker">Your learning toolkit</p>
+          <h2 id="ace-capabilities-title" className="ace-section-title">
+            <span className="ace-headline-line">Master the Concept.</span>{' '}
+            <span className="ace-headline-line ace-headline-accent">Ace the Problem.</span>
+          </h2>
         </div>
-        <p>Move from a difficult question to clear understanding without losing the original context.</p>
       </header>
 
       <div className="ace-capabilities__grid">

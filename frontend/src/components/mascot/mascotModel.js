@@ -238,12 +238,100 @@ export const getRestArmAngles = (outfit) => {
     if (pose[side]?.forward === undefined) return HOLD_ARM_FORWARD[side];
     return THREE.MathUtils.degToRad(pose[side].forward);
   };
+  const bend = (side) => {
+    if (!holdArms.includes(side) || !pose[side]?.bend) return 0;
+    return THREE.MathUtils.degToRad(pose[side].bend);
+  };
   return {
     left: angle('left'),
     right: angle('right'),
     forwardLeft: forward('left'),
     forwardRight: forward('right'),
+    bendLeft: bend('left'),
+    bendRight: bend('right'),
   };
+};
+
+// `holdPose.<side>.bend` (degrees) curls a holding arm in toward the body
+// around a soft elbow halfway down the arm. Garment sleeves are rigid meshes,
+// so the sleeve vertices are bent (blended over ELBOW_SOFT either side of the
+// elbow) and the hand rig swings about the same elbow to stay in the cuff.
+const ELBOW_AT = 0.5;
+const ELBOW_SOFT = 0.2;
+
+const rotateAboutElbow = (point, elbow, angle) => {
+  const x = point.x - elbow.x;
+  const z = point.z - elbow.z;
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  point.x = elbow.x + (x * cos) + (z * sin);
+  point.z = elbow.z - (x * sin) + (z * cos);
+};
+
+const getBendState = (rig) => {
+  if (rig.userData.elbowBend) return rig.userData.elbowBend;
+  const cuff = rig.userData.cuffLocal;
+  if (!cuff) return null;
+  const reach = cuff.clone();
+  const length = reach.length();
+  if (!(length > 0)) return null;
+  const axis = reach.clone().normalize();
+  const meshes = [];
+  rig.children.forEach((mesh) => {
+    const position = mesh.isMesh && mesh.geometry.getAttribute('position');
+    if (!position) return;
+    mesh.updateMatrix();
+    const normal = mesh.geometry.getAttribute('normal');
+    meshes.push({
+      mesh,
+      matrix: mesh.matrix.clone(),
+      inverse: mesh.matrix.clone().invert(),
+      normalMatrix: new THREE.Matrix3().getNormalMatrix(mesh.matrix),
+      positions: position.array.slice(),
+      normals: normal ? normal.array.slice() : null,
+    });
+  });
+  rig.userData.elbowBend = { meshes, axis, length, elbow: reach.multiplyScalar(ELBOW_AT), angle: 0 };
+  return rig.userData.elbowBend;
+};
+
+const bendOutfitSleeves = (rig, angle) => {
+  const state = getBendState(rig);
+  if (!state || Math.abs(state.angle - angle) < 1e-4) return;
+  state.angle = angle;
+  const point = new THREE.Vector3();
+  const normal = new THREE.Vector3();
+  state.meshes.forEach(({ mesh, matrix, inverse, normalMatrix, positions, normals }) => {
+    const position = mesh.geometry.getAttribute('position');
+    const normalAttribute = normals && mesh.geometry.getAttribute('normal');
+    const inverseNormal = normalAttribute && new THREE.Matrix3().getNormalMatrix(inverse);
+    for (let index = 0; index < position.count; index += 1) {
+      point.fromArray(positions, index * 3).applyMatrix4(matrix);
+      const reach = point.dot(state.axis) / state.length;
+      const blend = THREE.MathUtils.smoothstep(reach, ELBOW_AT - ELBOW_SOFT, ELBOW_AT + ELBOW_SOFT);
+      const turn = angle * blend;
+      rotateAboutElbow(point, state.elbow, turn);
+      point.applyMatrix4(inverse);
+      position.setXYZ(index, point.x, point.y, point.z);
+      if (normalAttribute) {
+        normal.fromArray(normals, index * 3).applyMatrix3(normalMatrix);
+        rotateAboutElbow(normal, { x: 0, z: 0 }, turn);
+        normal.applyMatrix3(inverseNormal).normalize();
+        normalAttribute.setXYZ(index, normal.x, normal.y, normal.z);
+      }
+    }
+    position.needsUpdate = true;
+    if (normalAttribute) normalAttribute.needsUpdate = true;
+    mesh.geometry.computeBoundingSphere();
+  });
+};
+
+const bendHandRig = (rig, angle) => {
+  if (!rig.wristRest) return;
+  const wrist = rig.wristRest.clone();
+  rotateAboutElbow(wrist, rig.wristRest.clone().multiplyScalar(ELBOW_AT), angle);
+  rig.wrist.position.copy(wrist);
+  rig.wrist.rotation.y = angle;
 };
 
 export const ACTION_ARM_ANGLES = {
@@ -747,6 +835,11 @@ const createOutfitArmRigs = (model, armPose) => {
     left: getCuffAnchorFromPoints(getWorldPoints(sleeveMeshes.left), 'left'),
     right: getCuffAnchorFromPoints(getWorldPoints(sleeveMeshes.right), 'right'),
   };
+  // The cuff in each rig's own frame, for bending the sleeve at the elbow.
+  ['left', 'right'].forEach((side) => {
+    const cuff = model.userData.cuffAnchors[side];
+    if (cuff) rigs[side].userData.cuffLocal = rigs[side].worldToLocal(cuff.clone());
+  });
   return rigs;
 };
 
@@ -1250,6 +1343,7 @@ export const configureBaseArmRigs = (model, outfit, outfitModel) => {
     // origins. Keep the wrist in the same neutral model coordinate space so
     // the next resting/action rotation moves the two pieces together.
     rig.wrist.position.copy(handTarget).sub(rig.shoulder.position);
+    rig.wristRest = rig.wrist.position.clone();
     rig.arm.position.set(
       sign * (((BASE_ARM_INNER_X + BASE_ARM_OUTER_X) / 2) - shoulderX),
       rig.handCenter.y + liftY - shoulderY - 0.7,
@@ -1271,6 +1365,14 @@ export const setArmPose = (model, angles, wristWave = 0) => {
   const rightJoint = rigs.right?.shoulder || rigs.right;
   if (leftJoint) leftJoint.rotation.set(0, leftYaw, angles.left);
   if (rightJoint) rightJoint.rotation.set(0, rightYaw, angles.right);
+  // The elbow curls the forearm the same way `forward` swings the arm.
+  const bends = { left: angles.bendLeft || 0, right: -(angles.bendRight || 0) };
+  ['left', 'right'].forEach((side) => {
+    const rig = rigs[side];
+    if (!rig) return;
+    if (rig.shoulder) bendHandRig(rig, bends[side]);
+    else if (bends[side] || rig.userData.elbowBend) bendOutfitSleeves(rig, bends[side]);
+  });
   if (rigs.right?.wrist) rigs.right.wrist.rotation.z = wristWave;
   syncPropAnchors(model);
 };
