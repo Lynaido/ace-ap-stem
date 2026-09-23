@@ -69,9 +69,12 @@
   margin: 0;
   color: var(--mascot-ink);
   font-size: clamp(2.6rem, 5vw, 4.35rem);
+  font-weight: 950;
   line-height: 1.08;
   letter-spacing: -0.02em;
 }
+
+.mascot-showcase__copy h2 .ace-headline-spark { stroke-width: 3.2; }
 
 .mascot-showcase__copy > p:not(.mascot-showcase__eyebrow) {
   max-width: 61ch;
