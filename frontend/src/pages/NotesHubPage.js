@@ -491,9 +491,12 @@ const NotesHubPage = () => {
                 <h1>Notes Hub</h1>
                 <p>Keep every problem with its solution, plus hints and concept notes, ready for your next study session.</p>
               </div>
-              <div
+              <img
                 className="notes-hub-mascot"
-                style={{ '--ace-sprite': "url('/images/ace-sprite-v2.png')" }}
+                src="/mascot-pages/notes-hub.webp"
+                alt=""
+                width="814"
+                height="900"
                 aria-hidden="true"
               />
             </div>

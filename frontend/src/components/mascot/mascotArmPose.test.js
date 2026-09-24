@@ -31,6 +31,14 @@ test('weights only the arms: torso, head and hands blend by reach along the arm'
   expect(getArmWeights(new THREE.Vector3(0.24, 0.22, 0))).toEqual({ upper: 0, fore: 0 });
 });
 
+test('sleeveTop lets a raised sleeve follow the arm without catching the head', () => {
+  const frame = { ...ARM_FRAME, sleeveTop: { fromX: 0.4, maxY: 0.52 } };
+  const sleeveTop = new THREE.Vector3(0.5, 0.47, 0);
+  expect(getArmWeights(sleeveTop)).toEqual({ upper: 0, fore: 0 });
+  expect(getArmWeights(sleeveTop, frame).fore).toBeGreaterThan(0.99);
+  expect(getArmWeights(new THREE.Vector3(0.3, 0.47, 0), frame)).toEqual({ upper: 0, fore: 0 });
+});
+
 test('rebuilds a T-pose character as skinned meshes and moves the held prop with the hand', () => {
   const model = new THREE.Group();
   const arm = new THREE.Mesh(new THREE.BoxGeometry(1.36, 0.05, 0.05), new THREE.MeshStandardMaterial());

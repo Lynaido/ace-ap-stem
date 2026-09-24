@@ -130,7 +130,7 @@ const ProgressTags = ({ counts }) => {
 const TutorEmptyState = () => (
   <section className="tutor-empty" aria-labelledby="tutor-empty-title">
     <div className="tutor-empty__art" aria-hidden="true">
-      <div className="tutor-empty__mascot" />
+      <img className="tutor-empty__mascot" src="/mascot-pages/solve.webp" alt="" width="900" height="887" />
     </div>
     <div className="tutor-empty__copy">
       <span className="tutor-eyebrow">No problems yet</span>
@@ -320,7 +320,7 @@ const TutorPage = () => {
     <div className="tutor-page">
       <section className="tutor-workspace" aria-label="AI Tutor workspace">
         <header className="tutor-hero">
-          <div className="tutor-hero-mascot" aria-hidden="true" />
+          <img className="tutor-hero-mascot" src="/mascot-pages/ai-tutor.webp" alt="" width="801" height="900" aria-hidden="true" />
           <div className="tutor-hero-copy">
             <span className="tutor-eyebrow">Your study buddy</span>
             <h1>

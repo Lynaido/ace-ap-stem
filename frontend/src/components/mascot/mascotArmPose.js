@@ -22,6 +22,10 @@ export const ARM_FRAME = {
   minY: 0.19,
   maxY: 0.44,
   maxAbsZ: 0.24,
+  // Out past the torso a raised sleeve (the wizard's bell sleeve) may reach
+  // above `maxY`: `sleeveTop: { fromX, maxY }` widens the band there so the
+  // whole sleeve follows the arm instead of tearing into a flap.
+  sleeveTop: null,
   // Beside the torso only the sleeve, above the armpit, follows the arm;
   // lower vertices there are the sides of a jacket or robe, which would
   // otherwise be dragged forward and open a hole at the hip.
@@ -57,7 +61,9 @@ export const shortenArmFrame = (frame, armLength) => {
   FRAME_RANGE_KEYS.forEach((key) => { next[key] = frame[key].map((value) => shortenReach(value, armLength)); });
   return next;
 };
-const isArmPoint = (point, frame) => point.y >= frame.minY && point.y <= frame.maxY
+const getBandTop = (point, frame) => (frame.sleeveTop && Math.abs(point.x) >= frame.sleeveTop.fromX
+  ? Math.max(frame.maxY, frame.sleeveTop.maxY) : frame.maxY);
+const isArmPoint = (point, frame) => point.y >= frame.minY && point.y <= getBandTop(point, frame)
   && Math.abs(point.z - frame.axisZ) <= frame.maxAbsZ;
 
 // Two-bone IK: returns the upper-arm and forearm rotations that put the palm
@@ -101,9 +107,7 @@ export const solveArmHold = (side, { target, pole = [0, -1, -0.4], roll = 0 }, f
 };
 
 export const getArmWeights = (point, frame = ARM_FRAME) => {
-  const inBand = point.y >= frame.minY && point.y <= frame.maxY
-    && Math.abs(point.z - frame.axisZ) <= frame.maxAbsZ;
-  if (!inBand) return { upper: 0, fore: 0 };
+  if (!isArmPoint(point, frame)) return { upper: 0, fore: 0 };
   const reach = Math.abs(point.x);
   const follow = Math.max(
     THREE.MathUtils.smoothstep(reach, frame.torsoX[0], frame.torsoX[1]),

@@ -113,18 +113,18 @@
   min-height: 315px;
 }
 
+/* ACE winking with a pencil and a notebook, running toward the next step
+   (client art). The summary cards stand in front of the legs. */
 .study-mode-mascot {
   position: absolute;
   z-index: 1;
-  top: -28px;
-  right: clamp(-58px, -2vw, -18px);
-  width: clamp(280px, 35vw, 430px);
-  aspect-ratio: 1;
-  background-image: var(--ace-sprite);
-  background-repeat: no-repeat;
-  background-position: right bottom;
-  background-size: 200% 200%;
-  filter: drop-shadow(0 26px 28px rgba(75, 45, 160, 0.18));
+  top: -30px;
+  right: clamp(24px, 6vw, 96px);
+  width: auto;
+  height: clamp(290px, 27vw, 345px);
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 22px 26px rgba(75, 45, 160, 0.16));
 }
 
 .study-mode-hero-summary {
@@ -405,7 +405,7 @@
 
 @media (max-width: 1020px) {
   .study-mode-hero { grid-template-columns: minmax(0, 1fr) 330px; min-height: 370px; }
-  .study-mode-mascot { top: 4px; right: -48px; width: 340px; }
+  .study-mode-mascot { top: -12px; right: 10px; height: 318px; }
   .study-mode-hero-summary { left: -0.5rem; }
   .step-description { display: none; }
   .mode-card { grid-column: span 6; }
@@ -418,7 +418,7 @@
   .study-mode-hero-copy { align-self: start; }
   .study-mode-hero-copy h1 { max-width: 620px; font-size: clamp(2.4rem, 10vw, 4rem); }
   .study-mode-hero-visual { min-height: 250px; }
-  .study-mode-mascot { top: -52px; right: 50%; width: 310px; transform: translateX(50%); }
+  .study-mode-mascot { top: -40px; right: 50%; height: 300px; transform: translateX(50%); }
   .study-mode-hero-summary { right: 0; bottom: -0.15rem; left: 0; }
   .study-mode-stepper { grid-template-columns: 1fr; }
   .step-item { min-height: 62px; }
@@ -438,7 +438,7 @@
   .study-mode-hero-actions { flex-direction: column; }
   .study-mode-hero-actions .btn-primitive { width: 100%; }
   .study-mode-hero-visual { min-height: 265px; }
-  .study-mode-mascot { top: -35px; width: 280px; }
+  .study-mode-mascot { top: -30px; height: 282px; }
   .study-mode-hero-summary { grid-template-columns: 1fr 1fr; gap: 0.45rem; }
   .study-mode-summary-tile { padding: 0.75rem; border-radius: 15px; }
   .study-mode-summary-tile p { display: none; }

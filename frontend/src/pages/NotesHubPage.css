@@ -145,17 +145,18 @@
 
 .notes-hub-header p { max-width: 620px; margin: 0.8rem 0 0; color: var(--ace-muted); font-size: clamp(0.94rem, 1.5vw, 1.05rem); line-height: 1.6; }
 
+/* ACE hugging a notebook (client art). The art is a bust cut off at the
+   bottom, so it sits flush on the card's bottom edge. */
 .notes-hub-mascot {
   position: absolute;
-  right: clamp(-18px, 1vw, 16px);
-  bottom: -14px;
-  width: clamp(180px, 26vw, 258px);
-  aspect-ratio: 1;
-  background-image: var(--ace-sprite);
-  background-repeat: no-repeat;
-  background-position: left bottom;
-  background-size: 200% 200%;
-  filter: drop-shadow(0 18px 22px rgba(75, 45, 160, 0.18));
+  right: clamp(1rem, 4vw, 3.5rem);
+  bottom: 0;
+  width: auto;
+  height: calc(100% - 18px);
+  max-height: 250px;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 12px 22px rgba(75, 45, 160, 0.16));
 }
 
 /* Search, filter, and actions */
@@ -470,7 +471,7 @@
   .notes-hub-intro__copy { max-width: 75%; }
   .notes-hub-header h1 { font-size: clamp(2.1rem, 11vw, 3rem); }
   .notes-hub-header p { font-size: 0.9rem; }
-  .notes-hub-mascot { right: -28px; width: 190px; }
+  .notes-hub-mascot { right: .5rem; height: 172px; }
   .notes-hub-header-controls,
   .notes-hub-search-and-filters { flex-direction: column; align-items: stretch; }
   .notes-hub-search-and-filters { flex-basis: auto; }
@@ -493,7 +494,7 @@
   .notes-hub-intro__copy { max-width: 72%; }
   .notes-hub-eyebrow { font-size: 0.66rem; }
   .notes-hub-header h1 { font-size: 2.3rem; }
-  .notes-hub-mascot { right: -44px; bottom: -7px; width: 178px; }
+  .notes-hub-mascot { right: .3rem; height: 138px; }
   .notes-hub-page .folder-sidebar { border-radius: 16px; }
   .notes-hub-page .folder-header { display: none; }
   .notes-hub-page .folder-item-wrapper { min-width: 145px; }

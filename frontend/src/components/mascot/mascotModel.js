@@ -1247,15 +1247,17 @@ export const detachPropSet = (baseModel) => {
   anchors.forEach((anchor) => anchor.removeFromParent());
   baseModel.userData.propAnchors = null;
   const rigs = baseModel.userData.armRigs;
-  setHandGrip(rigs?.left, false);
-  setHandGrip(rigs?.right, false);
+  [rigs?.left, rigs?.right].forEach((rig) => {
+    if (rig) rig.gripTilt = 0;
+    setHandGrip(rig, false);
+  });
 };
 
 const syncPropAnchors = (model) => {
   const rigs = model?.userData.armRigs;
   [rigs?.left, rigs?.right].forEach((rig) => {
     if (rig?.holdPivot && rig.gripping) {
-      rig.holdPivot.rotation.z = -(rig.shoulder.rotation.z + rig.wrist.rotation.z);
+      rig.holdPivot.rotation.z = (rig.gripTilt || 0) - (rig.shoulder.rotation.z + rig.wrist.rotation.z);
     }
   });
   model?.userData.propAnchors?.forEach((anchor) => {
@@ -1273,7 +1275,10 @@ const syncPropAnchors = (model) => {
 //   origin is the centre of the handle and +y runs along it;
 // - `anchor_pos` / `anchor_neg`: hanging from the open +x or -x palm;
 // - `anchor_body`: around the midpoint between the fingertips.
-export const attachPropSet = (baseModel, propScene) => {
+// `holdPose.<side>.tilt` (degrees, outward) leans that fist and the handle in
+// it at the wrist, e.g. a pencil pointed like a pointer: tilting the prop
+// alone would push it out through the curled fingers.
+export const attachPropSet = (baseModel, propScene, holdPose = {}) => {
   detachPropSet(baseModel);
   const rigs = baseModel?.userData.armRigs;
   if (!rigs?.left?.handTip || !rigs?.right?.handTip || !propScene) return [];
@@ -1288,6 +1293,7 @@ export const attachPropSet = (baseModel, propScene) => {
     if (gripSide) {
       const rig = rigs[gripSide];
       setHandGrip(rig, true);
+      rig.gripTilt = THREE.MathUtils.degToRad(holdPose[gripSide]?.tilt || 0) * (gripSide === 'right' ? -1 : 1);
       (rig.holdFrame || rig.wrist).add(anchor);
       anchor.position.copy(rig.holdFrame ? getGripCenter(rig) : rig.hand.position);
     } else if (side) {

@@ -32,13 +32,13 @@
 .solve-problems-page .solve-page-intro h1 { max-width:680px; margin:0; font-size:clamp(1.8rem,3.6vw,3.05rem); line-height:1.08; letter-spacing:-0.012em; }
 .solve-problems-page .solve-page-intro p { max-width:620px; margin:.75rem 0 0; color:var(--ace-muted,#696b8e); font-size:clamp(.92rem,1.4vw,1.02rem); line-height:1.65; }
 
+/* ACE carrying a photo to upload (client art, public/mascot-pages). */
 .solve-problems-page .solve-page-mascot {
-  position:absolute; z-index:1; right:clamp(.75rem,5vw,4.5rem); bottom:-14px; width:172px; aspect-ratio:1;
-  background-image:var(--ace-sprite-image);
-  background-position:100% 0%;
-  background-size:200% 200%;
-  background-repeat:no-repeat;
-  filter:drop-shadow(0 18px 22px rgba(83,49,176,.18));
+  --mascot-h:clamp(170px,19vw,236px);
+  position:absolute; z-index:1; top:calc(50% - (var(--mascot-h) / 2)); right:clamp(1rem,5vw,4.5rem);
+  width:auto; height:var(--mascot-h);
+  pointer-events:none; user-select:none;
+  filter:drop-shadow(0 16px 20px rgba(83,49,176,.16));
   animation:solve-mascot-float 4.8s ease-in-out infinite;
 }
 
@@ -156,7 +156,7 @@
 @media (max-width:720px) {
   .solve-problems-page { padding-inline:.85rem; }
   .solve-problems-page .solve-page-intro { min-height:190px; align-items:flex-start; padding-right:7rem; }
-  .solve-problems-page .solve-page-mascot { right:-1rem; width:135px; }
+  .solve-problems-page .solve-page-mascot { --mascot-h:128px; top:auto; bottom:.6rem; right:.2rem; }
   .solve-problems-page .problem-actions, .solve-problems-page .ai-content-tabs { grid-template-columns:1fr; }
   .solve-problems-page .solution-view-header, .solve-problems-page .focus-banner { align-items:flex-start; flex-direction:column; }
   .solve-problems-page .solution-view-meta { text-align:left; }
@@ -167,7 +167,7 @@
   .solve-problems-page .solve-page-intro { min-height:176px; margin-bottom:.75rem; padding:1.25rem 6rem 1.25rem 1.1rem; border-radius:22px; }
   .solve-problems-page .solve-page-intro h1 { font-size:1.45rem; }
   .solve-problems-page .solve-page-intro p { font-size:.82rem; line-height:1.5; }
-  .solve-problems-page .solve-page-mascot { right:-1.5rem; bottom:-.5rem; width:116px; }
+  .solve-problems-page .solve-page-mascot { --mascot-h:104px; right:-.5rem; bottom:.5rem; }
   .solve-problems-page .upload-card { padding:1rem; border-radius:22px; }
   .solve-problems-page .tab-button { min-height:48px; padding-inline:.45rem; font-size:.78rem; }
   .solve-problems-page .image-drop-area, .solve-problems-page .text-input { min-height:220px; }

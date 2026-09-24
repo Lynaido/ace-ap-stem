@@ -442,6 +442,9 @@ export const POSED_VARIANTS = {
       // The witch hat (robe, hat band and buckle materials above the neck)
       // rides higher so the brain shows under its brim.
       headwear: { materials: ['QUAN_AO', 'That_lung', 'pk_non'], fromY: 0.9, lift: 0.12 },
+      // The book-side bell sleeve rises to y≈0.48, above the default arm
+      // band; without this its top stayed put and tore into a flap.
+      frame: { sleeveTop: { fromX: 0.4, maxY: 0.52 } },
     },
   },
   // body_AO_hoodi2.glb (2026-09-14): purple ribbed hoodie and shoes match
@@ -481,7 +484,7 @@ export const PROP_SETS = {
     url: '/mascot/props/graduation.glb',
     label: 'Pencil & books',
     holdArms: ['right', 'left'],
-    holdPose: { right: { down: 12, forward: 8 }, left: { down: 38, forward: 80 } },
+    holdPose: { right: { down: 12, forward: 8, tilt: 30 }, left: { down: 38, forward: 80 } },
   },
 };
 

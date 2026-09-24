@@ -528,7 +528,7 @@ const SolveProblemsPage = () => {
           </h1>
           <p>Upload a problem, choose exactly what you want to work on, and learn with guidance built around your question.</p>
         </div>
-        <div className="solve-page-mascot" aria-hidden="true" />
+        <img className="solve-page-mascot" src="/mascot-pages/solve.webp" alt="" width="900" height="887" aria-hidden="true" />
       </header>
       <div className="solve-problems-layout">
         <div className="main-content">

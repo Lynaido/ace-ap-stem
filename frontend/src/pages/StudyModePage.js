@@ -313,9 +313,12 @@ const StudyModePage = () => {
             </div>
           </div>
           <div className="study-mode-hero-visual">
-            <div
+            <img
               className="study-mode-mascot"
-              style={{ '--ace-sprite': "url('/images/ace-sprite-v2.png')" }}
+              src="/mascot-pages/study-mode.webp"
+              alt=""
+              width="596"
+              height="900"
               aria-hidden="true"
             />
             <div className="study-mode-hero-summary">

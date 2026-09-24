@@ -242,7 +242,7 @@ export const createMascotScene = ({
     try {
       const template = await request;
       if (disposed || requestId !== propRequest) return;
-      attachPropSet(baseModel, template);
+      attachPropSet(baseModel, template, outfit.props.holdPose);
     } catch (error) {
       // Props are optional decoration; the outfit stays usable without them.
     }
