@@ -445,6 +445,9 @@ export const POSED_VARIANTS = {
       // The book-side bell sleeve rises to y≈0.48, above the default arm
       // band; without this its top stayed put and tore into a flap.
       frame: { sleeveTop: { fromX: 0.4, maxY: 0.52 } },
+      // The shared body material is see-through: opaque hands keep the wrists
+      // solid and hide the wand inside the fist.
+      opaqueArms: true,
     },
   },
   // body_AO_hoodi2.glb (2026-09-14): purple ribbed hoodie and shoes match

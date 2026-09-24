@@ -223,16 +223,47 @@ const createArmSkeleton = (model, frame) => {
 //     fixed: [meshName, ...],
 //     headwear: { materials: [...], fromY, lift },
 //     frame: { elbowBlend: [...], ... },
+//     opaqueArms: true,
 //     wave: { side: 'right' | 'left' | 'both', degrees: 22, speed: 9 } }
 // `frame` overrides ARM_FRAME for this character (a softer elbow blend).
 // `wave` swings that forearm about its elbow (see waveCharacterArm).
 // `fixed` meshes (a prop resting in front of the body) never follow an arm.
+// `opaqueArms` draws the arm and hand triangles of a see-through body material
+// (the glassy bulb shares it) with an opaque copy, so the wrists do not look
+// washed out and a held prop does not show through the fist.
 // `target` is where the palm goes (character space, metres) and `pole` the
 // direction the elbow points, given for the left arm and mirrored for the
 // right. `grip` meshes are moved into that hand's fist by their handle
 // (`at` of the way up their long axis, turned `spin` degrees about it, and
 // `shift` metres across a flat prop to hold it by its edge) and the fingers
 // curl around them; `props` meshes simply follow the forearm.
+// Moves the triangles that follow an arm (every corner weighted mostly to the
+// arm bones) of a transparent material into a second group drawn opaque.
+// Returns the material (array) for the mesh.
+const splitOpaqueArms = (geometry, material) => {
+  if (Array.isArray(material) || !material?.transparent) return material;
+  const weights = geometry.getAttribute('skinWeight');
+  const count = geometry.getAttribute('position').count;
+  const index = geometry.getIndex()?.array || Array.from({ length: count }, (_, i) => i);
+  const onArm = (vertex) => weights.getY(vertex) + weights.getZ(vertex) > 0.5;
+  const body = [];
+  const arms = [];
+  for (let t = 0; t + 2 < index.length; t += 3) {
+    const corners = [index[t], index[t + 1], index[t + 2]];
+    (corners.every(onArm) ? arms : body).push(...corners);
+  }
+  if (!arms.length) return material;
+  geometry.setIndex([...body, ...arms]);
+  geometry.clearGroups();
+  geometry.addGroup(0, body.length, 0);
+  geometry.addGroup(body.length, arms.length, 1);
+  const opaque = material.clone();
+  opaque.transparent = false;
+  opaque.depthWrite = true;
+  opaque.opacity = 1;
+  return [material, opaque];
+};
+
 export const poseCharacterArms = (model, hold, baseFrame = ARM_FRAME) => {
   if (!model || !hold || model.userData.armPose) return model?.userData.armPose || null;
   const customFrame = hold.frame ? { ...baseFrame, ...hold.frame } : baseFrame;
@@ -367,7 +398,7 @@ export const poseCharacterArms = (model, hold, baseFrame = ARM_FRAME) => {
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
 
-    const replacement = new THREE.SkinnedMesh(geometry, mesh.material);
+    const replacement = new THREE.SkinnedMesh(geometry, hold.opaqueArms ? splitOpaqueArms(geometry, mesh.material) : mesh.material);
     replacement.name = mesh.name;
     replacement.castShadow = mesh.castShadow;
     replacement.receiveShadow = mesh.receiveShadow;

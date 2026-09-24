@@ -80,3 +80,26 @@ test('shorter arms halve the shoulder-to-wrist stretch and slide the hand in', (
   expect(frame.palmX).toBeCloseTo(ARM_FRAME.palmX - 0.125);
   expect(frame.elbowBlend[0]).toBeLessThan(ARM_FRAME.elbowBlend[0]);
 });
+
+test('opaqueArms draws only the arm triangles of a see-through material opaque', () => {
+  const model = new THREE.Group();
+  const material = new THREE.MeshStandardMaterial({ transparent: true, depthWrite: false });
+  // One quad on the head (x = 0) and one on the hand (x = 0.62).
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    -0.05, 0.8, 0, 0.05, 0.8, 0, 0.05, 0.9, 0, -0.05, 0.9, 0,
+    0.6, 0.34, 0, 0.64, 0.34, 0, 0.64, 0.38, 0, 0.6, 0.38, 0,
+  ], 3));
+  geometry.setIndex([0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7]);
+  const mesh = new THREE.Mesh(geometry, material);
+  model.add(mesh);
+  const { skinned } = poseCharacterArms(model, { opaqueArms: true, left: { target: [0.2, 0.3, 0.3] } });
+  const [head, hand] = skinned[0].material;
+  expect(head).toBe(material);
+  expect(hand.transparent).toBe(false);
+  expect(hand.depthWrite).toBe(true);
+  expect(skinned[0].geometry.groups).toEqual([
+    { start: 0, count: 6, materialIndex: 0 },
+    { start: 6, count: 6, materialIndex: 1 },
+  ]);
+});
