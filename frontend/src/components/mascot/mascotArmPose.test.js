@@ -103,3 +103,32 @@ test('opaqueArms draws only the arm triangles of a see-through material opaque',
     { start: 6, count: 6, materialIndex: 1 },
   ]);
 });
+
+test('wristRoll turns only the hand, and shift moves a fixed prop before posing', () => {
+  const build = () => {
+    const model = new THREE.Group();
+    // A sleeve point on the forearm and a knuckle point on the hand, both
+    // above the arm axis.
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute([
+      0.45, ARM_FRAME.axisY + 0.03, ARM_FRAME.axisZ,
+      0.62, ARM_FRAME.axisY + 0.03, ARM_FRAME.axisZ,
+      0.62, ARM_FRAME.axisY, ARM_FRAME.axisZ + 0.01,
+    ], 3));
+    const arm = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
+    arm.name = 'arm';
+    const book = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.02), new THREE.MeshStandardMaterial());
+    book.name = 'book';
+    model.add(arm, book);
+    return model;
+  };
+  const model = build();
+  const pose = poseCharacterArms(model, { left: { wristRoll: 180 }, fixed: ['book'], shift: { book: [0, 0.05, 0] } });
+  const arm = pose.skinned.find((mesh) => mesh.name === 'arm').geometry.getAttribute('position');
+  // The sleeve keeps its place; the knuckle turns to below the arm axis.
+  expect(arm.getY(0)).toBeCloseTo(ARM_FRAME.axisY + 0.03, 5);
+  expect(arm.getY(1)).toBeCloseTo(ARM_FRAME.axisY - 0.03, 5);
+  const book = pose.skinned.find((mesh) => mesh.name === 'book');
+  book.geometry.computeBoundingBox();
+  expect(book.geometry.boundingBox.getCenter(new THREE.Vector3()).y).toBeCloseTo(0.05, 5);
+});

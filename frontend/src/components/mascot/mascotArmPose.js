@@ -41,6 +41,9 @@ export const ARM_FRAME = {
   handMinX: 0.5,
   handBandY: [0.29, 0.43],
   gripX: 0.617,
+  // `wristRoll` turns only the hand about the arm axis, blending in over this
+  // stretch of the wrist (inside the cuff), so a sleeve is never twisted.
+  wristTwist: [0.5, 0.56],
 };
 
 // Shorter arms (`hold.armLength: { from, to, scale }`): along each arm the
@@ -54,7 +57,7 @@ const shortenReach = (reach, { from, to, scale }) => {
   return reach - ((to - from) * (1 - scale));
 };
 const FRAME_REACH_KEYS = ['elbowX', 'palmX', 'knuckleX', 'handMinX', 'gripX'];
-const FRAME_RANGE_KEYS = ['shoulderBlend', 'elbowBlend', 'torsoX'];
+const FRAME_RANGE_KEYS = ['shoulderBlend', 'elbowBlend', 'torsoX', 'wristTwist'];
 export const shortenArmFrame = (frame, armLength) => {
   const next = { ...frame };
   FRAME_REACH_KEYS.forEach((key) => { next[key] = shortenReach(frame[key], armLength); });
@@ -221,8 +224,9 @@ const createArmSkeleton = (model, frame) => {
 //     right: { ... },
 //     props: { left: [meshName, ...], right: [...] },
 //     fixed: [meshName, ...],
+//     shift: { meshName: [dx, dy, dz] },
 //     headwear: { materials: [...], fromY, lift },
-//     frame: { elbowBlend: [...], ... },
+//     frame: { elbowBlend: [...], ... },   (left/right also take wristRoll)
 //     opaqueArms: true,
 //     wave: { side: 'right' | 'left' | 'both', degrees: 22, speed: 9 } }
 // `frame` overrides ARM_FRAME for this character (a softer elbow blend).
@@ -320,6 +324,46 @@ export const poseCharacterArms = (model, hold, baseFrame = ARM_FRAME) => {
       });
     });
   }
+
+  // `shift: { meshName: [dx, dy, dz] }` moves a mesh (a fixed prop) before
+  // posing, e.g. a book raised so the arm holding it can stay almost straight.
+  Object.entries(hold.shift || {}).forEach(([name, offset]) => {
+    baked.forEach((item) => {
+      if (item.mesh.name !== name && item.mesh.parent?.name !== name) return;
+      item.points.forEach((point) => point.add(new THREE.Vector3().fromArray(offset)));
+    });
+  });
+
+  // Turn a hand palm-up (or sideways) at the wrist instead of rolling the
+  // whole forearm: a forearm roll twists the elbow like a sweet wrapper and
+  // flips a bell sleeve over. The rest arm axis runs along x, so the hand
+  // rolls about that line; props held in it turn with it.
+  ['left', 'right'].forEach((side) => {
+    const degrees = hold[side]?.wristRoll;
+    if (!degrees) return;
+    const sign = side === 'right' ? -1 : 1;
+    const angle = THREE.MathUtils.degToRad(degrees);
+    baked.forEach((item) => {
+      if (item.fixed || item.grip) return;
+      item.points.forEach((point, index) => {
+        if (item.rigid ? item.rigid !== side : (point.x * sign <= 0 || !isArmPoint(point, frame))) return;
+        const t = item.rigid ? 1 : THREE.MathUtils.smoothstep(point.x * sign, frame.wristTwist[0], frame.wristTwist[1]);
+        if (!t) return;
+        const cos = Math.cos(angle * t);
+        const sin = Math.sin(angle * t);
+        const y = point.y - frame.axisY;
+        const z = point.z - frame.axisZ;
+        point.y = frame.axisY + (y * cos) - (z * sin);
+        point.z = frame.axisZ + (y * sin) + (z * cos);
+        const normal = item.normals[index];
+        if (normal) {
+          const ny = normal.y;
+          normal.y = (ny * cos) - (normal.z * sin);
+          normal.z = (ny * sin) + (normal.z * cos);
+        }
+      });
+    });
+  });
 
   // Hats sit higher so the brain shows under the brim, as in the approved
   // renders: `headwear: { materials: [...], fromY, lift }` raises every vertex

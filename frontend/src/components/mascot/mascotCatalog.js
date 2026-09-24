@@ -430,21 +430,34 @@ export const POSED_VARIANTS = {
     url: '/mascot/poses/wizard.glb',
     label: 'Magic wand & spell book',
     brainMaterials: ['toc'],
-    // The wand hand (already curled around the wand) comes in front of the
-    // chest; the other hand cups the open spell book from below, palm up.
+    // The wand hand hangs relaxed at the side, holding the wand like a staff;
+    // the other arm reaches almost straight forward with the hand turned
+    // palm-up at the wrist under the open spell book (client, 2026-09-24:
+    // a bent elbow folded the wide bell sleeve into a sharp crease, and the
+    // raised wand fist sat outside its sleeve).
     hold: {
-      right: { target: [-0.3, 0.3, 0.22], pole: [1, -1, -0.5] },
-      left: { target: [0.2, 0.255, 0.31], pole: [1, -1, -0.4], roll: 180 },
+      right: { target: [-0.42, 0.2, 0.18], pole: [1, -1, -0.5] },
+      left: { target: [0.28, 0.27, 0.41], pole: [1, -1, -0.4], wristRoll: 180 },
       props: { right: ['pCylinder3'] },
       // The open spell book (rebuilt by tmp/build-wizard-book.mjs) stays still
-      // in front of the body; the palm holds it under the spine.
-      fixed: ['spell_book'],
+      // in front of the body, raised to meet the straighter arm. The belt
+      // stays on the robe instead of being tugged by the arms.
+      fixed: ['spell_book', 'polySurface1002'],
+      shift: { spell_book: [0, 0.035, 0.03] },
       // The witch hat (robe, hat band and buckle materials above the neck)
       // rides higher so the brain shows under its brim.
       headwear: { materials: ['QUAN_AO', 'That_lung', 'pk_non'], fromY: 0.9, lift: 0.12 },
-      // The book-side bell sleeve rises to y≈0.48, above the default arm
-      // band; without this its top stayed put and tore into a flap.
-      frame: { sleeveTop: { fromX: 0.4, maxY: 0.52 } },
+      frame: {
+        // The book-side bell sleeve rises to y≈0.48, above the default arm
+        // band; without this its top stayed put and tore into a flap.
+        sleeveTop: { fromX: 0.4, maxY: 0.52 },
+        // A long, soft shoulder blend so the wide sleeve turns forward
+        // without a pinched point at the armpit; the robe at belt height
+        // (below armpitY) stays on the body.
+        shoulderBlend: [0.1, 0.34],
+        torsoX: [0.3, 0.36],
+        armpitY: [0.3, 0.36],
+      },
       // The shared body material is see-through: opaque hands keep the wrists
       // solid and hide the wand inside the fist.
       opaqueArms: true,
