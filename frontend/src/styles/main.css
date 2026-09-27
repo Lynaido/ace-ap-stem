@@ -252,6 +252,25 @@ a:hover {
 .ace-sprite--notes { background-position: 0 100%; }
 .ace-sprite--study { background-position: 100% 100%; }
 
+/* Client art from public/mascot-pages, bobbing gently like the Solve page
+   mascot. Stagger neighbours with animation-delay. */
+.ace-page-art {
+  display: block;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  animation: ace-art-float 4.8s ease-in-out infinite;
+}
+
+@keyframes ace-art-float {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-7px) rotate(1deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ace-page-art { animation: none; }
+}
+
 .ace-section-kicker {
   margin: 0 0 12px;
   color: var(--ace-violet);

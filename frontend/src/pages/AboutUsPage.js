@@ -17,7 +17,7 @@ const HERO_CHARACTERS = [
   { id: 'vest', x: 68.32, y: 82.76, h: 25.83, depth: 2.85 },
   { id: 'long-vest', x: 73.67, y: 53.09, h: 18.92, depth: -1.5 },
   { id: 'cloak', x: 79.72, y: 84.25, h: 26.82, depth: 3.4 },
-  { id: 'graduation', x: 85.77, y: 53.98, h: 19.83, depth: -1.5 },
+  { id: 'graduation', x: 85.73, y: 53.98, h: 21.88, depth: -1.5 },
 ].map((character) => ({ ...character, src: `/hero/acey-${character.id}.webp` }));
 
 const HERO_SPARKLES = [

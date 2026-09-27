@@ -11,7 +11,7 @@ const Footer = () => (
     <section className="ace-mobile-promo" aria-labelledby="ace-mobile-promo-title">
       <div className="ace-mobile-promo__surface">
         <div className="ace-mobile-promo__mascot-frame" aria-hidden="true">
-          <div className="ace-sprite ace-sprite--wave ace-mobile-promo__mascot" />
+          <img className="ace-page-art ace-mobile-promo__mascot" src="/mascot-pages/download-app.webp" alt="" width="900" height="732" loading="lazy" />
         </div>
         <div className="ace-mobile-promo__copy">
           <p className="ace-mobile-promo__label">ACE AP STEM mobile app</p>
@@ -61,9 +61,6 @@ const Footer = () => (
           </div>
         </nav>
 
-        <div className="ace-footer__mascot-wrap" aria-hidden="true">
-          <div className="ace-sprite ace-sprite--notes ace-footer__mascot" />
-        </div>
       </div>
 
       <div className="ace-footer__bottom">

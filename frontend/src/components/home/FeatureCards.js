@@ -29,7 +29,7 @@ const FeatureCards = () => (
             </ul>
             <span className="ace-capability__link">Start solving <FaArrowRight aria-hidden="true" /></span>
           </div>
-          <div className="ace-sprite ace-sprite--solve ace-capability__mascot" aria-hidden="true" />
+          <img className="ace-page-art ace-capability__mascot" src="/mascot-pages/solve.webp" alt="" width="900" height="887" loading="lazy" aria-hidden="true" />
         </Link>
 
         <Link to="/notes-hub" className="ace-capability ace-capability--notes">
@@ -41,7 +41,7 @@ const FeatureCards = () => (
             <p>Organize problems, complete solutions, hints and rendered math in folders you can search.</p>
             <span className="ace-capability__link">Open Notes Hub <FaArrowRight aria-hidden="true" /></span>
           </div>
-          <div className="ace-sprite ace-sprite--notes ace-capability__mascot" aria-hidden="true" />
+          <img className="ace-page-art ace-capability__mascot" src="/mascot-pages/notes-hub.webp" alt="" width="814" height="900" loading="lazy" aria-hidden="true" />
         </Link>
 
         <Link to="/study-mode" className="ace-capability ace-capability--study">
@@ -52,7 +52,7 @@ const FeatureCards = () => (
             <p>Select your material and build the right review experience for the next study session.</p>
             <span className="ace-capability__link">Choose a study mode <FaArrowRight aria-hidden="true" /></span>
           </div>
-          <div className="ace-sprite ace-sprite--study ace-capability__mascot" aria-hidden="true" />
+          <img className="ace-page-art ace-capability__mascot" src="/mascot-pages/study-mode.webp" alt="" width="596" height="900" loading="lazy" aria-hidden="true" />
         </Link>
       </div>
     </div>

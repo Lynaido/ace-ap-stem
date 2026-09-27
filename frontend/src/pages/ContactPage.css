@@ -14,7 +14,9 @@
 .ace-contact__guide span,.ace-contact__email span { margin-top:4px; color:rgba(255,255,255,.68); font-size:.75rem; line-height:1.45; }
 .ace-contact__email a { margin-top:3px; color:#fff; font-size:.82rem; font-weight:800; text-decoration:none; }
 .ace-contact__email a:hover { text-decoration:underline; }
-.ace-contact__mascot { position:absolute; right:-25px; bottom:-14px; width:210px; aspect-ratio:1; background-image:var(--ace-sprite-image); background-position:0 0; background-size:200% 200%; background-repeat:no-repeat; filter:drop-shadow(0 20px 24px rgba(0,0,0,.25)); }
+/* Client art (ACE at a laptop) floats on the pink circle so the eyebrow and
+   headline wrap around it at any width; lower down it covered the help cards. */
+.ace-contact__mascot { float:right; position:relative; z-index:1; width:160px; margin:-34px -36px 8px 0; filter:drop-shadow(0 20px 24px rgba(0,0,0,.25)); }
 .ace-contact__form-panel { display:flex; flex-direction:column; justify-content:center; padding:clamp(36px,5vw,68px); }
 .ace-contact__form-heading h2 { margin:0; font-size:clamp(1.8rem,3vw,2.75rem); letter-spacing:-0.012em; }
 .ace-contact__form-heading p { margin:9px 0 0; color:var(--ace-muted); font-size:.84rem; }
@@ -31,6 +33,6 @@
 .ace-contact__submit:hover:not(:disabled) { background:#5930d4; transform:translateY(-1px); }
 .ace-contact__submit:active:not(:disabled) { transform:translateY(1px); }
 .ace-contact__submit:disabled { opacity:.62; cursor:wait; }
-@media(max-width:840px){.ace-contact__layout{grid-template-columns:1fr}.ace-contact__intro{min-height:520px}.ace-contact__intro h1{max-width:12ch}.ace-contact__mascot{width:180px}}
-@media(max-width:520px){.ace-contact{padding:16px 12px 60px}.ace-contact__layout{border-radius:22px}.ace-contact__intro{min-height:460px;padding:28px 23px}.ace-contact__intro h1{font-size:clamp(2.45rem,13vw,3.6rem)}.ace-contact__mascot{width:145px;right:-18px}.ace-contact__form-panel{padding:30px 20px 36px}.ace-contact__row{grid-template-columns:1fr}.ace-contact__submit{width:100%}}
+@media(max-width:840px){.ace-contact__layout{grid-template-columns:1fr}.ace-contact__intro{min-height:520px}.ace-contact__intro h1{max-width:12ch}.ace-contact__mascot{width:170px}}
+@media(max-width:520px){.ace-contact{padding:16px 12px 60px}.ace-contact__layout{border-radius:22px}.ace-contact__intro{min-height:460px;padding:28px 23px}.ace-contact__intro h1{font-size:clamp(2.45rem,13vw,3.6rem)}.ace-contact__mascot{width:136px;margin:-20px -22px 6px 8px}.ace-contact__form-panel{padding:30px 20px 36px}.ace-contact__row{grid-template-columns:1fr}.ace-contact__submit{width:100%}}
 @media(prefers-reduced-motion:reduce){.ace-contact__field input,.ace-contact__field textarea,.ace-contact__submit{transition:none}}

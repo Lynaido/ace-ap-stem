@@ -24,7 +24,7 @@ const FAQPage = () => (
       </div>
       <div className="ace-faq-page__hero-art" aria-hidden="true">
         <FaQuestionCircle />
-        <div className="ace-faq-page__mascot" />
+        <img className="ace-page-art ace-faq-page__mascot" src="/mascot-pages/faq.webp" alt="" width="900" height="832" />
       </div>
     </section>
 

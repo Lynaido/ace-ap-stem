@@ -165,9 +165,13 @@ export const OUTFITS = [
     url: '/mascot/outfits/graduation/graduation.fbx', unitScale: 1,
     modelOffsetY: 17,
     shoulderOverlap: 1.6,
-    // The mortarboard begins at y=98. A 96 y cutoff leaves a neat fringe
-    // below the cap while removing every hair triangle that could poke up.
-    headwearHairCutoffY: 96,
+    // The cap sits on top of the whole brain, as in the client's Scholar art.
+    // Cropping the brain to a fringe under the board (cutoff 96) left a thin
+    // ring of bubbles around a bare head from behind (client, 2026-09-27).
+    // The board (y 102-108 as supplied), button and tassel rise 10, and the
+    // brain is cut only inside the board, where nothing can poke through.
+    capLift: { fromY: 100, liftY: 10, skullBelowY: 100, skullScale: 0.6 },
+    headwearHairCutoffY: 113,
     // The supplied gown, cap and tassel share one plain white material. Paint
     // them as in the approved Scholar render: a black gown and cap with a gold
     // tassel (cord and tuft hang at x≈-43, its button tops the cap).
@@ -390,6 +394,8 @@ export const POSED_VARIANTS = {
   activewear: {
     url: '/mascot/poses/fashion.glb',
     label: 'Handbag',
+    // Split out of the shared skin mesh by tmp/split-posed-brains.mjs.
+    brainMaterials: ['fashion_brain'],
     hold: {
       left: { target: [0.37, 0.27, 0.09], pole: [1, 0, -1] },
       right: { target: [-0.34, 0.13, 0.08], pole: [1, 0.2, -1] },
@@ -420,6 +426,7 @@ export const POSED_VARIANTS = {
   cloak: {
     url: '/mascot/poses/hooded-jacket.glb',
     label: 'Warm mug',
+    brainMaterials: ['cozy_brain'],
     hold: {
       right: { target: [-0.1, 0.31, 0.3], pole: [1, -1, -0.5] },
       left: { target: [0.07, 0.31, 0.3], pole: [1, -1, -0.5] },

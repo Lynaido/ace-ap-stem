@@ -53,8 +53,8 @@
 }
 
 .ace-mobile-promo__mascot {
-  width: min(100%, 204px);
-  margin: -34px 0 -32px;
+  width: min(100%, 250px);
+  margin: -26px 0 -30px;
   filter: drop-shadow(0 20px 20px rgba(49, 34, 130, 0.28));
 }
 
@@ -147,7 +147,7 @@
 
 .ace-footer__inner {
   display: grid;
-  grid-template-columns: minmax(240px, 0.95fr) minmax(315px, 1.1fr) minmax(150px, 0.48fr);
+  grid-template-columns: minmax(240px, 1fr) minmax(315px, 0.9fr);
   gap: clamp(34px, 5vw, 70px);
   align-items: start;
 }
@@ -218,9 +218,6 @@
 .ace-footer__links h3 { margin: 0 0 9px; color: var(--ace-violet); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; }
 .ace-footer__links a { width: fit-content; color: var(--ace-ink-soft); font-size: 0.9rem; font-weight: 720; transition: color var(--duration-fast) var(--ease-out); }
 .ace-footer__links a:hover { color: var(--ace-violet); }
-.ace-footer__mascot-wrap { position: relative; min-height: 176px; }
-.ace-footer__mascot-wrap::before { position: absolute; inset: 24% 2% 2%; content: ''; border-radius: 50%; background: radial-gradient(ellipse at center, #eee8ff 0%, rgba(238, 232, 255, 0) 70%); }
-.ace-footer__mascot { position: absolute; z-index: 1; width: 204px; right: -24px; bottom: -34px; }
 .ace-footer__bottom { margin: 28px 0 0; padding-top: 19px; display: flex; justify-content: space-between; gap: 20px; border-top: 1px solid var(--ace-border); color: var(--ace-muted); font-size: 0.77rem; }
 .ace-footer__bottom p { margin: 0; }
 
@@ -228,15 +225,14 @@
   .ace-mobile-promo__surface { grid-template-columns: 154px minmax(260px, 1fr); gap: 22px 34px; }
   .ace-mobile-promo__stores { grid-column: 2; }
   .ace-footer__inner { grid-template-columns: minmax(230px, 0.9fr) minmax(300px, 1.1fr); }
-  .ace-footer__mascot-wrap { display: none; }
 }
 
 @media (max-width: 680px) {
   .ace-footer { padding: 34px 18px 20px; }
   .ace-mobile-promo__surface { grid-template-columns: 1fr; gap: 18px; padding: 28px 24px 26px; border-radius: 24px; text-align: center; }
   .ace-mobile-promo__mascot-frame { min-height: 118px; align-items: start; }
-  .ace-mobile-promo__mascot { width: 150px; margin: -46px 0 -46px; }
-  .ace-mobile-promo__copy { margin: -14px auto 0; }
+  .ace-mobile-promo__mascot { width: 200px; margin: -26px 0 0; }
+  .ace-mobile-promo__copy { margin: 0 auto; }
   .ace-mobile-promo__stores { grid-column: auto; grid-template-columns: 1fr; justify-content: center; }
   .ace-mobile-promo__stores a { justify-self: center; }
   .ace-mobile-promo__stores img { height: 46px; }

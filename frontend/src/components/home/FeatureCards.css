@@ -40,7 +40,7 @@
 .ace-capability__link { display: inline-flex; align-items: center; gap: 9px; margin-top: 24px; color: currentColor; font-weight: 900; font-size: 0.88rem; }
 .ace-capability__link svg { transition: transform 180ms ease; }
 .ace-capability:hover .ace-capability__link svg { transform: translateX(4px); }
-.ace-capability__mascot { position: absolute; z-index: 1; }
+.ace-capability__mascot { position: absolute; z-index: 1; filter: drop-shadow(0 18px 22px rgba(68, 42, 151, 0.16)); }
 
 .ace-capability--solve {
   grid-row: 1 / span 2;
@@ -51,7 +51,7 @@
 }
 .ace-capability--solve::after { background: #c7b1ff; }
 .ace-capability--solve .ace-capability__copy { max-width: 65%; }
-.ace-capability--solve .ace-capability__mascot { width: 48%; right: -5%; bottom: -1%; }
+.ace-capability--solve .ace-capability__mascot { width: 50%; max-width: 330px; right: 3%; bottom: 4%; }
 .ace-capability ul { display: grid; gap: 10px; margin: 22px 0 0; padding: 0; list-style: none; color: var(--ace-ink-soft); font-size: 0.86rem; font-weight: 780; }
 .ace-capability li { display: flex; align-items: center; gap: 9px; }
 .ace-capability li svg { color: var(--ace-violet); }
@@ -65,7 +65,9 @@
 .ace-capability--notes::after { background: #ffc49c; }
 .ace-capability--notes h3, .ace-capability--study h3 { max-width: 17ch; font-size: clamp(1.45rem, 2vw, 2.05rem); }
 .ace-capability--notes .ace-capability__copy { max-width: 68%; }
-.ace-capability--notes .ace-capability__mascot { width: 36%; right: -2%; bottom: -3%; }
+/* The Notes Hub art is a bust cut off at the bottom: sink it below the
+   card edge so the float never lifts the cut into view. */
+.ace-capability--notes .ace-capability__mascot { width: 30%; max-width: 176px; right: 4%; bottom: -16px; animation-delay: -1.6s; }
 
 .ace-capability--study {
   padding: 30px 32px;
@@ -75,7 +77,7 @@
 }
 .ace-capability--study::after { background: #93e5c5; }
 .ace-capability--study .ace-capability__copy { max-width: 67%; }
-.ace-capability--study .ace-capability__mascot { width: 36%; right: -2%; bottom: -3%; }
+.ace-capability--study .ace-capability__mascot { width: 24%; max-width: 140px; right: 6%; bottom: 7%; animation-delay: -3.2s; }
 
 .ace-capability__icon { position: absolute; top: 28px; right: 30px; width: 42px; height: 42px; display: grid; place-items: center; border-radius: 14px; background: rgba(255,255,255,.72); color: var(--ace-orange); }
 
@@ -97,9 +99,10 @@
   .ace-capability--notes .ace-capability__copy,
   .ace-capability--study .ace-capability__copy { max-width: 100%; }
   .ace-capability__copy > p:not(.ace-capability__label) { max-width: 100%; }
-  .ace-capability--solve .ace-capability__mascot,
-  .ace-capability--notes .ace-capability__mascot,
-  .ace-capability--study .ace-capability__mascot { width: 54%; right: -3%; bottom: -5%; opacity: 0.92; }
+  .ace-capability--solve { min-height: 520px; }
+  .ace-capability--solve .ace-capability__mascot { width: 46%; right: 3%; bottom: 3%; }
+  .ace-capability--notes .ace-capability__mascot { width: 44%; right: 4%; }
+  .ace-capability--study .ace-capability__mascot { width: 34%; right: 6%; bottom: 5%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

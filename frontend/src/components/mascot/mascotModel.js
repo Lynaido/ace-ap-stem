@@ -1665,6 +1665,52 @@ const boxRule = (rule) => ({
   box: new THREE.Box3(new THREE.Vector3(...rule.min), new THREE.Vector3(...rule.max)),
 });
 
+// Seats a cap on top of the whole brain instead of cropping the brain under
+// it (OUTFITS[].capLift, the mascot's model units). Every connected piece of
+// the garment reaching `fromY` rises by `liftY`, so a tassel hanging below
+// the board moves with it; the cap's skull below `skullBelowY` is drawn in
+// toward the head axis by `skullScale` so it tucks into the brain.
+const liftOutfitCap = (model, lift) => {
+  if (!lift) return;
+  model.updateMatrixWorld(true);
+  const point = new THREE.Vector3();
+  const normal = new THREE.Vector3();
+  model.traverse((node) => {
+    if (!node.isMesh || !node.geometry?.getAttribute('position')) return;
+    const toModel = node.matrixWorld;
+    const { piece, bounds } = getMeshPieces(node.geometry, toModel);
+    const lifted = new Set([...bounds].filter(([, box]) => box.max.y >= lift.fromY).map(([root]) => root));
+    if (!lifted.size) return;
+    const toNode = toModel.clone().invert();
+    const normalToModel = new THREE.Matrix3().getNormalMatrix(toModel);
+    const normalToNode = new THREE.Matrix3().getNormalMatrix(toNode);
+    const positions = node.geometry.getAttribute('position');
+    const normals = node.geometry.getAttribute('normal');
+    for (let index = 0; index < positions.count; index += 1) {
+      if (!lifted.has(piece[index])) continue;
+      point.fromBufferAttribute(positions, index).applyMatrix4(toModel);
+      if (lift.skullScale && point.y < lift.skullBelowY) {
+        point.x *= lift.skullScale;
+        point.z *= lift.skullScale;
+        if (normals) {
+          // Squeezing x and z tips the surface normal the other way.
+          normal.fromBufferAttribute(normals, index).applyMatrix3(normalToModel);
+          normal.set(normal.x / lift.skullScale, normal.y, normal.z / lift.skullScale)
+            .applyMatrix3(normalToNode).normalize();
+          normals.setXYZ(index, normal.x, normal.y, normal.z);
+        }
+      }
+      point.y += lift.liftY;
+      point.applyMatrix4(toNode);
+      positions.setXYZ(index, point.x, point.y, point.z);
+    }
+    positions.needsUpdate = true;
+    if (normals) normals.needsUpdate = true;
+    node.geometry.computeBoundingBox();
+    node.geometry.computeBoundingSphere();
+  });
+};
+
 // Connected pieces of a mesh, welding vertices that share a position (loaders
 // often split vertices along UV and normal seams). Returns each vertex's piece
 // and each piece's bounds in model space.
@@ -1795,6 +1841,8 @@ export const prepareOutfitModel = (model, outfit) => {
   // displayed sleeve material rather than an untinted source color.
   addOutfitArmShrouds(model, outfit);
   applyRegionColors(model, outfit.regionColors);
+  // After the paint, so the vertex colors travel with the cap and tassel.
+  liftOutfitCap(model, outfit.capLift);
   return model;
 };
 

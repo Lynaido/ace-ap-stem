@@ -40,6 +40,7 @@ const ContactPage = () => {
     <div className="ace-contact">
       <section className="ace-contact__layout" aria-labelledby="contact-title">
         <aside className="ace-contact__intro">
+          <img className="ace-page-art ace-contact__mascot" src="/mascot-pages/contact.webp" alt="" width="900" height="760" aria-hidden="true" />
           <p className="ace-contact__eyebrow">Contact ACE AP STEM</p>
           <h1 id="contact-title">Tell us what would make learning better.</h1>
           <p className="ace-contact__lead">Questions, feedback, and product issues are all welcome. Share enough detail for the team to understand what happened.</p>
@@ -55,7 +56,6 @@ const ContactPage = () => {
             <FaEnvelope aria-hidden="true" />
             <div><span>Prefer email?</span><a href="mailto:aceapstem@gmail.com">aceapstem@gmail.com</a></div>
           </div>
-          <div className="ace-contact__mascot" aria-hidden="true" />
         </aside>
 
         <div className="ace-contact__form-panel">

@@ -9,7 +9,7 @@ import './HeroSection.css';
 // the camera that rendered /hero/home-scene.webp (tmp/hero-scene.html).
 const HOME_CHARACTERS = [
   { id: 'classic', x: 51.49, y: 52.56, h: 22, depth: -2.2 },
-  { id: 'graduation', x: 84.83, y: 58.18, h: 21.13, depth: -3.2 },
+  { id: 'graduation', x: 84.79, y: 58.18, h: 23.31, depth: -3.2 },
   { id: 'long-vest', x: 41.39, y: 70.12, h: 23.83, depth: -0.4 },
   { id: 'artist', x: 76.9, y: 67.23, h: 26.08, depth: 0.4 },
   // The Original waves both hands above the desk, so its cutout ends at the
