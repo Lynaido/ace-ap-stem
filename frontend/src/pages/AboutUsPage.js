@@ -11,7 +11,7 @@ import './AboutUsPage.css';
 // the live 3D Acey, so it is not in this list. Front and back rows alternate
 // and everyone stays inside 9–91% of the frame, so no one is cut off.
 const HERO_CHARACTERS = [
-  { id: 'artist', x: 16.05, y: 80.57, h: 26.9, depth: 3.4 },
+  { id: 'artist', x: 15.93, y: 80.57, h: 26.87, depth: 3.4 },
   { id: 'classic', x: 22.31, y: 52.8, h: 18.77, depth: -2.12 },
   { id: 'hoodie', x: 33.18, y: 75.19, h: 26.26, depth: 3 },
   { id: 'vest', x: 68.32, y: 82.76, h: 25.83, depth: 2.85 },

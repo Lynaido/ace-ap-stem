@@ -389,17 +389,27 @@ export const POSED_VARIANTS = {
     },
   },
   // Fashion: body_AO_TT2.glb (lavender top, navy overalls) carrying the purple
-  // tote from the approved render (tmp/build-fashion-bag.mjs). The palm rests
-  // on top of the handle; the bag hangs still at the hip.
+  // tote from the approved render (tmp/build-fashion-bag.mjs). The fist closes
+  // round the top of the handle and the bag hangs straight in front of the hip
+  // (an `upright` grip); the free arm hangs relaxed. Before, the palm only lay
+  // flat on the handle and the free hand was bent to the hip with a sharp
+  // elbow (client, 2026-09-27).
   activewear: {
     url: '/mascot/poses/fashion.glb',
     label: 'Handbag',
     // Split out of the shared skin mesh by tmp/split-posed-brains.mjs.
     brainMaterials: ['fashion_brain'],
     hold: {
-      left: { target: [0.37, 0.27, 0.09], pole: [1, 0, -1] },
-      right: { target: [-0.34, 0.13, 0.08], pole: [1, 0.2, -1] },
-      fixed: ['fashion_tote'],
+      left: {
+        target: [0.34, 0.28, 0.28],
+        pole: [1, -1, -0.5],
+        // Turns the fist so its curl runs along the handle.
+        wristRoll: 25,
+        // `handle` is the top of the handle (TOTE.grip in build-fashion-bag).
+        grip: { meshes: ['fashion_tote'], upright: true, handle: [0.37, 0.25, 0.09] },
+      },
+      right: { target: [-0.46, 0.1, 0.14], pole: [1, -1, -0.6], wristRoll: -40 },
+      frame: { elbowBlend: [0.33, 0.48] },
     },
   },
   // Creative: BODY_AO_HoaSi2.glb — brown beret sitting on the brain, white
@@ -407,18 +417,26 @@ export const POSED_VARIANTS = {
   // the other, open palm (laid flat by tmp/build-artist-palette.mjs; the hand
   // turns palm-up so no finger cuts through it, tipped 40° past flat so the
   // paint faces the viewer).
+  // Both hands turn at the wrist: rolling the whole forearm twisted the
+  // elbows thin, and the brush elbow bent sharply at the hip against the
+  // overalls (client, 2026-09-27). The brush elbow now sits out beside the
+  // body, elbows bend round, and the glassy arms are drawn solid.
   artist: {
     url: '/mascot/poses/artist.glb',
     label: 'Paintbrush & palette',
     brainMaterials: ['Material.008.1001'],
     hold: {
       right: {
-        target: [-0.26, 0.32, 0.25],
-        pole: [1, -1, -0.5],
+        target: [-0.33, 0.31, 0.29],
+        pole: [1, -0.6, -0.6],
+        wristRoll: -90,
         grip: { meshes: ['Cylinder', 'Cylinder001', 'Cylinder002'], at: 0.3 },
       },
-      left: { target: [0.46, 0.27, 0.14], pole: [0.3, -1, -1], roll: 220 },
+      // -140° is the palm-up turn the forearm used to make as 220°.
+      left: { target: [0.46, 0.27, 0.14], pole: [0.3, -1, -1], wristRoll: -140 },
       props: { left: ['Cylinder003'] },
+      frame: { elbowBlend: [0.33, 0.48] },
+      opaqueArms: true,
     },
   },
   // Cozy: body_AoKhoacTrumDau2.glb — pink hooded jacket with the brain

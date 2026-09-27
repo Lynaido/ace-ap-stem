@@ -217,6 +217,10 @@ const createArmSkeleton = (model, frame) => {
   return { skeleton: new THREE.Skeleton(bones), joints };
 };
 
+// The forearm roll of one side's hold: its own `roll`, else thumb-up for a
+// gripping hand that does not turn at the wrist instead.
+const getForearmRoll = (pose) => pose?.roll ?? (pose?.grip && pose.wristRoll === undefined ? -90 : 0);
+
 // Rebuilds a character's visible meshes as skinned meshes on a five-bone arm
 // skeleton, then applies `hold`:
 //   { left: { target: [x, y, z], pole: [out, up, forward], roll,
@@ -240,7 +244,11 @@ const createArmSkeleton = (model, frame) => {
 // right. `grip` meshes are moved into that hand's fist by their handle
 // (`at` of the way up their long axis, turned `spin` degrees about it, and
 // `shift` metres across a flat prop to hold it by its edge) and the fingers
-// curl around them; `props` meshes simply follow the forearm.
+// curl around them; `props` meshes simply follow the forearm. An `upright`
+// grip (`grip: { meshes, upright: true, handle: [x, y, z] }`) keeps the prop
+// as modelled — a handbag still hangs straight — and puts its `handle` point
+// (character space) in the fist. A gripping hand turns thumb-up by rolling
+// the forearm -90° unless the side gives its own `roll` or `wristRoll`.
 // Moves the triangles that follow an arm (every corner weighted mostly to the
 // arm bones) of a transparent material into a second group drawn opaque.
 // Returns the material (array) for the mesh.
@@ -334,17 +342,81 @@ export const poseCharacterArms = (model, hold, baseFrame = ARM_FRAME) => {
     });
   });
 
+  // Hats sit higher so the brain shows under the brim, as in the approved
+  // renders: `headwear: { materials: [...], fromY, lift }` raises every vertex
+  // of those materials above `fromY`.
+  const { headwear } = hold;
+  if (headwear) {
+    baked.forEach((item) => {
+      const names = (Array.isArray(item.mesh.material) ? item.mesh.material : [item.mesh.material]).map((m) => m?.name);
+      if (!names.some((name) => headwear.materials.includes(name))) return;
+      item.points.forEach((point) => { if (point.y >= headwear.fromY) point.y += headwear.lift; });
+    });
+  }
+
+  // Seat gripped props in their fists: handle axis along +z (it turns upright
+  // with the thumb-up roll) and handle point on the grip line. An `upright`
+  // grip undoes the posed hand's rotation instead, so the prop keeps its
+  // modelled orientation, with its `handle` point in the fist.
+  ['left', 'right'].forEach((side) => {
+    const pose = hold[side];
+    const grip = pose?.grip;
+    if (!grip) return;
+    const parts = baked.filter((item) => item.grip === side);
+    const points = parts.flatMap((item) => item.points);
+    if (!points.length) return;
+    const sign = side === 'right' ? -1 : 1;
+    const seat = new THREE.Vector3(sign * frame.gripX, frame.curlCenterY, frame.axisZ);
+    let handlePoint;
+    let turn;
+    if (grip.upright) {
+      const { upper, fore } = solveArmHold(side, { ...pose, roll: getForearmRoll(pose) }, frame);
+      const wrist = new THREE.Quaternion().setFromAxisAngle(
+        new THREE.Vector3(1, 0, 0),
+        THREE.MathUtils.degToRad(pose.wristRoll || 0)
+      );
+      turn = upper.multiply(fore).multiply(wrist).invert();
+      handlePoint = new THREE.Vector3().fromArray(grip.handle);
+    } else {
+      const handle = measureHandle(points, grip.at ?? 0.3, grip.shift || 0);
+      handlePoint = handle.point;
+      turn = new THREE.Quaternion().setFromUnitVectors(handle.axis, new THREE.Vector3(0, 0, 1));
+      turn.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(grip.spin || 0)));
+    }
+    parts.forEach((item) => {
+      item.points.forEach((point) => point.sub(handlePoint).applyQuaternion(turn).add(seat));
+      item.normals.forEach((normal) => normal.applyQuaternion(turn));
+      item.rigid = side;
+    });
+  });
+
+  // Arm weights come from the rest pose. A gripping hand then curls its
+  // fingers around the handle line, still in the rest pose, so a wrist roll
+  // afterwards turns fist and prop together.
+  const gripping = { left: Boolean(hold.left?.grip), right: Boolean(hold.right?.grip) };
+  baked.forEach((item) => {
+    if (item.rigid || item.fixed) return;
+    item.weights = item.points.map((point, index) => {
+      const side = point.x < 0 ? 'right' : 'left';
+      const { upper, fore } = getArmWeights(point, frame);
+      if (gripping[side] && fore > 0.99 && Math.abs(point.x) > frame.handMinX) {
+        curlFinger(point, item.normals[index], side === 'right' ? -1 : 1, frame);
+      }
+      return { side, upper, fore };
+    });
+  });
+
   // Turn a hand palm-up (or sideways) at the wrist instead of rolling the
   // whole forearm: a forearm roll twists the elbow like a sweet wrapper and
   // flips a bell sleeve over. The rest arm axis runs along x, so the hand
-  // rolls about that line; props held in it turn with it.
+  // rolls about that line; props held in it (gripped or not) turn with it.
   ['left', 'right'].forEach((side) => {
     const degrees = hold[side]?.wristRoll;
     if (!degrees) return;
     const sign = side === 'right' ? -1 : 1;
     const angle = THREE.MathUtils.degToRad(degrees);
     baked.forEach((item) => {
-      if (item.fixed || item.grip) return;
+      if (item.fixed) return;
       item.points.forEach((point, index) => {
         if (item.rigid ? item.rigid !== side : (point.x * sign <= 0 || !isArmPoint(point, frame))) return;
         const t = item.rigid ? 1 : THREE.MathUtils.smoothstep(point.x * sign, frame.wristTwist[0], frame.wristTwist[1]);
@@ -365,43 +437,10 @@ export const poseCharacterArms = (model, hold, baseFrame = ARM_FRAME) => {
     });
   });
 
-  // Hats sit higher so the brain shows under the brim, as in the approved
-  // renders: `headwear: { materials: [...], fromY, lift }` raises every vertex
-  // of those materials above `fromY`.
-  const { headwear } = hold;
-  if (headwear) {
-    baked.forEach((item) => {
-      const names = (Array.isArray(item.mesh.material) ? item.mesh.material : [item.mesh.material]).map((m) => m?.name);
-      if (!names.some((name) => headwear.materials.includes(name))) return;
-      item.points.forEach((point) => { if (point.y >= headwear.fromY) point.y += headwear.lift; });
-    });
-  }
-
-  // Seat gripped props in their fists: handle axis along +z (it turns upright
-  // with the thumb-up roll) and handle point on the grip line.
-  ['left', 'right'].forEach((side) => {
-    const grip = hold[side]?.grip;
-    if (!grip) return;
-    const parts = baked.filter((item) => item.grip === side);
-    const points = parts.flatMap((item) => item.points);
-    if (!points.length) return;
-    const handle = measureHandle(points, grip.at ?? 0.3, grip.shift || 0);
-    const sign = side === 'right' ? -1 : 1;
-    const turn = new THREE.Quaternion().setFromUnitVectors(handle.axis, new THREE.Vector3(0, 0, 1));
-    turn.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(grip.spin || 0)));
-    const seat = new THREE.Vector3(sign * frame.gripX, frame.curlCenterY, frame.axisZ);
-    parts.forEach((item) => {
-      item.points.forEach((point) => point.sub(handle.point).applyQuaternion(turn).add(seat));
-      item.normals.forEach((normal) => normal.applyQuaternion(turn));
-      item.rigid = side;
-    });
-  });
-
   const { skeleton, joints } = createArmSkeleton(model, frame);
-  const gripping = { left: Boolean(hold.left?.grip), right: Boolean(hold.right?.grip) };
   const skinned = [];
 
-  baked.forEach(({ mesh, points, normals, rigid, fixed }) => {
+  baked.forEach(({ mesh, points, normals, rigid, fixed, weights }) => {
     const source = mesh.geometry;
     const geometry = source.clone();
     if (geometry.getAttribute('skinIndex')) geometry.deleteAttribute('skinIndex');
@@ -422,11 +461,7 @@ export const poseCharacterArms = (model, hold, baseFrame = ARM_FRAME) => {
         skinIndex[offset] = 0;
         skinWeight[offset] = 1;
       } else {
-        const side = point.x < 0 ? 'right' : 'left';
-        const { upper, fore } = getArmWeights(point, frame);
-        if (gripping[side] && fore > 0.99 && Math.abs(point.x) > frame.handMinX) {
-          curlFinger(point, normals[index], side === 'right' ? -1 : 1, frame);
-        }
+        const { side, upper, fore } = weights[index];
         skinIndex[offset] = 0;
         skinWeight[offset] = 1 - upper - fore;
         skinIndex[offset + 1] = joints[side].upperIndex;
@@ -463,8 +498,7 @@ export const poseCharacterArms = (model, hold, baseFrame = ARM_FRAME) => {
   ['left', 'right'].forEach((side) => {
     const pose = hold[side];
     if (!pose?.target) return;
-    const roll = pose.roll ?? (pose.grip ? -90 : 0);
-    const { upper, fore } = solveArmHold(side, { ...pose, roll }, frame);
+    const { upper, fore } = solveArmHold(side, { ...pose, roll: getForearmRoll(pose) }, frame);
     joints[side].shoulder.quaternion.copy(upper);
     joints[side].elbow.quaternion.copy(fore);
   });

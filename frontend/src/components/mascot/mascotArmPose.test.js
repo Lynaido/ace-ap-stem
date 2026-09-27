@@ -132,3 +132,37 @@ test('wristRoll turns only the hand, and shift moves a fixed prop before posing'
   book.geometry.computeBoundingBox();
   expect(book.geometry.boundingBox.getCenter(new THREE.Vector3()).y).toBeCloseTo(0.05, 5);
 });
+
+test('an upright grip keeps a hanging prop as modelled, with its handle in the fist', () => {
+  const model = new THREE.Group();
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(1.36, 0.05, 0.05), new THREE.MeshStandardMaterial());
+  arm.position.y = ARM_FRAME.axisY;
+  arm.name = 'arms';
+  // A bag hanging below the top of its handle at the left hip.
+  const handle = [0.37, 0.25, 0.09];
+  const bag = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.14, 0.06), new THREE.MeshStandardMaterial());
+  bag.position.set(0.37, 0.105, 0.09);
+  bag.name = 'bag';
+  model.add(arm, bag);
+  model.updateMatrixWorld(true);
+  const corner = (mesh, index) => mesh.getVertexPosition(index, new THREE.Vector3()).applyMatrix4(mesh.matrixWorld);
+  // Two edges of one face (vertices 0-1 run along z, 0-2 along y).
+  const edges = (mesh) => [corner(mesh, 1).sub(corner(mesh, 0)), corner(mesh, 2).sub(corner(mesh, 0))];
+  const restEdges = edges(bag);
+  const fromHandle = corner(bag, 0).sub(new THREE.Vector3(...handle));
+
+  const target = [0.34, 0.28, 0.28];
+  poseCharacterArms(model, {
+    left: { target, pole: [1, -1, -0.5], wristRoll: 25, grip: { meshes: ['bag'], upright: true, handle } },
+  });
+  model.updateMatrixWorld(true);
+  const posed = model.getObjectByName('bag');
+  expect(posed.isSkinnedMesh).toBe(true);
+  // Not turned at all: both edges are unchanged.
+  edges(posed).forEach((edge, index) => {
+    edge.toArray().forEach((value, axis) => expect(value).toBeCloseTo(restEdges[index].getComponent(axis), 5));
+  });
+  // The top of the handle moved from the hip into the fist by the palm target.
+  const handleNow = corner(posed, 0).sub(fromHandle);
+  expect(handleNow.distanceTo(new THREE.Vector3(...target))).toBeLessThan(0.04);
+});
