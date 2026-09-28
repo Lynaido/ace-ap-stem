@@ -1670,7 +1670,7 @@ const boxRule = (rule) => ({
 // the garment reaching `fromY` rises by `liftY`, so a tassel hanging below
 // the board moves with it; the cap's skull below `skullBelowY` is drawn in
 // toward the head axis by `skullScale` so it tucks into the brain.
-const liftOutfitCap = (model, lift) => {
+export const liftOutfitCap = (model, lift) => {
   if (!lift) return;
   model.updateMatrixWorld(true);
   const point = new THREE.Vector3();
@@ -1679,7 +1679,20 @@ const liftOutfitCap = (model, lift) => {
     if (!node.isMesh || !node.geometry?.getAttribute('position')) return;
     const toModel = node.matrixWorld;
     const { piece, bounds } = getMeshPieces(node.geometry, toModel);
-    const lifted = new Set([...bounds].filter(([, box]) => box.max.y >= lift.fromY).map(([root]) => root));
+    const attached = lift.attached && new THREE.Box3(
+      new THREE.Vector3(...lift.attached.min),
+      new THREE.Vector3(...lift.attached.max)
+    );
+    const tasselCord = lift.tasselCord && new THREE.Box3(
+      new THREE.Vector3(...lift.tasselCord.min),
+      new THREE.Vector3(...lift.tasselCord.max)
+    );
+    const tasselPieces = new Set([...bounds].filter(([, box]) => (
+      attached?.containsBox(box) || tasselCord?.containsBox(box)
+    )).map(([root]) => root));
+    const lifted = new Set([...bounds].filter(([, box]) => (
+      box.max.y >= lift.fromY || attached?.containsBox(box)
+    )).map(([root]) => root));
     if (!lifted.size) return;
     const toNode = toModel.clone().invert();
     const normalToModel = new THREE.Matrix3().getNormalMatrix(toModel);
@@ -1689,7 +1702,11 @@ const liftOutfitCap = (model, lift) => {
     for (let index = 0; index < positions.count; index += 1) {
       if (!lifted.has(piece[index])) continue;
       point.fromBufferAttribute(positions, index).applyMatrix4(toModel);
-      if (lift.skullScale && point.y < lift.skullBelowY) {
+      if (tasselPieces.has(piece[index])) {
+        const weight = THREE.MathUtils.clamp((110 - point.y) / 36, 0, 1);
+        point.x += (lift.tasselOutsetX || 0) * weight;
+      }
+      if (lift.skullScale && !tasselPieces.has(piece[index]) && point.y < lift.skullBelowY) {
         point.x *= lift.skullScale;
         point.z *= lift.skullScale;
         if (normals) {

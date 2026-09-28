@@ -17,6 +17,7 @@ import MascotShowcase, {
   getOutfitArmPose,
   getOutfitFloorY,
   liftOutfitGarment,
+  liftOutfitCap,
   OUTFITS,
   removeArtistBeretCrownNub,
   shouldShowSharedBase,
@@ -199,6 +200,35 @@ test('lifts only the arms that hold props', () => {
   expect(lifted.right).toBe(HOLD_ARM_ANGLES.right);
   // Lifted means closer to horizontal than the resting pose.
   expect(Math.abs(lifted.right)).toBeLessThan(Math.abs(REST_ARM_ANGLES.right));
+});
+
+test('lifts the separate Scholar tassel pieces with its cap', () => {
+  const model = new THREE.Group();
+  const parts = [
+    { name: 'cap', x: 0, y: 104 },
+    { name: 'cord', x: -24, y: 90, height: 34, width: 40 },
+    { name: 'collar', x: -43, y: 73 },
+    { name: 'tuft', x: -43, y: 65 },
+    { name: 'gown', x: 0, y: 65 },
+  ];
+  parts.forEach(({ name, x, y, height = 2, width = 2 }) => {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, 2));
+    mesh.name = name;
+    mesh.position.set(x, y, 4);
+    model.add(mesh);
+  });
+  const scholar = OUTFITS.find((outfit) => outfit.id === 'graduation');
+  liftOutfitCap(model, scholar.capLift);
+  model.updateMatrixWorld(true);
+  const worldY = (name) => new THREE.Box3().setFromObject(model.getObjectByName(name)).getCenter(new THREE.Vector3()).y;
+  expect(worldY('cap')).toBeCloseTo(114);
+  expect(worldY('cord')).toBeCloseTo(100);
+  expect(worldY('collar')).toBeCloseTo(83);
+  expect(worldY('tuft')).toBeCloseTo(75);
+  expect(worldY('gown')).toBeCloseTo(65);
+  const worldX = (name) => new THREE.Box3().setFromObject(model.getObjectByName(name)).getCenter(new THREE.Vector3()).x;
+  expect(worldX('tuft')).toBeCloseTo(-52);
+  expect(worldX('gown')).toBeCloseTo(0);
 });
 
 test('shows a props switch that describes what it changes', () => {
@@ -539,7 +569,7 @@ test('uses full headwear masks only for the supplied headwear outfits', () => {
   expect(masks).toEqual({
     '02': 84,
     '06': 70,
-    '09': 96,
+    '09': 113,
     '10': 70,
     '12': 74.5,
   });

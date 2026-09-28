@@ -467,7 +467,8 @@ export const createMascotScene = ({
     // reactions are carried by a larger whole-body motion.
     const bodyEmphasis = activeOutfit?.fullCharacter ? 1.8 : 1;
     companionRoot.position.y = y * bodyEmphasis + moodMotion.y * moodInfluence;
-    companionRoot.rotation.z = tilt * bodyEmphasis + moodMotion.tilt * moodInfluence;
+    companionRoot.rotation.z = tilt * bodyEmphasis
+      + moodMotion.tilt * moodInfluence * (activeOutfit?.idleTiltScale ?? 1);
     companionRoot.rotation.y = turn * bodyEmphasis + moodMotion.turn * moodInfluence;
     floor.position.y = THREE.MathUtils.lerp(floor.position.y, floorTargetY, 0.16);
 

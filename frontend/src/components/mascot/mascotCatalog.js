@@ -170,7 +170,14 @@ export const OUTFITS = [
     // ring of bubbles around a bare head from behind (client, 2026-09-27).
     // The board (y 102-108 as supplied), button and tassel rise 10, and the
     // brain is cut only inside the board, where nothing can poke through.
-    capLift: { fromY: 100, liftY: 10, skullBelowY: 100, skullScale: 0.6 },
+    capLift: {
+      fromY: 100, liftY: 10, skullBelowY: 100, skullScale: 0.6,
+      // The tassel collar and tuft are separate mesh islands below the cord.
+      attached: { min: [-47, 55, 0], max: [-38, 76, 10] },
+      tasselCord: { min: [-45, 70, -3], max: [-4, 109, 10] },
+      // The full brain otherwise hides the tassel from the side and rear.
+      tasselOutsetX: -9,
+    },
     headwearHairCutoffY: 113,
     // The supplied gown, cap and tassel share one plain white material. Paint
     // them as in the approved Scholar render: a black gown and cap with a gold
@@ -184,6 +191,9 @@ export const OUTFITS = [
         { color: '#d8a31f', min: [-43.5, 88.5, 2.5], max: [-39.2, 93, 6.8] },
       ],
       components: [
+        // The hanging tassel is three disconnected pieces. Color the entire
+        // collar and tuft, not only the few vertices inside the narrow bands.
+        { color: '#d8a31f', min: [-47, 38, 0], max: [-38, 61, 10] },
         // Tie: the narrow strip down the front.
         { color: '#d8a31f', min: [-4.2, 6.5, 15.5], max: [4.2, 21, 18.5] },
         // Buttons down the vest front.
@@ -369,6 +379,8 @@ export const POSED_VARIANTS = {
     url: '/mascot/poses/engineer.glb',
     label: 'Wrench & power drill',
     brainMaterials: ['engineer_brain'],
+    // The wide hard hat makes a whole-body Curious lean look off balance.
+    idleTiltScale: 0.2,
   },
   // Healthcare: body_AO_BS2.glb — white lab coat over mint scrubs with the
   // stethoscope around the neck (kept still). The fist holds the clipboard by
@@ -519,13 +531,12 @@ export const PROP_SETS = {
     holdArms: ['left', 'right'],
     holdPose: { left: { down: 16, forward: 72, bend: 40 } },
   },
-  // The approved Scholar render points the pencil out to the side; the other
-  // arm comes down and in to hug a stack of books against the body.
+  // Bend the pencil arm toward the body while the other hugs the books.
   graduation: {
     url: '/mascot/props/graduation.glb',
     label: 'Pencil & books',
     holdArms: ['right', 'left'],
-    holdPose: { right: { down: 12, forward: 8, tilt: 30 }, left: { down: 38, forward: 80 } },
+    holdPose: { right: { down: 32, forward: 50, bend: 38, tilt: 10 }, left: { down: 38, forward: 80 } },
   },
 };
 
