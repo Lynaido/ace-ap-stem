@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { FaArrowDown, FaArrowRight, FaChevronDown, FaChevronLeft, FaChevronRight, FaExternalLinkAlt, FaInstagram, FaTimes, FaUser } from 'react-icons/fa';
 import '@fontsource/caveat/600.css';
 import AceyScene from '../components/home/AceyScene';
@@ -124,18 +123,6 @@ const prefersReducedMotion = () => window.matchMedia?.('(prefers-reduced-motion:
 const Heart = ({ className = '' }) => (
   <svg className={`ace-about__heart ${className}`} viewBox="0 0 24 22" aria-hidden="true">
     <path d="M12 20.5C6 16.3 2 12.6 2 7.9 2 4.9 4.3 2.5 7.2 2.5c2 0 3.7 1.1 4.8 2.8 1.1-1.7 2.8-2.8 4.8-2.8 2.9 0 5.2 2.4 5.2 5.4 0 4.7-4 8.4-10 12.6z" />
-  </svg>
-);
-
-const Star = ({ className = '', style }) => (
-  <svg className={`ace-about__star ${className}`} style={style} viewBox="0 0 40 40" aria-hidden="true">
-    <path d="M20 3.5c1.2 0 2 .7 2.6 2l3.6 7.4 8.1 1.2c1.4.2 2.3.9 2.6 2 .4 1.2-.1 2.2-1.1 3.1l-5.9 5.7 1.4 8.1c.2 1.4-.2 2.5-1.2 3.1-1 .7-2.1.6-3.4-.1L20 32.2 12.8 36c-1.3.7-2.4.8-3.4.1-1-.6-1.4-1.7-1.2-3.1l1.4-8.1-5.9-5.7c-1-1-1.5-1.9-1.1-3.1.3-1.1 1.2-1.8 2.6-2l8.1-1.2 3.6-7.4c.6-1.3 1.4-2 2.6-2z" />
-  </svg>
-);
-
-const Sparkle = ({ className = '', style }) => (
-  <svg className={`ace-about__sparkle ${className}`} style={style} viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M12 1c.6 5.6 2.4 8.9 11 11-8.6 2.1-10.4 5.4-11 11-.6-5.6-2.4-8.9-11-11 8.6-2.1 10.4-5.4 11-11z" />
   </svg>
 );
 
@@ -599,39 +586,6 @@ const AboutUsPage = () => {
             </a>
           </div>
         </aside>
-      </section>
-
-      <section className="ace-about__cta" aria-labelledby="cta-title">
-        <div className="ace-about__cta-sky" aria-hidden="true">
-          <Star className="ace-about__cta-star ace-about__cta-star--1" />
-          <Star className="ace-about__cta-star ace-about__cta-star--2" />
-          <Sparkle className="ace-about__cta-star ace-about__cta-star--3" />
-          <Star className="ace-about__cta-star ace-about__cta-star--4" />
-          <Sparkle className="ace-about__cta-star ace-about__cta-star--5" />
-          <Star className="ace-about__cta-star ace-about__cta-star--6" />
-        </div>
-        <p className="ace-about__hand ace-about__hand--gotthis" aria-hidden="true">You<br />Got<br />This! <Heart /></p>
-        <div className="ace-about__cta-acey" aria-hidden="true">
-          <img src="/about/acey-wave-side.webp" alt="" width="820" height="1000" loading="lazy" />
-          <svg className="ace-about__cta-book" viewBox="0 0 160 70">
-            <path d="M80 18C62 6 34 4 8 10v52c26-6 54-4 72 8 18-12 46-14 72-8V10C126 4 98 6 80 18z" fill="#6c9cf5" />
-            <path d="M80 22C63 11 38 9 14 14v42c24-4 48-2 66 8 18-10 42-12 66-8V14C122 9 97 11 80 22z" fill="#fbf7ff" />
-            <path d="M80 22v42M26 24c14-2 28-1 42 4M26 34c14-2 28-1 42 4M92 28c14-5 28-6 42-4M92 38c14-5 28-6 42-4" stroke="#c9bdf2" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-          </svg>
-          <div className="ace-about__cta-cloud" />
-        </div>
-        <div className="ace-about__cta-copy">
-          <h2 id="cta-title">You bring the question.<br />ACE helps you find the way.</h2>
-          <p>Curious minds. Brighter futures.</p>
-          <div className="ace-about__actions">
-            <Link to="/solve-problems" className="ace-about__btn ace-about__btn--primary">
-              Start learning with ACE <FaArrowRight aria-hidden="true" />
-            </Link>
-            <a href="#acey-story" className="ace-about__btn ace-about__btn--outline">Our story</a>
-          </div>
-        </div>
-        <p className="ace-about__hand ace-about__hand--big" aria-hidden="true">Big<br />Questions<br />Brighter<br />You <Heart /></p>
-        <div className="ace-about__cta-clouds" aria-hidden="true" />
       </section>
 
       {active && (

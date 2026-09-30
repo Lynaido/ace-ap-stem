@@ -467,6 +467,7 @@ export const POSED_VARIANTS = {
     url: '/mascot/poses/wizard.glb',
     label: 'Magic wand & spell book',
     brainMaterials: ['toc'],
+    materialColors: { 'Material.001': '#eeb0d4' },
     // The wand hand hangs relaxed at the side, holding the wand like a staff;
     // the other arm reaches almost straight forward with the hand turned
     // palm-up at the wrist under the open spell book (client, 2026-09-24:
@@ -567,6 +568,7 @@ export const resolveOutfitVariant = (outfit, accessoriesEnabled = true) => {
     modelOffsetY: 0,
     brainMaterials: posed.brainMaterials || [],
     hold: posed.hold,
+    materialColors: posed.materialColors,
     variant: 'posed',
   };
 };

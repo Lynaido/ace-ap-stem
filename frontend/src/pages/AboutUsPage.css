@@ -16,8 +16,6 @@
 /* shared bits */
 .ace-about__hand { margin: 0; color: #6a5ca8; font-family: var(--about-hand); font-weight: 600; line-height: 1.02; }
 .ace-about__heart { display: inline-block; width: .8em; height: .75em; margin-left: .1em; vertical-align: -.05em; fill: none; stroke: currentColor; stroke-width: 2; }
-.ace-about__star { fill: #ffd46b; }
-.ace-about__sparkle { fill: #fff; }
 .ace-about__h2 { margin: 0; font-size: clamp(2rem, 3.4vw, 2.75rem); font-weight: 900; line-height: 1.08; letter-spacing: -0.02em; }
 .ace-about__body { margin: 0; color: var(--ace-muted); font-size: .95rem; line-height: 1.65; }
 .ace-about__who-lead { margin: 18px 0 12px; color: var(--ace-ink-soft); font-size: 1.08rem; line-height: 1.55; }
@@ -391,26 +389,6 @@
 .ace-about__lynae-foot .ace-about__btn svg:first-child { color: #d4478f; }
 
 /* ---------- CTA ---------- */
-.ace-about__cta { position: relative; display: grid; grid-template-columns: minmax(170px, .72fr) minmax(0, 1.5fr) minmax(90px, .38fr); align-items: center; gap: 20px; overflow: hidden; margin-top: 36px; padding: 44px 44px 64px 90px; border-radius: 34px; color: #fff; background: radial-gradient(circle at 20% 110%, #5a3fc4 0%, transparent 45%), radial-gradient(circle at 90% -10%, #3b2fa0 0%, transparent 45%), linear-gradient(135deg, #1c1a66, #2a2083 55%, #231b73); box-shadow: var(--ace-shadow); }
-.ace-about__cta-sky { position: absolute; inset: 0; pointer-events: none; }
-.ace-about__cta-star { position: absolute; fill: #ffd46b; }
-.ace-about__cta-star--1 { left: 30%; top: 14%; width: 26px; }
-.ace-about__cta-star--2 { left: 38%; bottom: 20%; width: 18px; fill: #b8a3ff; }
-.ace-about__cta-star--3 { right: 20%; top: 12%; width: 22px; fill: #fff; opacity: .8; }
-.ace-about__cta-star--4 { right: 30%; bottom: 26%; width: 30px; }
-.ace-about__cta-star--5 { right: 6%; bottom: 30%; width: 18px; fill: #fff; opacity: .7; }
-.ace-about__cta-star--6 { left: 20%; top: 8%; width: 16px; fill: #c9b2ff; }
-.ace-about__hand--gotthis { position: absolute; left: 26px; top: 26px; color: #fff; font-size: 1.35rem; text-align: center; transform: rotate(-8deg); }
-.ace-about__hand--big { position: relative; z-index: 1; color: #fff; font-size: 1.4rem; text-align: center; transform: rotate(6deg); }
-.ace-about__cta-acey { position: relative; z-index: 1; justify-self: center; width: min(230px, 100%); }
-.ace-about__cta-acey img { position: relative; z-index: 1; display: block; width: 78%; height: auto; margin: 0 auto; filter: drop-shadow(0 16px 20px rgba(0, 0, 0, .35)); }
-.ace-about__cta-book { position: absolute; z-index: 2; left: 20%; bottom: 0; width: 60%; transform: rotate(-6deg); filter: drop-shadow(0 10px 12px rgba(0, 0, 0, .25)); }
-.ace-about__cta-cloud { position: absolute; z-index: 0; left: 0; right: 0; bottom: -10%; height: 22%; border-radius: 50% 50% 40% 40%; background: radial-gradient(circle at 30% 40%, #efe6ff, #cbb8f7 70%); box-shadow: -40px 10px 0 -8px #d9cbfa, 44px 12px 0 -10px #d4c3f9; }
-.ace-about__cta-copy { position: relative; z-index: 1; }
-.ace-about__cta-copy h2 { margin: 0; color: #fff; font-size: clamp(1.7rem, 3.2vw, 2.6rem); font-weight: 900; line-height: 1.12; letter-spacing: -0.015em; }
-.ace-about__cta-copy > p { margin: 14px 0 0; color: #cfc5ff; font-size: .78rem; font-weight: 850; letter-spacing: .24em; text-transform: uppercase; }
-.ace-about__cta-copy .ace-about__actions { margin-top: 22px; }
-.ace-about__cta-clouds { position: absolute; left: -2%; right: -2%; bottom: -34px; height: 70px; pointer-events: none; background: radial-gradient(60px 40px at 6% 60%, #4f3db8, transparent 70%), radial-gradient(90px 50px at 22% 70%, #4a37ad, transparent 70%), radial-gradient(120px 60px at 70% 80%, #4a37ad, transparent 70%), radial-gradient(90px 50px at 92% 60%, #5442bf, transparent 70%); opacity: .8; }
 
 /* ---------- viewer ---------- */
 .ace-about__viewer { position: fixed; inset: 0; z-index: 2000; display: grid; place-items: center; padding: 24px; background: rgba(16, 14, 50, .78); backdrop-filter: blur(6px); animation: ace-about-fade 160ms ease; }
@@ -443,8 +421,6 @@
   .ace-about__step:nth-child(2)::after { display: none; }
   .ace-about__founder { grid-template-columns: minmax(0, 1fr) minmax(0, .9fr); }
   .ace-about__lynae { grid-column: 1 / -1; }
-  .ace-about__cta { grid-template-columns: minmax(150px, .6fr) minmax(0, 1.5fr); padding-left: 70px; }
-  .ace-about__hand--big { display: none; }
 }
 @media (max-width: 860px) {
   .ace-about .ace-about__hero { min-height: 0; padding-bottom: 0; background: linear-gradient(180deg, #fbf8ff, #f1e8ff); }
@@ -463,9 +439,6 @@
   .ace-about__hero-cue { display: none; }
   .ace-about__founder { grid-template-columns: minmax(0, 1fr); }
   .ace-about__founder-photo { width: min(400px, 100%); justify-self: center; }
-  .ace-about__cta { grid-template-columns: 1fr; padding: 70px 26px 70px; text-align: center; }
-  .ace-about__cta-acey { width: 190px; }
-  .ace-about__cta-copy .ace-about__actions { justify-content: center; }
 }
 @media (max-width: 640px) {
   .ace-about { padding-inline: 16px; }
@@ -496,7 +469,6 @@
   .ace-about__lynae-motto, .ace-about__btn--soft { white-space: normal; }
   .ace-about__lynae-mark { width: 76px; height: 76px; }
   .ace-about__lynae-foot .ace-about__btn { width: 100%; }
-  .ace-about__hand--gotthis { font-size: 1.1rem; left: 16px; top: 16px; }
   .ace-about__viewer { padding: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {

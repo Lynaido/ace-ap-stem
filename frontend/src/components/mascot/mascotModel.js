@@ -1812,6 +1812,24 @@ export const applyRegionColors = (model, regionColors) => {
   });
 };
 
+// Paints named materials of a designer's character a flat color, for parts
+// whose delivered material reads wrong (the Fantasy ears were plain white).
+const applyMaterialColors = (model, materialColors) => {
+  if (!materialColors) return;
+  model.traverse((node) => {
+    if (!node.isMesh) return;
+    (Array.isArray(node.material) ? node.material : [node.material]).filter(Boolean).forEach((material) => {
+      const hex = materialColors[material.name];
+      if (!hex || !material.color?.isColor) return;
+      material.color.set(hex);
+      // The delivered ear material glows plain white (emissive), so the
+      // color alone would not show.
+      material.emissive?.set(0x000000);
+      material.needsUpdate = true;
+    });
+  });
+};
+
 export const prepareOutfitModel = (model, outfit) => {
   if (outfit.unitScale !== 1) model.scale.multiplyScalar(outfit.unitScale);
   if (outfit.fullCharacter) {
@@ -1821,6 +1839,7 @@ export const prepareOutfitModel = (model, outfit) => {
     // their props the way the approved renders do.
     if (outfit.hold) poseCharacterArms(model, outfit.hold);
     configureModel(model, { keepColors: true });
+    applyMaterialColors(model, outfit.materialColors);
     return model;
   }
   liftOutfitGarment(model, outfit.modelOffsetY, outfit.integratedHood);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaArrowRight, FaChevronDown, FaQuestionCircle } from 'react-icons/fa';
+import { FaArrowRight, FaChevronDown } from 'react-icons/fa';
 import './FAQPage.css';
 
 const FAQ_ITEMS = [
@@ -19,21 +19,16 @@ const FAQPage = () => (
     <section className="ace-faq-page__hero" aria-labelledby="faq-title">
       <div className="ace-faq-page__hero-copy">
         <p>Help center</p>
-        <h1 id="faq-title">Answers for getting more out of ACE.</h1>
-        <span>Start with the most common questions about problems, notes, study sessions, and account access.</span>
+        <h1 id="faq-title">Frequently asked questions</h1>
+        <span>Open a question to read the answer. If your issue is specific to your account or a page error, send the team a message.</span>
+        <Link to="/contact">Contact support <FaArrowRight aria-hidden="true" /></Link>
       </div>
       <div className="ace-faq-page__hero-art" aria-hidden="true">
-        <FaQuestionCircle />
         <img className="ace-page-art ace-faq-page__mascot" src="/mascot-pages/faq.webp" alt="" width="900" height="832" />
       </div>
     </section>
 
     <section className="ace-faq-page__body" aria-label="Frequently asked questions">
-      <div className="ace-faq-page__intro">
-        <h2>Frequently asked questions</h2>
-        <p>Open a question to read the answer. If your issue is specific to your account or a page error, send the team a message.</p>
-        <Link to="/contact">Contact support <FaArrowRight aria-hidden="true" /></Link>
-      </div>
       <div className="ace-faq-page__list">
         {FAQ_ITEMS.map(([question, answer], index) => (
           <details key={question} open={index === 0}>
