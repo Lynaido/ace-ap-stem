@@ -1,0 +1,2 @@
+# Blender automatic backups, never the editable source itself.
+*.blend[0-9]*
