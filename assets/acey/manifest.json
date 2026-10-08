@@ -1,0 +1,66 @@
+{
+  "sourceArchive": "drive-download-20261004T080726Z-1-001.zip",
+  "sourceArchiveSha256": "c349489da2ef830b6a0244ea87e4837e6023200679f7e510dee6461d3c88e844",
+  "files": [
+    {
+      "path": "fbx/body_AO_Totnghiep2.fbx",
+      "bytes": 3498764,
+      "sha256": "d05328cca239fa60e35d9fe93bf1367ee092c5f644ac3d1b7dbf3894a01cea50"
+    },
+    {
+      "path": "fbx/body_AO_TT2.fbx",
+      "bytes": 5723804,
+      "sha256": "8a5e98f560b36d5d599f948cb295be5189446799e9b48c54d0fc87a36a1a7d76"
+    },
+    {
+      "path": "fbx/body_AO_hoodi2.fbx",
+      "bytes": 3811324,
+      "sha256": "b3df6ee3044371cf3854180af512af2819d0aea6e12e625c8d32f253e8b63636"
+    },
+    {
+      "path": "fbx/body_AO_PhuThuy2.fbx",
+      "bytes": 5484236,
+      "sha256": "1d50f7818ad021a9e92e3e263dfe9588eab33d62d160e8d72af87b56b3c63580"
+    },
+    {
+      "path": "fbx/body_AO_vest2.fbx",
+      "bytes": 3981948,
+      "sha256": "9d2144666481c8be0ae28bb94e3138fb4f87141fc98490139a15e47f06973159"
+    },
+    {
+      "path": "fbx/BODY_AO_HoaSi2.fbx",
+      "bytes": 4705916,
+      "sha256": "98aecfd0196eb9b3b868d5590d742c9b107c67562ffe4debc681f85b65415b12"
+    },
+    {
+      "path": "fbx/body_rig_AO_casi2.fbx",
+      "bytes": 3818140,
+      "sha256": "94dc25b7b4f45c6d238779911ea1cd2dbfdc52b907cfae1bc2b90bb2c73f1321"
+    },
+    {
+      "path": "fbx/body_AO_BS2.fbx",
+      "bytes": 2650188,
+      "sha256": "371b6c069826b9583141682eb51eb27adef8a230cc61ca29442f82a9c9a31c2d"
+    },
+    {
+      "path": "fbx/body_AO_CN2.fbx",
+      "bytes": 41950988,
+      "sha256": "99dc55f8174e6e5df44231897248bf276362f9c247f53598f66eabffa5e2d801"
+    },
+    {
+      "path": "fbx/body_AO_Vestdai_doctor.fbx",
+      "bytes": 48591548,
+      "sha256": "557b094b998f074f62c29250dd409122afa616fb71a1c339dbe7ea154aba537f"
+    },
+    {
+      "path": "fbx/mascot_Rig_CN2.fbx",
+      "bytes": 41944716,
+      "sha256": "ec82ea487d7745253a41695c80c6b50244e335e7e199423be38de2b2fc7bea41"
+    },
+    {
+      "path": "fbx/body_AO_CT2.fbx",
+      "bytes": 40978316,
+      "sha256": "4e44af130628b1f8751361775938b3817e520224daf30f5a485fb588211ea7e1"
+    }
+  ]
+}
