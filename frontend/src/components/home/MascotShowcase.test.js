@@ -45,7 +45,7 @@ afterEach(() => {
 test('renders complete mascot personalization controls', () => {
   render(<MascotShowcase />);
 
-  expect(screen.getByRole('heading', { name: /your ace. your vibe./i })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /your acey. your vibe./i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /outfit/i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /^mood$/i })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: /study reactions/i })).toBeInTheDocument();
@@ -74,7 +74,7 @@ test('starts on the Original Acey and gives every other role props with a switch
   expect(outfits[0]).toHaveAccessibleName('Original');
   expect(outfits[0]).toHaveAttribute('aria-pressed', 'true');
   expect(outfits[0]).not.toHaveAccessibleName(/has props/i);
-  expect(screen.getByText(/original ace wears no outfit or props/i)).toBeInTheDocument();
+  expect(screen.getByText(/original acey wears no outfit or props/i)).toBeInTheDocument();
   outfits.slice(1).forEach((button) => expect(button).toHaveAccessibleName(/,\s*has props$/i));
 });
 

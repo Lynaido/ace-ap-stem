@@ -134,7 +134,7 @@ const TutorEmptyState = () => (
     </div>
     <div className="tutor-empty__copy">
       <span className="tutor-eyebrow">No problems yet</span>
-      <h2 id="tutor-empty-title">Solve a problem first, then ask ACE about it.</h2>
+      <h2 id="tutor-empty-title">Solve a problem first, then ask Acey about it.</h2>
       <p>
         The AI Tutor answers questions about a specific problem you are working on — its steps,
         formulas, and concepts. Add your first problem and it will show up here.
@@ -314,7 +314,7 @@ const TutorPage = () => {
 
   let statusText = 'Pick a problem to start';
   if (problems && !hasProblems) statusText = 'Waiting for your first problem';
-  if (selectedProblem) statusText = 'ACE is ready';
+  if (selectedProblem) statusText = 'Acey is ready';
 
   return (
     <div className="tutor-page">
@@ -329,8 +329,8 @@ const TutorPage = () => {
             </h1>
             <p>
               {problems && !hasProblems
-                ? 'Solve a problem first, then ask ACE about any step, formula, or concept in it.'
-                : 'Choose one of your problems, then ask ACE about any step, formula, or concept in it.'}
+                ? 'Solve a problem first, then ask Acey about any step, formula, or concept in it.'
+                : 'Choose one of your problems, then ask Acey about any step, formula, or concept in it.'}
             </p>
           </div>
           <div className={`tutor-status${selectedProblem ? '' : ' is-waiting'}`}>
@@ -493,7 +493,7 @@ const TutorPage = () => {
                     <span className="tutor-step__num">2</span>
                     <h2>Pick a problem to start chatting</h2>
                     <p>
-                      ACE answers best when it knows exactly which problem you mean. Choose one from
+                      Acey answers best when it knows exactly which problem you mean. Choose one from
                       your library and the chat unlocks with its solution, hints, and notes as context.
                     </p>
                     <span className="tutor-locked__hint">

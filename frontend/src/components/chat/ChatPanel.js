@@ -398,7 +398,7 @@ const ChatPanel = ({
           <div className="message assistant thinking" role="status">
             <div className="message-content">
               <span className="chat-dots" aria-hidden="true"><i /><i /><i /></span>
-              <span className="chat-sr-only">ACE is thinking</span>
+              <span className="chat-sr-only">Acey is thinking</span>
             </div>
           </div>
         )}

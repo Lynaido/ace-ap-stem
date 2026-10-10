@@ -8,7 +8,7 @@ const FAQ_ITEMS = [
   ['Which AP subjects are supported?', 'The platform is designed for major AP STEM subjects, including Calculus, Physics, Chemistry, Biology, and Computer Science. Available options may vary by activity.'],
   ['How can I submit a problem?', 'On Solve Problems, you can upload an image or type the problem. If the content contains multiple questions or parts, you can select the exact part you want ACE to address.'],
   ['Can I ask for hints instead of a full solution?', 'Yes. You can request step-by-step hints or concept notes so you can continue solving the problem yourself before viewing a full solution.'],
-  ['What happens when a question has parts such as 2(a) and 2(b)?', 'ACE can identify multiple parts and ask you to choose the full question or one specific part. When a selected part depends on an earlier result, the explanation can use the needed intermediate result.'],
+  ['What happens when a question has parts such as 2(a) and 2(b)?', 'Acey can identify multiple parts and ask you to choose the full question or one specific part. When a selected part depends on an earlier result, the explanation can use the needed intermediate result.'],
   ['What can I save in Notes Hub?', 'You can save learning materials created in the platform, organize them into folders, search your collection, and reopen the saved content for review.'],
   ['What does Study Mode do?', 'Study Mode turns saved material into focused practice. You can choose a session style and work through questions based on the notes you select.'],
   ['Can I use ACE AP STEM on a phone?', 'Yes. The website is designed for modern mobile and desktop browsers, so you can use the current experience directly from your phone without installing a separate app.']
