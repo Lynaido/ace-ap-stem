@@ -32,17 +32,17 @@ describe('brain colors and buddy name', () => {
     expect(getBrainBlend('lavender')).toBeNull();
   });
 
-  it('keeps names short and plain, falling back to ACE', () => {
+  it('keeps names short and plain, falling back to Acey', () => {
     expect(normalizeBuddyName('  Nova   Star ')).toBe('Nova Star');
     expect(normalizeBuddyName('Bé Ốc')).toBe('Bé Ốc');
     expect(normalizeBuddyName('<b>Hi</b>')).toBe('');
     expect(normalizeBuddyName('A'.repeat(21))).toBe('');
     expect(getBuddyName({ name: '' })).toBe(DEFAULT_BUDDY_NAME);
     expect(getBuddyName({ name: 'Pixel' })).toBe('Pixel');
-    // Names saved while the buddy was called Acey show the new name.
-    expect(DEFAULT_BUDDY_NAME).toBe('ACE');
-    expect(getBuddyName({ name: 'Acey' })).toBe('ACE');
-    expect(getBuddyName({ name: ' ACEy ' })).toBe('ACE');
+    // Names saved while the buddy was called ACE show the new name.
+    expect(DEFAULT_BUDDY_NAME).toBe('Acey');
+    expect(getBuddyName({ name: 'ACE' })).toBe('Acey');
+    expect(getBuddyName({ name: ' ace ' })).toBe('Acey');
   });
 
   it('normalizes saved appearance with a color and a name', () => {

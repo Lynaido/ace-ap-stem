@@ -1,70 +1,151 @@
-# Getting Started with Create React App
+# ACE AP STEM
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+**Master AP STEM with Acey.** ACE AP STEM is a web app that helps high-school students work through AP math and science problems. A student uploads a photo or types a problem, and the app guides them with step-by-step hints, concept notes, full solutions and an AI tutor chat, all alongside **Acey**, the study buddy mascot.
 
-## Available Scripts
+Live site: [www.aceapstem.com](https://www.aceapstem.com)
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## Meet Acey
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Acey is the heart of ACE AP STEM: a friendly lightbulb-and-brain character who cheers students on, reacts to their progress and walks new users through the app.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Interactive 3D mascot** built with three.js, with idle motion, moods and study reactions.
+- **12 roles** (Original, Engineer, Healthcare, Scientist, Business, Creative, Singer, Fashion, Scholar, Cozy, Gamer, Fantasy), each with its own outfit and props.
+- **Make Acey yours:** pick an outfit, a brain color, accessories and a custom name from the Dashboard or the Customize Acey page. The look is saved to the student's account.
+- **Guided tour:** Acey introduces the main features the first time a student signs in.
 
-### `npm test`
+## Features
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+| Area | What it does |
+|------|--------------|
+| **Solve Problems** | Upload an image or type a problem. Multi-part questions (for example 2(a) and 2(b)) are detected so the student can choose exactly which part to solve. |
+| **Learning options** | Step-by-step hints, concept notes or the full worked solution, with math rendered by KaTeX. |
+| **AI Tutor** | Pick one of your problems, then chat with Acey about any step, formula or concept in it. |
+| **Notes Hub** | Save problems, solutions and explanations; organize them with folders, tags and stars. |
+| **Study Mode** | Choose a study flow and practice with AI-generated variants of your saved problems. |
+| **Accounts** | Email/password sign-up, sign-in and password reset by email. |
+| **Marketing pages** | Home, About Us (the story of how Acey was designed), FAQ, Contact and Privacy. |
 
-### `npm run build`
+## Tech stack
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 19 (Create React App), React Router, three.js, KaTeX, react-icons |
+| Backend | Node.js 22, Express, TypeScript, Zod validation, Pino logging, Swagger docs |
+| Database | PostgreSQL with Prisma ORM and migrations |
+| AI | OpenAI API (vision for image problems, structured JSON output) |
+| Email | Resend |
+| Hosting | Vercel (frontend), Railway (backend), Supabase (PostgreSQL) |
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Repository layout
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```
+.
+├── frontend/                 React app
+│   ├── public/
+│   │   ├── mascot/           Acey 3D models (body, outfits, poses, props, thumbnails)
+│   │   ├── hero/             Home and About hero scene images
+│   │   └── about/            About Us process images and sketchbook
+│   └── src/
+│       ├── pages/            One component per route
+│       ├── components/
+│       │   ├── acey/         Study buddy: companion, tour, customizer panel
+│       │   ├── mascot/       3D scene, model fitting, arm poses, catalog of roles/colors
+│       │   ├── home/         Landing page sections
+│       │   ├── chat/         AI tutor chat UI
+│       │   └── layout/       App shell, header, footer
+│       ├── context/          Global app state
+│       └── utils/            API client and helpers
+├── backend/                  Express + TypeScript API
+│   ├── src/
+│   │   ├── routes/           REST routes (auth, problems, chat, notes, companion, ...)
+│   │   ├── controllers/      Request handlers
+│   │   ├── services/         OpenAI, chat and email services
+│   │   ├── middleware/       Auth, security headers, error handling
+│   │   └── config/           Environment, logger, database, Swagger
+│   └── prisma/               Database schema, migrations and seed
+├── assets/acey/              Original Acey FBX source files from the 3D team (with checksums)
+├── docs/                     Technical documentation
+└── tmp/                      Asset build and review scripts used during mascot work
+```
 
-### `npm run eject`
+## Getting started (local development)
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Prerequisites
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- Node.js 22 and npm 9+
+- A PostgreSQL database (local or hosted)
+- An OpenAI API key
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### 1. Install
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+npm run install:all
+```
 
-## Learn More
+### 2. Configure the backend
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+cp backend/.env.example backend/.env
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Fill in `backend/.env`. The important values:
 
-### Code Splitting
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_URL`, `DIRECT_URL` | PostgreSQL connection strings |
+| `JWT_SECRET`, `JWT_REFRESH_SECRET` | At least 32 characters each (`node generate-secrets.js` creates them) |
+| `OPENAI_API_KEY` | Powers hints, solutions, concept notes and the tutor |
+| `FRONTEND_URL` | Allowed CORS origin, e.g. `http://localhost:3000` |
+| `API_BASE_URL` | Public URL of the API |
+| `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | Password-reset and contact emails |
+| `PORT` | API port, default `3001` |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Never commit `.env` files; they are git-ignored.
 
-### Analyzing the Bundle Size
+### 3. Set up the database
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```bash
+cd backend
+npx prisma migrate deploy
+npm run db:seed
+```
 
-### Making a Progressive Web App
+### 4. Run
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+In two terminals:
 
-### Advanced Configuration
+```bash
+npm --prefix backend run dev
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```bash
+npm --prefix frontend start
+```
 
-### Deployment
+The frontend opens on `http://localhost:3000` and calls the API at `http://localhost:3001` (override with `REACT_APP_API_URL`). Swagger API docs are served at `http://localhost:3001/api-docs`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## Tests
 
-### `npm run build` fails to minify
+```bash
+cd frontend && CI=true npm test
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```bash
+cd backend && npm test
+```
+
+## Deployment
+
+- **Frontend (Vercel):** the `frontend/` folder is built with `npm run build`. In production the app calls `/backend/*`, which `frontend/vercel.json` rewrites to the Railway API.
+- **Backend (Railway):** builds with `npm run build` (Prisma generate + TypeScript) and runs `prisma migrate deploy` before each deployment.
+- **Database:** PostgreSQL on Supabase. The free plan pauses inactive projects; resume it from the Supabase dashboard if sign-in stops working.
+
+## Mascot assets
+
+The Acey models in `frontend/public/mascot/` are GLB files exported from the design team's 3D work. `components/mascot/mascotCatalog.js` lists every role, color and prop set, and `public/mascot/README.md` documents how each asset was prepared. Scripts in `tmp/` rebuild the web-ready models from the original deliveries, and the untouched FBX sources are kept in `assets/acey/`.
+
+## License
+
+© ACE AP STEM. All rights reserved.

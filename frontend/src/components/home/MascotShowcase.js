@@ -18,9 +18,9 @@ export * from '../mascot/mascotModel';
 const PROP_ROLES = OUTFITS.filter((outfit) => getOutfitAccessories(outfit));
 
 const getSyncLabel = (isAuthenticated, syncStatus) => {
-  if (!isAuthenticated) return 'Sign in to keep ACE with you on every page';
+  if (!isAuthenticated) return 'Sign in to keep Acey with you on every page';
   if (syncStatus === 'offline') return 'Saved on this device. We will sync it to your account.';
-  if (syncStatus === 'loading') return 'Loading your saved ACE…';
+  if (syncStatus === 'loading') return 'Loading your saved Acey…';
   return 'Saved to your account';
 };
 
@@ -41,7 +41,7 @@ const getAccessoryDetail = (accessories, outfit, enabled) => {
 const MascotShowcase = ({ variant = 'landing' }) => {
   const isWorkspace = variant === 'workspace';
   const { appearance, updateAppearance, isAuthenticated, syncStatus } = useAcey();
-  const name = isWorkspace ? getBuddyName(appearance) : 'ACE';
+  const name = isWorkspace ? getBuddyName(appearance) : 'Acey';
   // Scene callbacks read the latest name without rebuilding the 3D scene.
   const nameRef = useRef(name);
   nameRef.current = name;
@@ -224,10 +224,10 @@ const MascotShowcase = ({ variant = 'landing' }) => {
             {isWorkspace ? 'Your study buddy' : <>Meet your new study buddy <span aria-hidden="true">✦</span></>}
           </p>
           {isWorkspace ? (
-            <Heading>Customize ACE.</Heading>
+            <Heading>Customize Acey.</Heading>
           ) : (
             <Heading>
-              <span className="ace-headline-line">Your ACE.</span>{' '}
+              <span className="ace-headline-line">Your Acey.</span>{' '}
               <span className="ace-headline-line">
                 <span className="ace-headline-accent ace-headline-accent--cool">Your vibe.</span>
                 <svg className="ace-headline-spark" viewBox="0 0 20 22" aria-hidden="true" focusable="false">
@@ -252,12 +252,12 @@ const MascotShowcase = ({ variant = 'landing' }) => {
             <div className="mascot-companion-bar__identity">
               <span className="mascot-companion-bar__signal" aria-hidden="true" />
               <div>
-                <strong>ACE is here</strong>
+                <strong>Acey is here</strong>
                 <span>Your personal AP STEM study buddy</span>
               </div>
             </div>
-            <div className="mascot-companion-bar__chat" aria-label="ACE status">
-              <span>ACE</span>
+            <div className="mascot-companion-bar__chat" aria-label="Acey status">
+              <span>Acey</span>
               <p>{announcement}</p>
             </div>
           </div>
@@ -276,7 +276,7 @@ const MascotShowcase = ({ variant = 'landing' }) => {
                 className={`mascot-stage mascot-stage--${activeMoodId}`}
                 ref={stageRef}
                 role="img"
-                aria-label={`Interactive 3D model of ACE wearing the ${activeOutfit.label.toLowerCase()} outfit and feeling ${activeMoodId}`}
+                aria-label={`Interactive 3D model of Acey wearing the ${activeOutfit.label.toLowerCase()} outfit and feeling ${activeMoodId}`}
               >
                 <canvas ref={canvasRef} className="mascot-stage__canvas" />
 
@@ -290,7 +290,7 @@ const MascotShowcase = ({ variant = 'landing' }) => {
                   <div className="mascot-stage__loading" role="status" aria-live="polite">
                     <span>
                       {baseStatus === 'loading'
-                        ? 'Preparing ACE'
+                        ? 'Preparing Acey'
                         : `Changing to ${activeOutfit.label.toLowerCase()}`}
                     </span>
                     {outfitProgress !== null && <strong>{outfitProgress}%</strong>}
@@ -299,7 +299,7 @@ const MascotShowcase = ({ variant = 'landing' }) => {
 
                 {errorMessage && (
                   <div className="mascot-stage__error" role="alert">
-                    <strong>ACE needs a quick reset.</strong>
+                    <strong>Acey needs a quick reset.</strong>
                     <span>{errorMessage}</span>
                     <button type="button" onClick={retryScene}>Try again</button>
                   </div>
@@ -312,7 +312,7 @@ const MascotShowcase = ({ variant = 'landing' }) => {
             <div className="mascot-controls">
               <div className="mascot-controls__heading">
                 <div>
-                  <h3>Customize ACE</h3>
+                  <h3>Customize Acey</h3>
                   <p>Build a look and mood for today's study session.</p>
                 </div>
                 <span className="mascot-controls__status" aria-live="polite">{announcement}</span>
@@ -392,7 +392,7 @@ const MascotShowcase = ({ variant = 'landing' }) => {
                   <div className="mascot-accessory__empty">
                     <p>
                       {activeOutfit.plain
-                        ? 'The Original ACE wears no outfit or props. Pick a role to dress ACE up:'
+                        ? 'The Original Acey wears no outfit or props. Pick a role to dress Acey up:'
                         : `No props for the ${activeOutfit.label} role yet. Its outfit is shown as usual.`}
                     </p>
                     <div className="mascot-accessory__roles">

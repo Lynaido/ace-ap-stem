@@ -61,7 +61,7 @@ const DashboardPage = () => {
           <div className="dashboard-hero__copy">
             <p className="dashboard-eyebrow"><FaMagic aria-hidden="true" /> YOUR LEARNING SPACE</p>
             <h1 id="dashboard-title">Ready for your next win, {firstName}?</h1>
-            <p>Pick a starting point. ACE keeps the useful context with every problem, hint, and note you save.</p>
+            <p>Pick a starting point. Acey keeps the useful context with every problem, hint, and note you save.</p>
             <div className="dashboard-hero__actions">
               <Link to="/solve-problems?create=true">Solve a problem <FaArrowRight aria-hidden="true" /></Link>
               <Link className="dashboard-hero__secondary" to="/notes-hub">Open your notes</Link>
@@ -70,9 +70,9 @@ const DashboardPage = () => {
               </a>
             </div>
           </div>
-          <aside className="dashboard-setup" aria-label="Today with ACE">
+          <aside className="dashboard-setup" aria-label="Today with Acey">
             <span className="dashboard-setup__icon"><FaMagic aria-hidden="true" /></span>
-            <div><strong>Today with ACE</strong><p>Your workspace is ready when you are.</p></div>
+            <div><strong>Today with Acey</strong><p>Your workspace is ready when you are.</p></div>
           </aside>
         </header>
 
@@ -93,7 +93,7 @@ const DashboardPage = () => {
 
         <aside className="dashboard-tip">
           <span className="dashboard-tip__icon"><FaLightbulb aria-hidden="true" /></span>
-          <div><strong>Study tip</strong><p>For a multi-part question, choose the exact part first. ACE will carry the right context into every learning tool.</p></div>
+          <div><strong>Study tip</strong><p>For a multi-part question, choose the exact part first. Acey will carry the right context into every learning tool.</p></div>
           <Link to="/solve-problems?create=true">Try it <FaArrowRight aria-hidden="true" /></Link>
         </aside>
 

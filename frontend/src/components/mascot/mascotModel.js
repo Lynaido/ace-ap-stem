@@ -1,4 +1,4 @@
-// Shared ACE mascot model data and fitting helpers. Used by the landing-page
+// Shared Acey mascot model data and fitting helpers. Used by the landing-page
 // customizer and by the Acey companion that follows learners through the app.
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
@@ -519,7 +519,7 @@ export const removeArtistBeretCrownNub = (model, outfit) => {
   return removed;
 };
 
-// Headwear in the supplied assets is designed to sit over ACE's brain-shaped
+// Headwear in the supplied assets is designed to sit over Acey's brain-shaped
 // hair mesh. The hair is a separate base-model mesh, however, so it can still
 // draw through a helmet, cap, hood, or hat even when the accessory itself is
 // perfectly placed. Keep only whole hair triangles below the measured inner

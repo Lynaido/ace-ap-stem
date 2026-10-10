@@ -45,7 +45,7 @@ export const isWebGLAvailable = () => {
 };
 
 /**
- * Creates the ACE mascot scene on a canvas.
+ * Creates the Acey mascot scene on a canvas.
  *
  * `interactive` enables drag-to-rotate for the customizer. The compact
  * companion disables controls and shadows and renders at a lower frame rate so
@@ -372,7 +372,7 @@ export const createMascotScene = ({
     () => {
       if (disposed) return;
       onBaseStatus('error');
-      onError('Could not load the ACE mascot model.');
+      onError('Could not load the Acey mascot model.');
     }
   );
 
