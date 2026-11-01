@@ -146,6 +146,12 @@ cd backend && npm test
 
 The Acey models in `frontend/public/mascot/` are GLB files exported from the design team's 3D work. `components/mascot/mascotCatalog.js` lists every role, color and prop set, and `public/mascot/README.md` documents how each asset was prepared. Scripts in `tmp/` rebuild the web-ready models from the original deliveries, and the untouched FBX sources are kept in `assets/acey/`.
 
+## Sources & citations
+
+Claude (Anthropic) assisted during development with the GLB pipeline, outfit system, IK arm rig, and motion system. The running app uses the OpenAI GPT-4o / GPT-4o-mini API to interpret problem images and generate hints, concept notes, solutions, practice variants, and tutor chat.
+
+Original Acey 3D models and outfits were supplied by the project's 3D design team through the project owner. The app also uses third-party libraries, fonts, icons, and hosting services. See [Sources & citations](SOURCES_AND_CITATIONS.md) for credits, documentation links, dependency references, and asset-provenance notes.
+
 ## License
 
 © ACE AP STEM. All rights reserved.
