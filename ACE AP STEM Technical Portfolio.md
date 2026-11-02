@@ -3,7 +3,7 @@
 ## Programming Deep Dive for Competition Judges
 
 **Application Name:** ACE AP STEM
-**Developer:** [Student Name]
+**Developer:** Linh A. Do (Lyna)
 **Competition:** ACE AP STEM Technical Portfolio
 **Document Version:** 2.0
 
@@ -11,7 +11,7 @@
 
 ## How to Read This Document
 
-This document expands on the programming slides from the ACE AP STEM presentation. Each section maps directly to a specific slide, explaining **what the slide demonstrates** and **why it matters** from a software engineering perspective. Code excerpts are kept concise with explanations to show understanding, not just copy-paste ability.
+This document expands on the programming slides from the ACE AP STEM presentation. Each section maps directly to a specific slide, explaining **what the slide demonstrates** and **why it matters** from a software engineering perspective. Code excerpts are kept concise with explanations to show understanding.
 
 ---
 

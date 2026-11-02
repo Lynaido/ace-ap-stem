@@ -1,7 +1,6 @@
 # Acey model sources
 
-The project owner supplied `drive-download-20261004T080726Z-1-001.zip` on
-2026-10-08. This directory preserves all 12 original binary FBX models without
+The project owner supplied `drive-download-20261004T080726Z-1-001.zip`. This directory preserves all 12 original binary FBX models without
 conversion, mesh edits, renaming, or compression changes. `manifest.json`
 records each extracted file's byte count and SHA-256 checksum, verified against
 the decompressed archive entry.

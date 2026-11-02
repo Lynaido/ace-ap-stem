@@ -1,6 +1,6 @@
 # ACE AP STEM
 
-**Master AP STEM with Acey.** ACE AP STEM is a web app that helps high-school students work through AP math and science problems. A student uploads a photo or types a problem, and the app guides them with step-by-step hints, concept notes, full solutions and an AI tutor chat, all alongside **Acey**, the study buddy mascot.
+**Master AP STEM with Acey.** ACE AP STEM is a web app that helps high-school students work through AP STEM problems. A student uploads a photo or types a problem, and the app guides them with step-by-step hints, concept notes, full solutions and an AI tutor chat, all alongside **Acey**, the study buddy mascot.
 
 Live site: [www.aceapstem.com](https://www.aceapstem.com)
 
@@ -144,7 +144,7 @@ cd backend && npm test
 
 ## Mascot assets
 
-The Acey models in `frontend/public/mascot/` are GLB files exported from the design team's 3D work. `components/mascot/mascotCatalog.js` lists every role, color and prop set, and `public/mascot/README.md` documents how each asset was prepared. Scripts in `tmp/` rebuild the web-ready models from the original deliveries, and the untouched FBX sources are kept in `assets/acey/`.
+The Acey models in `frontend/public/mascot/` are GLB files exported from the 3D work modeled in Blender. `components/mascot/mascotCatalog.js` lists every role, color and prop set, and `public/mascot/README.md` documents how each asset was prepared. Scripts in `tmp/` rebuild the web-ready models from the original deliveries, and the untouched FBX sources are kept in `assets/acey/`.
 
 ## License
 

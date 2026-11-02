@@ -789,6 +789,4 @@ logger.error('AI generation failed', {
 - **Prettier**: Automatic code formatting
 - **Commit Conventions**: Conventional commit messages
 
-This technical documentation provides a comprehensive overview of the AAS project architecture, implementation details, and operational guidelines. It serves as both a reference for current developers and an onboarding guide for new team members.
-
-For questions or updates to this documentation, please contact the development team or submit a pull request with proposed changes.
+This technical documentation provides a comprehensive overview of the AAS project architecture, implementation details, and operational guidelines. 
