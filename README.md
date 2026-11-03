@@ -65,7 +65,7 @@ Acey is the heart of ACE AP STEM: a friendly lightbulb-and-brain character who c
 │   │   ├── middleware/       Auth, security headers, error handling
 │   │   └── config/           Environment, logger, database, Swagger
 │   └── prisma/               Database schema, migrations and seed
-├── assets/acey/              Original Acey FBX source files from the 3D team (with checksums)
+├── assets/acey/              Original Acey FBX source files (with checksums)
 ├── docs/                     Technical documentation
 └── tmp/                      Asset build and review scripts used during mascot work
 ```
